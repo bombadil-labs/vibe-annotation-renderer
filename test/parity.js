@@ -9,13 +9,13 @@ const base = { kaomoji: "( ˶ˆ ꒳ ˆ˵ )", seems: "a", feel: "b", trying: "c",
 console.log("structure");
 let s = buildSVG(base);
 ok(s.startsWith("<svg") && s.endsWith("</svg>"), "well-formed <svg>…</svg>");
-ok(/viewBox="0 0 680 129"/.test(s), "3-row banner is H=129");
+ok(/viewBox="0 0 680 107"/.test(s), "3-row banner is H=107 (tightened spacing)");
 ok((s.match(/<text /g) || []).length === 4, "3 readout rows + 1 face = 4 <text>");
 ok(/\[user\]/.test(s) && /\[mood\]/.test(s) && /\[goal\]/.test(s), "labels [user]/[mood]/[goal] present");
 
 console.log("optional [note] adds a row");
 let n = buildSVG(Object.assign({}, base, { noticing: "peripheral" }));
-ok(/viewBox="0 0 680 161"/.test(n), "4-row banner is H=161");
+ok(/viewBox="0 0 680 132"/.test(n), "4-row banner is H=132 (tightened spacing)");
 ok(/\[note\]/.test(n) && (n.match(/<text /g) || []).length === 5, "[note] present, 5 <text>");
 
 console.log("goal wrap");
@@ -33,6 +33,10 @@ ok(rx0 < 60, "engagement 0 shrinks the field hard (rx0=" + rx0 + ")");
 console.log("empty palette = neutral grey, not amber");
 let neut = buildSVG(Object.assign({}, base, { palette: [] }));
 ok(/fill="#a7a29b"/.test(neut), "no palette → neutral #a7a29b");
+
+console.log("conviction draws rings");
+ok(!/stroke="#/.test(buildSVG(base)), "no rings by default");
+ok(/stroke="#/.test(buildSVG(Object.assign({}, base, { conviction: 0.3 }))), "low conviction adds outline rings");
 
 console.log("flags render");
 ok(/opacity="0.9"/.test(buildSVG(Object.assign({}, base, { spark: true }))), "spark adds a glow group");

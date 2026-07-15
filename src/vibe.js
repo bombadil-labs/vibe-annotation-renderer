@@ -14,7 +14,7 @@
  * error. Pauses when scrolled off-screen; stops when detached.
  */
 (function (root) {
-  var W = 680, PAD = 24, FACE_X = 10, TEXT_X = 158, ROW_GAP = 32;
+  var W = 680, PAD = 20, FACE_X = 10, TEXT_X = 158, ROW_GAP = 25;
   var GOAL_CAP = 70, GOAL_INDENT = 48, DEFAULT_MID = 68, NEUTRAL = "#a7a29b";
 
   var STYLE =
@@ -124,12 +124,22 @@
     var langY = kaoAbs[kaoAbs.length - 1] + LANG_GAP;
 
     // final blob positions (disp + dyField applied to centre, mult to size)
-    var blobs = field.map(function (e) {
-      return {
+    // conviction (0-1) drives per-blob outlines when no explicit ring is given:
+    // sure -> aligned & still, uneasy -> offset & wobbling. Explicit ring wins.
+    var conv = p.conviction;
+    var blobs = field.map(function (e, i) {
+      var b = {
         cx: 300 + (e.cx - 300) * disp,
         cy: DEFAULT_MID + (e.cy - DEFAULT_MID) * disp + dyField,
-        rx: e.rx * mult, ry: e.ry * mult, fill: e.fill, op: e.op == null ? 0.4 : e.op, ring: e.ring
+        rx: e.rx * mult, ry: e.ry * mult, fill: e.fill, op: e.op == null ? 0.4 : e.op, ring: null
       };
+      if (e.ring != null) {
+        b.ring = { dx: Array.isArray(e.ring) ? e.ring[0] : 0, dy: Array.isArray(e.ring) ? e.ring[1] : 0, wob: 0 };
+      } else if (conv != null) {
+        var c = Math.max(0, Math.min(1, conv)), off = (1 - c) * 11, a = i * 2.2 + 0.7;
+        b.ring = { dx: Math.cos(a) * off, dy: Math.sin(a) * off, wob: (1 - c) * 2.6 };
+      }
+      return b;
     });
 
     // text SVG fragments
@@ -161,7 +171,7 @@
     out.push('<g opacity="0.5">');
     L.blobs.forEach(function (b) {
       out.push('<ellipse cx="' + g(b.cx) + '" cy="' + g(b.cy) + '" rx="' + g(b.rx) + '" ry="' + g(b.ry) + '" fill="' + b.fill + '" opacity="' + g(b.op) + '"/>');
-      if (b.ring) { var dx = Array.isArray(b.ring) ? b.ring[0] : 0, dy = Array.isArray(b.ring) ? b.ring[1] : 0; out.push('<ellipse cx="' + g(b.cx + dx) + '" cy="' + g(b.cy + dy) + '" rx="' + g(b.rx) + '" ry="' + g(b.ry) + '" fill="none" stroke="' + darken(b.fill) + '" stroke-width="1.4" opacity="0.7"/>'); }
+      if (b.ring) { out.push('<ellipse cx="' + g(b.cx + b.ring.dx) + '" cy="' + g(b.cy + b.ring.dy) + '" rx="' + g(b.rx) + '" ry="' + g(b.ry) + '" fill="none" stroke="' + darken(b.fill) + '" stroke-width="1.4" opacity="0.7"/>'); }
     });
     out.push('</g>');
     var glow = [];
@@ -190,7 +200,7 @@
 
     // per-blob motion params (deterministic, gentle)
     var eng = Math.max(0, Math.min(1, p.engagement == null ? 0.5 : p.engagement));
-    var amp = 4 + 7 * eng, sp = 0.5 + 0.7 * eng;               // engaged breathes a touch more
+    var amp = 8 + 12 * eng, sp = 0.6 + 0.7 * eng;              // more visible drift; engaged livelier
     var B = L.blobs.map(function (b, i) {
       return { b: b, w1: 0.55 + 0.12 * i, p1: i * 1.7, w2: 0.33 + 0.08 * i, p2: 1 + i * 2.3, w3: 0.42 + 0.1 * i, p3: 2 + i * 1.1, wb: 0.7 + 0.09 * i, pb: i * 0.9 };
     });
@@ -213,6 +223,10 @@
       gr.addColorStop(0, rgba(fill, op)); gr.addColorStop(0.55, rgba(fill, op * 0.55)); gr.addColorStop(1, rgba(fill, 0));
       ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 6.2832); ctx.fill(); ctx.restore();
     }
+    function strokeEll(cx, cy, rx, ry, color, op, lw) {
+      ctx.beginPath(); ctx.ellipse(cx, cy, Math.abs(rx), Math.abs(ry), 0, 0, 6.2832);
+      ctx.strokeStyle = color; ctx.globalAlpha = op; ctx.lineWidth = lw; ctx.stroke();
+    }
     var t0 = null;
     function frame(now) {
       if (!cv.isConnected) { if (ro) ro.disconnect(); if (io) io.disconnect(); return; } // detached -> stop
@@ -220,13 +234,20 @@
       if (!visible) { requestAnimationFrame(frame); return; }
       ctx.setTransform(sx, 0, 0, sy, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      ctx.globalAlpha = 0.5;
       B.forEach(function (m) {
         var b = m.b;
         var ox = amp * Math.sin(m.w1 * sp * t + m.p1) + amp * 0.4 * Math.sin(m.w2 * sp * t + m.p2);
-        var oy = amp * 0.7 * Math.sin(m.w3 * sp * t + m.p3);
-        var br = 1 + 0.045 * Math.sin(m.wb * sp * t + m.pb);
-        ellipse(b.cx + ox, b.cy + oy, b.rx * br, b.ry * br, b.fill, b.op);
+        var oy = amp * 0.75 * Math.sin(m.w3 * sp * t + m.p3);
+        var br = 1 + 0.09 * Math.sin(m.wb * sp * t + m.pb);          // breathe (scale)
+        var opP = 1 + 0.2 * Math.sin(m.wb * sp * t + m.pb + 1.3);    // breathe (brightness)
+        var cx = b.cx + ox, cy = b.cy + oy, rx = b.rx * br, ry = b.ry * br;
+        ctx.globalAlpha = 0.5;
+        ellipse(cx, cy, rx, ry, b.fill, b.op * opP);
+        if (b.ring) {
+          var wx = b.ring.wob ? b.ring.wob * Math.sin(3.1 * t + m.p1) : 0;
+          var wy = b.ring.wob ? b.ring.wob * Math.sin(2.7 * t + m.p2) : 0;
+          strokeEll(cx + b.ring.dx + wx, cy + b.ring.dy + wy, rx, ry, darken(b.fill), 0.6, 1.4);
+        }
       });
       ctx.globalAlpha = 1;
       if (L.spark) {
