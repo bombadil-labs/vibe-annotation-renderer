@@ -294,18 +294,25 @@
         }
         ctx.globalAlpha = 1;
       }
-      if (L.laugh) {                                                                                // burst of motes with the bounce
-        var lt2 = t % 3.4;
-        if (lt2 < 0.9) {
-          ctx.fillStyle = "#f4e6b0";
-          for (var li = 0; li < 6; li++) {
-            var lprog = lt2 / 0.9, lang = (li / 6) * 6.2832 + 0.3, lr = lprog * (30 + (li % 3) * 12);
-            var lx = 310 + Math.cos(lang) * lr, ly = cyC - 12 - lprog * 26 + Math.sin(lang) * lr * 0.4;
-            ctx.globalAlpha = 0.5 * (1 - lprog);
-            ctx.beginPath(); ctx.arc(lx, ly, 2 + (1 - lprog) * 2, 0, 6.2832); ctx.fill();
+      if (L.laugh) {                                                                                // bright yellow laughter-marks bursting around the face
+        var lt2 = t % 3.4, cyc = Math.floor(t / 3.4);
+        ctx.strokeStyle = "#ffdf3a"; ctx.lineWidth = 1.7; ctx.lineCap = "round";
+        for (var li = 0; li < 6; li++) {
+          var mp = lt2 - li * 0.1;
+          if (mp < 0 || mp > 0.55) continue;
+          var pop = Math.sin((mp / 0.55) * Math.PI);           // emerge then fade
+          var lmx = 6 + ((li * 37 + cyc * 53) % 96), lmy = cyC - 34 + ((li * 47 + cyc * 29) % 74);
+          var sz = 3 + pop * 5, rot = li * 0.9 + cyc;
+          ctx.globalAlpha = 0.85 * pop;
+          for (var r = 0; r < 2; r++) {
+            var ang = r * Math.PI / 2 + rot;
+            ctx.beginPath();
+            ctx.moveTo(lmx - Math.cos(ang) * sz, lmy - Math.sin(ang) * sz);
+            ctx.lineTo(lmx + Math.cos(ang) * sz, lmy + Math.sin(ang) * sz);
+            ctx.stroke();
           }
-          ctx.globalAlpha = 1;
         }
+        ctx.globalAlpha = 1;
       }
       requestAnimationFrame(frame);
     }
