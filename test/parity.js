@@ -34,19 +34,13 @@ console.log("empty palette = neutral grey, not amber");
 let neut = buildSVG(Object.assign({}, base, { palette: [] }));
 ok(/fill="#a7a29b"/.test(neut), "no palette → neutral #a7a29b");
 
-console.log("conviction draws rings");
-ok(!/stroke="#/.test(buildSVG(base)), "no rings by default");
-ok(/stroke="#/.test(buildSVG(Object.assign({}, base, { conviction: 0.3 }))), "low conviction adds outline rings");
-
 console.log("flags render");
 ok(/opacity="0.9"/.test(buildSVG(Object.assign({}, base, { spark: true }))), "spark adds a glow group");
 ok(/rotate\(/.test(buildSVG(Object.assign({}, base, { excited: true }))), "excited adds rotated sparkles");
 
-console.log("history trajectory strip");
-let hh = buildSVG(Object.assign({}, base, { history: [{ v: .4, f: .6, c: .5 }, { v: .6, f: .5, c: .7 }, { v: .5, f: .7, c: .6 }] }));
-ok(!/<polyline/.test(buildSVG(base)), "no history → no strip");
-ok((hh.match(/<polyline/g) || []).length === 3, "history draws 3 sparklines (valence/focus/confidence)");
-ok(/viewBox="0 0 680 133"/.test(hh), "history adds a 26px bottom strip (107→133)");
+console.log("no rings or strip (pruned)");
+ok(!/stroke="#/.test(buildSVG(Object.assign({}, base, { conviction: 0.3 }))), "conviction is ignored — no ring outlines");
+ok(!/<polyline/.test(buildSVG(Object.assign({}, base, { history: [{ v: .4 }, { v: .6 }] }))), "history is ignored — no strip");
 
 console.log(fails ? "\nFAILED (" + fails + ")" : "\nALL PASS");
 process.exit(fails ? 1 : 0);

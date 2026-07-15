@@ -15,7 +15,7 @@
  */
 (function (root) {
   var W = 680, PAD = 20, FACE_X = 10, TEXT_X = 158, ROW_GAP = 25;
-  var GOAL_CAP = 70, GOAL_INDENT = 48, DEFAULT_MID = 68, NEUTRAL = "#a7a29b", STRIP_H = 26;
+  var GOAL_CAP = 70, GOAL_INDENT = 48, DEFAULT_MID = 68, NEUTRAL = "#a7a29b";
 
   var STYLE =
     ".txt{paint-order:stroke;stroke:#fff8ec;stroke-linejoin:round}" +
@@ -83,29 +83,6 @@
   }
   function wide(lbl) { for (var i = 0; i < lbl.length; i++) if (lbl.codePointAt(i) > 0x3000) return 17; return lbl.length * 7.2 + 3; }
 
-  // ---- trajectory strip: the conversation's mood arc over the last ~20 turns ----
-  function clamp01(v) { return Math.max(0, Math.min(1, v == null ? 0.5 : v)); }
-  function normalizeHistory(hist) {
-    if (!hist || !hist.length) return [];
-    return hist.slice(-20).map(function (h) {
-      return { v: clamp01(h.v != null ? h.v : h.valence), f: clamp01(h.f != null ? h.f : h.focus), c: clamp01(h.c != null ? h.c : h.confidence) };
-    });
-  }
-  var STRIP_DIMS = [["v", "#c98fa8"], ["f", "#7f96b8"], ["c", "#7faa93"]];   // valence / focus / confidence
-  var STRIP_NAMES = { v: "valence", f: "focus", c: "confidence" };
-  function stripSVG(hist, top, bot) {
-    if (hist.length < 2) return "";
-    var xL = 16, xR = W - 16, bandH = bot - top, out = '<g opacity="0.62">';
-    STRIP_DIMS.forEach(function (d) {
-      var pts = hist.map(function (h, i) { return g(xL + i * (xR - xL) / (hist.length - 1)) + "," + g(bot - h[d[0]] * bandH); }).join(" ");
-      var ly = bot - hist[hist.length - 1][d[0]] * bandH;
-      out += '<g><title>' + STRIP_NAMES[d[0]] + '</title>' +
-        '<polyline points="' + pts + '" fill="none" stroke="' + d[1] + '" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>' +
-        '<circle cx="' + g(xR) + '" cy="' + g(ly) + '" r="1.8" fill="' + d[1] + '"/></g>';
-    });
-    return out + '</g>';
-  }
-
   /* ---- shared layout: everything static & animated both need ---- */
   function layout(p) {
     var field = (p.field && p.field.length) ? p.field
@@ -140,29 +117,19 @@
     var topExtent = Math.max(kaoH, rightH) / 2;
     var langDepth = langs.length ? (kaoH / 2 - kaoDescent) + LANG_GAP + LANG_DESC : 0;
     var bottomExtent = Math.max(kaoH / 2, rightH / 2, langDepth);
-    var contentH = Math.round(PAD + topExtent + bottomExtent + PAD);
+    var H = Math.round(PAD + topExtent + bottomExtent + PAD);
     var coreCy = PAD + topExtent, dyField = coreCy - DEFAULT_MID;
     var kaoAbs = kaoLines.map(function (_, i) { return coreCy - kaoH / 2 + kaoAscent + i * kaoLh; });
     var rightAbs = lines.map(function (_, i) { return coreCy - rightH / 2 + 11 + i * ROW_GAP; });
     var langY = kaoAbs[kaoAbs.length - 1] + LANG_GAP;
 
     // final blob positions (disp + dyField applied to centre, mult to size)
-    // conviction (0-1) drives per-blob outlines when no explicit ring is given:
-    // sure -> aligned & still, uneasy -> offset & wobbling. Explicit ring wins.
-    var conv = p.conviction;
-    var blobs = field.map(function (e, i) {
-      var b = {
+    var blobs = field.map(function (e) {
+      return {
         cx: 300 + (e.cx - 300) * disp,
         cy: DEFAULT_MID + (e.cy - DEFAULT_MID) * disp + dyField,
-        rx: e.rx * mult, ry: e.ry * mult, fill: e.fill, op: e.op == null ? 0.4 : e.op, ring: null
+        rx: e.rx * mult, ry: e.ry * mult, fill: e.fill, op: e.op == null ? 0.4 : e.op
       };
-      if (e.ring != null) {
-        b.ring = { dx: Array.isArray(e.ring) ? e.ring[0] : 0, dy: Array.isArray(e.ring) ? e.ring[1] : 0, wob: 0 };
-      } else if (conv != null) {
-        var c = Math.max(0, Math.min(1, conv)), off = (1 - c) * 11, a = i * 2.2 + 0.7;
-        b.ring = { dx: Math.cos(a) * off, dy: Math.sin(a) * off, wob: (1 - c) * 2.6 };
-      }
-      return b;
     });
 
     // text SVG fragments
@@ -182,9 +149,7 @@
     }
     var readSVG = lines.map(function (ln, i) { return '<text x="' + ln.x + '" y="' + g(rightAbs[i]) + '" class="txt">' + ln.inner + '</text>'; }).join("");
 
-    var hist = normalizeHistory(p.history);
-    var H = contentH + (hist.length >= 2 ? STRIP_H : 0);
-    return { H: H, contentH: contentH, history: hist, blobs: blobs, textSVG: kaoSVG + langSVG + readSVG, spark: !!p.spark, excited: !!p.excited, seed: seedOf(p) };
+    return { H: H, blobs: blobs, textSVG: kaoSVG + langSVG + readSVG, spark: !!p.spark, excited: !!p.excited, seed: seedOf(p) };
   }
 
   /* ---- static SVG (fallback + node tests): identical grammar, no motion ---- */
@@ -196,14 +161,13 @@
     out.push('<g opacity="0.5">');
     L.blobs.forEach(function (b) {
       out.push('<ellipse cx="' + g(b.cx) + '" cy="' + g(b.cy) + '" rx="' + g(b.rx) + '" ry="' + g(b.ry) + '" fill="' + b.fill + '" opacity="' + g(b.op) + '"/>');
-      if (b.ring) { out.push('<ellipse cx="' + g(b.cx + b.ring.dx) + '" cy="' + g(b.cy + b.ring.dy) + '" rx="' + g(b.rx) + '" ry="' + g(b.ry) + '" fill="none" stroke="' + darken(b.fill) + '" stroke-width="1.4" opacity="0.7"/>'); }
     });
     out.push('</g>');
     var glow = [];
     if (L.spark) glow.push('<ellipse cx="672" cy="10" rx="54" ry="40" fill="#f7dd94" opacity="0.11"/><ellipse cx="672" cy="10" rx="28" ry="21" fill="#fbe6a0" opacity="0.22"/><ellipse cx="672" cy="10" rx="11" ry="9" fill="#fdf0c4" opacity="0.4"/>');
     if (L.excited) sparkleData(L.H, L.seed).forEach(function (st) { for (var a = 0; a < 3; a++) glow.push('<ellipse cx="' + st.cx.toFixed(1) + '" cy="' + st.cy.toFixed(1) + '" rx="' + st.s.toFixed(1) + '" ry="' + (st.s * st.ry).toFixed(2) + '" fill="#f7e3a8" opacity="' + st.op.toFixed(2) + '" transform="rotate(' + (st.rot + 60 * a).toFixed(1) + ' ' + st.cx.toFixed(1) + ' ' + st.cy.toFixed(1) + ')"/>'); });
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
-    out.push(L.textSVG + stripSVG(L.history, L.contentH + 5, L.H - 5) + '</svg>');
+    out.push(L.textSVG + '</svg>');
     return out.join("");
   }
 
@@ -229,7 +193,8 @@
     var B = L.blobs.map(function (b, i) {
       return { b: b, w1: 0.55 + 0.12 * i, p1: i * 1.7, w2: 0.33 + 0.08 * i, p2: 1 + i * 2.3, w3: 0.42 + 0.1 * i, p3: 2 + i * 1.1, wb: 0.7 + 0.09 * i, pb: i * 0.9 };
     });
-    var stars = L.excited ? sparkleData(H, L.seed).map(function (s, i) { return { s: s, tw: 1.6 + (i % 4) * 0.6, ph: i * 1.3 }; }) : [];
+    // each star slowly rotates at its own (never fast) speed and direction
+    var stars = L.excited ? sparkleData(H, L.seed).map(function (s, i) { return { s: s, tw: 1.6 + (i % 4) * 0.6, ph: i * 1.3, rs: (0.04 + (i % 5) * 0.022) * (i % 2 ? 1 : -1) }; }) : [];
 
     var dpr = Math.min(root.devicePixelRatio || 1, 2), sx = 1, sy = 1;
     function fit() {
@@ -248,10 +213,6 @@
       gr.addColorStop(0, rgba(fill, op)); gr.addColorStop(0.55, rgba(fill, op * 0.55)); gr.addColorStop(1, rgba(fill, 0));
       ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 6.2832); ctx.fill(); ctx.restore();
     }
-    function strokeEll(cx, cy, rx, ry, color, op, lw) {
-      ctx.beginPath(); ctx.ellipse(cx, cy, Math.abs(rx), Math.abs(ry), 0, 0, 6.2832);
-      ctx.strokeStyle = color; ctx.globalAlpha = op; ctx.lineWidth = lw; ctx.stroke();
-    }
     var t0 = null;
     function frame(now) {
       if (!cv.isConnected) { if (ro) ro.disconnect(); if (io) io.disconnect(); return; } // detached -> stop
@@ -268,11 +229,6 @@
         var cx = b.cx + ox, cy = b.cy + oy, rx = b.rx * br, ry = b.ry * br;
         ctx.globalAlpha = 0.5;
         ellipse(cx, cy, rx, ry, b.fill, b.op * opP);
-        if (b.ring) {
-          var wx = b.ring.wob ? b.ring.wob * Math.sin(3.1 * t + m.p1) : 0;
-          var wy = b.ring.wob ? b.ring.wob * Math.sin(2.7 * t + m.p2) : 0;
-          strokeEll(cx + b.ring.dx + wx, cy + b.ring.dy + wy, rx, ry, darken(b.fill), 0.6, 1.4);
-        }
       });
       ctx.globalAlpha = 1;
       if (L.spark) {
@@ -284,28 +240,15 @@
       if (stars.length) {
         ctx.strokeStyle = "#f7e3a8"; ctx.lineCap = "round";
         stars.forEach(function (o) {
-          var s = o.s, k = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(o.tw * t + o.ph));
+          var s = o.s, k = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(o.tw * t + o.ph)), base = s.rot * Math.PI / 180 + o.rs * t;
           ctx.globalAlpha = s.op * k; ctx.lineWidth = 1.4;
           for (var a = 0; a < 3; a++) {
-            var ang = (s.rot + 60 * a) * Math.PI / 180;
+            var ang = base + a * Math.PI / 3;
             ctx.beginPath();
             ctx.moveTo(s.cx - Math.cos(ang) * s.s, s.cy - Math.sin(ang) * s.s);
             ctx.lineTo(s.cx + Math.cos(ang) * s.s, s.cy + Math.sin(ang) * s.s);
             ctx.stroke();
           }
-        });
-        ctx.globalAlpha = 1;
-      }
-      if (L.history.length >= 2) {
-        var htop = L.contentH + 5, hbot = H - 5, hbandH = hbot - htop, hxL = 16, hxR = W - 16;
-        ctx.lineWidth = 1.3; ctx.lineJoin = "round"; ctx.lineCap = "round";
-        STRIP_DIMS.forEach(function (d) {
-          ctx.globalAlpha = 0.62; ctx.strokeStyle = d[1]; ctx.beginPath();
-          L.history.forEach(function (h, i) { var x = hxL + i * (hxR - hxL) / (L.history.length - 1), y = hbot - h[d[0]] * hbandH; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.stroke();
-          var ly = hbot - L.history[L.history.length - 1][d[0]] * hbandH;
-          ctx.globalAlpha = 0.62 * (0.7 + 0.3 * Math.sin(2 * t)); ctx.fillStyle = d[1];
-          ctx.beginPath(); ctx.arc(hxR, ly, 2, 0, 6.2832); ctx.fill();
         });
         ctx.globalAlpha = 1;
       }
