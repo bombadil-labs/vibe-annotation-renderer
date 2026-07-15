@@ -134,9 +134,9 @@
 
     // text SVG fragments
     var kaoSVG = multiline
-      ? '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fkt">' +
+      ? '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fkt vk">' +
       kaoLines.map(function (l, i) { return '<tspan x="' + FACE_X + '"' + (i === 0 ? "" : ' dy="20"') + '>' + esc(l) + '</tspan>'; }).join("") + '</text>'
-      : '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fk">' + esc(p.kaomoji) + '</text>';
+      : '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fk vk">' + esc(p.kaomoji) + '</text>';
     var langSVG = "";
     if (langs.length) {
       var x = FACE_X, SEP = 11;
@@ -190,6 +190,13 @@
       '<style>' + STYLE + '</style>' + L.textSVG + '</svg>' +
       '</div>';
     var wrap = el.firstChild, cv = wrap.firstChild, ctx = cv.getContext("2d");
+    var kaoEl = wrap.querySelector(".vk"), baseFill = [92, 67, 32];
+    if (kaoEl) {
+      kaoEl.style.transformBox = "fill-box"; kaoEl.style.transformOrigin = "center";
+      var _cf = (root.getComputedStyle ? getComputedStyle(kaoEl).fill : "").match(/(\d+)\D+(\d+)\D+(\d+)/);
+      if (_cf) baseFill = [+_cf[1], +_cf[2], +_cf[3]];
+    }
+    function mixCss(a, b, m) { return "rgb(" + Math.round(a[0] + (b[0] - a[0]) * m) + "," + Math.round(a[1] + (b[1] - a[1]) * m) + "," + Math.round(a[2] + (b[2] - a[2]) * m) + ")"; }
 
     // per-blob motion params (deterministic, gentle)
     var eng = Math.max(0, Math.min(1, p.engagement == null ? 0.5 : p.engagement));
@@ -224,8 +231,17 @@
       if (!visible) { requestAnimationFrame(frame); return; }
       ctx.setTransform(sx, 0, 0, sy, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      var laughB = 1;   // laugh: a quick rhythmic "ha-ha-ha" bounce of the whole field, then rest
-      if (L.laugh) { var lt = t % 3.4; if (lt < 0.75) laughB = 1 + 0.13 * Math.exp(-lt * 3.5) * Math.sin(lt * 28); }
+      var laughB = 1, lLt = 0, lCyc = 0;   // laugh: a slow, deep, rich ha-ha-ha
+      if (L.laugh) {
+        lLt = t % 4.6; lCyc = Math.floor(t / 4.6);
+        var lenv = (lLt < 1.5) ? Math.exp(-lLt * 1.7) * Math.sin(lLt * 13) : 0;
+        laughB = 1 + 0.15 * lenv;                          // deep oval bounce
+        var kp = Math.max(0, lenv);                        // kaomoji swells + flushes yellow on each "ha"
+        if (kaoEl) {
+          kaoEl.style.transform = "scale(" + (1 + kp * 0.15) + ")";
+          kaoEl.style.fill = kp > 0.03 ? mixCss(baseFill, [255, 223, 58], kp * 0.92) : "";
+        }
+      }
       B.forEach(function (m) {
         var b = m.b;
         var ox = amp * Math.sin(m.w1 * sp * t + m.p1) + amp * 0.4 * Math.sin(m.w2 * sp * t + m.p2);
@@ -294,16 +310,18 @@
         }
         ctx.globalAlpha = 1;
       }
-      if (L.laugh) {                                                                                // bright yellow laughter-marks bursting around the face
-        var lt2 = t % 3.4, cyc = Math.floor(t / 3.4);
-        ctx.strokeStyle = "#ffdf3a"; ctx.lineWidth = 1.7; ctx.lineCap = "round";
-        for (var li = 0; li < 6; li++) {
-          var mp = lt2 - li * 0.1;
-          if (mp < 0 || mp > 0.55) continue;
-          var pop = Math.sin((mp / 0.55) * Math.PI);           // emerge then fade
-          var lmx = 6 + ((li * 37 + cyc * 53) % 96), lmy = cyC - 34 + ((li * 47 + cyc * 29) % 74);
-          var sz = 3 + pop * 5, rot = li * 0.9 + cyc;
-          ctx.globalAlpha = 0.85 * pop;
+      if (L.laugh) {                                                                                // yellow laughter-marks radiating from the face
+        var faceCx = 46, faceCy = cyC, NM = 7, MLIFE = 1.25;
+        ctx.strokeStyle = "#ffdf3a"; ctx.lineWidth = 1.8; ctx.lineCap = "round";
+        for (var li = 0; li < NM; li++) {
+          var life = (lLt - li * 0.12) / MLIFE;
+          if (life < 0 || life > 1) continue;
+          var a = life < 0.15 ? life / 0.15 : (life < 0.62 ? 1 : Math.max(0, 1 - (life - 0.62) / 0.26));  // emerge, hold a beat, snap-fade
+          if (a <= 0) continue;
+          var dir = (li / NM) * 6.2832 + lCyc * 0.7 + 0.25, dist = 14 + life * 46;                        // radiate outward from the face
+          var lmx = faceCx + Math.cos(dir) * dist, lmy = faceCy + Math.sin(dir) * dist * 0.72;
+          var sz = 4 + Math.min(life * 8, 5), rot = dir + 0.4;
+          ctx.globalAlpha = 0.9 * a;
           for (var r = 0; r < 2; r++) {
             var ang = r * Math.PI / 2 + rot;
             ctx.beginPath();
