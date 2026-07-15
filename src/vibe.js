@@ -267,27 +267,30 @@
         ag.addColorStop(0, rgba("#efe6c8", 0)); ag.addColorStop(0.5, rgba("#efe6c8", aa)); ag.addColorStop(1, rgba("#efe6c8", 0));
         ctx.globalAlpha = 1; ctx.fillStyle = ag; ctx.beginPath(); ctx.arc(310, cyC, r * 1.1, 0, 6.2832); ctx.fill();
       }
-      if (L.melancholy) {                                                                           // slow downward motes
+      if (L.melancholy) {                                                                           // slow downward motes, full width
         ctx.fillStyle = "#9aa2b4";
-        for (var mi = 0; mi < 7; mi++) {
-          var mx = 70 + mi * (W - 140) / 6 + 7 * Math.sin(t * 0.3 + mi), my = ((mi * 41 + t * (7 + (mi % 3) * 4)) % (H + 20)) - 10;
+        for (var mi = 0; mi < 9; mi++) {
+          var mx = 34 + mi * (W - 68) / 8 + 7 * Math.sin(t * 0.3 + mi), my = ((mi * 47 + t * (7 + (mi % 3) * 4)) % (H + 20)) - 10;
           ctx.globalAlpha = 0.32 * (0.5 + 0.5 * Math.sin(t * 0.5 + mi));
           ctx.beginPath(); ctx.arc(mx, my, 2.3, 0, 6.2832); ctx.fill();
         }
         ctx.globalAlpha = 1;
       }
-      if (L.unease) {                                                                               // cold creeping vignette
-        var ug = ctx.createRadialGradient(W / 2, cyC, Math.min(W, H) * 0.28, W / 2, cyC, W * 0.62);
-        ug.addColorStop(0, rgba("#1e222c", 0)); ug.addColorStop(1, rgba("#1e222c", 0.1 + 0.06 * Math.sin(0.7 * t)));
-        ctx.globalAlpha = 1; ctx.fillStyle = ug; ctx.fillRect(0, 0, W, H);
+      if (L.unease) {                                                                               // cold fog rolling over, veiling
+        var fog = [[10, 160, 78, 0.15], [7, 210, 96, 0.12], [14, 175, 66, 0.13]];
+        fog.forEach(function (f, i) {
+          var fx = ((t * f[0] + i * 320) % (W + 460)) - 230;
+          var fy = cyC + (i - 1) * 26 + 12 * Math.sin(t * 0.18 + i);
+          ellipse(fx, fy, f[1], f[2], "#8b90a0", f[3] + 0.03 * Math.sin(t * 0.3 + i));
+        });
       }
-      if (L.mirth) {                                                                                // rising bubbles
+      if (L.mirth) {                                                                                // champagne bubbles across the full width
         ctx.fillStyle = "#f2e0ac";
-        for (var bi = 0; bi < 5; bi++) {
-          var bp = 2.2 + (bi % 3) * 0.5, bt = ((t + bi * 0.6) % bp) / bp;
-          var bx = W / 2 - 40 + bi * 20 + 6 * Math.sin(t + bi), by = cyC + 42 - bt * 92;
-          ctx.globalAlpha = 0.42 * Math.sin(bt * Math.PI);
-          ctx.beginPath(); ctx.arc(bx, by, 2 + bt * 3, 0, 6.2832); ctx.fill();
+        for (var bi = 0; bi < 10; bi++) {
+          var bp = 2.0 + (bi % 4) * 0.5, bt = ((t + bi * 0.53) % bp) / bp;
+          var bx = 24 + bi * (W - 48) / 9 + 5 * Math.sin(t * 0.6 + bi), by = (H - 8) - bt * (H - 20);
+          ctx.globalAlpha = 0.4 * Math.sin(bt * Math.PI);
+          ctx.beginPath(); ctx.arc(bx, by, 1.6 + bt * 2, 0, 6.2832); ctx.fill();
         }
         ctx.globalAlpha = 1;
       }
