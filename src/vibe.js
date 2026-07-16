@@ -18,7 +18,7 @@
   var GOAL_CAP = 70, GOAL_INDENT = 48, DEFAULT_MID = 68, NEUTRAL = "#a7a29b";
   var COLX = [150, 340, 530];                 // three fixed, wide columns: left / centre / right
   var COL_RX = 150, COL_RY = 44, COL_OP = 0.44;
-  var VR_MIN = 5, VR_MAX = 30;                // vertical band: narrow (focused) → wide (scattered)
+  var VR_MIN = 4, VR_MAX = 48;                // vertical band: narrow (focused) → very wide (scattered)
 
   var STYLE =
     ".txt{paint-order:stroke;stroke:#fff8ec;stroke-linejoin:round}" +
@@ -124,7 +124,9 @@
     var env = VR_MIN + (VR_MAX - VR_MIN) * (1 - focus);        // vertical band width (focused → narrow, scattered → wide)
 
     var vr = mulberry32(seed + 7);
-    var vcol = [0, 1, 2].map(function () { return { bias: vr() * 2 - 1, phase: vr() * 6.2832, oscW: 0.7 + vr() * 0.5, w: 0.6 + vr() * 0.5 }; });
+    var vdir = vr() < 0.5 ? -1 : 1;                            // outer ovals together, centre opposite → a clear up/down/up (never a straight slope)
+    var vmag = [0.82 + vr() * 0.18, -(0.55 + vr() * 0.35), 0.82 + vr() * 0.18];
+    var vcol = vmag.map(function (m) { return { bias: vdir * m, phase: vr() * 6.2832 }; });
 
     var kaoLines = String(p.kaomoji).split("\n");
     var multiline = kaoLines.length > 1, kaoLh = multiline ? 20 : 0;
@@ -163,7 +165,7 @@
         cx: c.cx, cyBase: (c.cy == null ? DEFAULT_MID : c.cy) + dyField,
         rx: (c.rx == null ? COL_RX : c.rx) * mult, ry: (c.ry == null ? COL_RY : c.ry) * mult,
         op: c.op == null ? COL_OP : c.op, fill: c.fill, pool: c.pool || null,
-        bias: usesCols ? v.bias : 0, phase: v.phase, oscW: v.oscW, w: v.w
+        bias: usesCols ? v.bias : 0, phase: v.phase
       };
     });
 
@@ -480,11 +482,11 @@
           }
           ctx.globalAlpha = 1;
         }
-        if (L.frustrated) {                                                          // the anime anger-vein mark, throbbing by the head
-          var mkx = faceRight + 5, mky = faceTop + 5, msz = 15 + frP * 4;
+        if (L.frustrated) {                                                          // the anime anger-vein mark, above-and-right of the head; throbs in intensity, not size
+          var mkx = faceRight + 4, mky = faceTop - 6;
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.globalAlpha = 0.7 + 0.3 * frP;
-          ctx.font = msz.toFixed(1) + "px ui-sans-serif, \"Segoe UI Emoji\", \"Apple Color Emoji\", sans-serif";
+          ctx.globalAlpha = 0.6 + 0.4 * frP;                                          // pulse opacity only (size stays put, so it doesn't fight the shake)
+          ctx.font = "16px ui-sans-serif, \"Segoe UI Emoji\", \"Apple Color Emoji\", sans-serif";
           ctx.fillText("💢", mkx, mky);
           ctx.globalAlpha = 1; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
         }
