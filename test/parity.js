@@ -69,6 +69,16 @@ ok(+/opacity="([0-9.]+)"\/>/.exec(c0)[1] < +/opacity="([0-9.]+)"\/>/.exec(c1)[1]
 console.log("prev is animation-only: static fallback ignores it, no crash");
 ok(buildSVG(Object.assign({}, base, { prev: ["#a06a6a"] })).startsWith("<svg"), "prev ignored in static");
 
+console.log("one flag per banner — the renderer enforces the contract");
+const FLOWERS = /🌸|🌼|✿|❀|🌷/;
+let multi = buildSVG(Object.assign({}, base, { angry: true, at_peace: true, puzzled: true }));
+ok(!FLOWERS.test(multi), "angry outranks at_peace: no blossoms");
+ok(!/>\?<\/text>/.test(multi), "angry outranks puzzled: no question-cloud");
+ok(!FLOWERS.test(buildSVG(Object.assign({}, base, { tender: true, at_peace: true }))), "tender outranks at_peace: no blossoms");
+ok(FLOWERS.test(buildSVG(Object.assign({}, base, { at_peace: true }))), "at_peace alone still blossoms");
+let pz = buildSVG(Object.assign({}, base, { puzzled: true }));
+ok((pz.match(/>\?<\/text>/g) || []).length >= 3, "puzzled alone renders a cloud of ?s, not a single mark");
+
 console.log("new-flag static markers");
 ok(/🌸|🌼|✿|❀|🌷/.test(buildSVG(Object.assign({}, base, { at_peace: true }))), "at_peace scatters blossoms");
 let sol = buildSVG(Object.assign({}, base, { solemn: true }));

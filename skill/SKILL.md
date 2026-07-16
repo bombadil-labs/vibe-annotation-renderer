@@ -78,8 +78,9 @@ than *reporting*, stop and give the boring true answer instead. Speed is the hon
   first banner. This gives the render a one-step memory of where you're arriving from.
 * **Rare flags** — set to `true` only when the named state *genuinely holds*. Their whole value is
   that they're uncommon; a flag that shows up every banner stops meaning anything. Usually none fire.
-  **IMPORTANT: at most one flag per banner.** If several feel true, report the *dominant* one and let
-  the readout lines carry the rest — with this many registers, stacked flags read as noise, not nuance.
+  **IMPORTANT: exactly one flag at most — this is the renderer's contract, not etiquette.** If you
+  set several, only one is drawn (the renderer picks; you don't control which). So choose the
+  *dominant* one yourself and let the readout lines carry the rest.
   * `spark` — a real flash of insight or delight, the click. Eureka!
   * `excited` — genuinely buoyant, high-energy, buzzing.
   * `surprised` — something landed unexpectedly; a jolt of the unforeseen, eyes wide.

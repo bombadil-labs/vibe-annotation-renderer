@@ -139,6 +139,13 @@
     }).filter(function (e) { return e && e.name; });
   }
 
+  /* The contract is ONE flag per banner. If a payload sets several, the highest-priority
+   * one renders and the rest are dropped — ordered so the state whose absence would most
+   * misrepresent the moment wins. Deterministic, documented, no composition. */
+  var FLAG_PRIORITY = ["angry", "solemn", "awe", "vertigo", "dramatic", "laugh", "anxious",
+    "surprised", "excited", "spark", "rhyme", "resolute", "oops", "frustrated", "groan",
+    "puzzled", "mirth", "melancholy", "tender", "at_peace"];
+
   /* ---- shared layout: everything static & animated both need ---- */
   function layout(p) {
     var seed = seedOf(p);
@@ -217,18 +224,16 @@
       langSVG = '<text x="' + (W - 12) + '" y="' + g(H - 7) + '" text-anchor="end" class="txt fl">' + parts + '</text>';
     }
 
-    return {
+    var activeFlag = null;
+    for (var fi = 0; fi < FLAG_PRIORITY.length; fi++) { if (p[FLAG_PRIORITY[fi]]) { activeFlag = FLAG_PRIORITY[fi]; break; } }
+    var L = {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
-      stance: stance, conson: conson, prevFills: prevFills,
-      spark: !!p.spark, excited: !!p.excited,
-      surprised: !!p.surprised, tender: !!p.tender, melancholy: !!p.melancholy, anxious: !!p.anxious,
-      mirth: !!p.mirth, laugh: !!p.laugh, groan: !!p.groan, oops: !!p.oops, dramatic: !!p.dramatic,
-      frustrated: !!p.frustrated, angry: !!p.angry,
-      at_peace: !!p.at_peace, solemn: !!p.solemn, rhyme: !!p.rhyme, awe: !!p.awe,
-      vertigo: !!p.vertigo, resolute: !!p.resolute, puzzled: !!p.puzzled
+      stance: stance, conson: conson, prevFills: prevFills
     };
+    FLAG_PRIORITY.forEach(function (f) { L[f] = f === activeFlag; });
+    return L;
   }
 
   /* ---- static SVG (fallback + node tests): identical grammar, no motion ---- */
@@ -278,7 +283,14 @@
       var dx = 46 - r.x, dy = L.coreCy - r.y;
       glow.push('<line x1="' + r.x.toFixed(1) + '" y1="' + r.y.toFixed(1) + '" x2="' + (r.x + dx * r.len).toFixed(1) + '" y2="' + (r.y + dy * r.len).toFixed(1) + '" stroke="#4a3c26" stroke-opacity="' + (0.16 * r.op).toFixed(3) + '" stroke-width="1.2"/>');
     });
-    if (L.puzzled) glow.push('<text x="98" y="' + g(L.coreCy - 24) + '" font-size="15" font-weight="600" fill="#7a6a55" opacity="0.55">?</text>');
+    if (L.puzzled) {                                           // the question-cloud, at rest
+      var qr = mulberry32(L.seed + 37);
+      for (var qi = 0; qi < 4; qi++) {
+        var qa2 = qr() * 6.2832, qd = 20 + qr() * 32;
+        glow.push('<text x="' + g(60 + Math.cos(qa2) * qd) + '" y="' + g(L.coreCy - 4 + Math.sin(qa2) * qd * 0.6) +
+          '" font-size="' + g(10 + qr() * 4) + '" font-weight="600" fill="#7a6a55" opacity="' + g(0.25 + qr() * 0.3) + '">?</text>');
+      }
+    }
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
     if (L.rhyme) out.push('<g opacity="0.12" transform="translate(14,6)">' + L.kaoSVG + '</g>');   // the echo of the face, behind-ish and offset
     out.push(L.textSVG + '</svg>');
@@ -616,15 +628,22 @@
             ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x + dx * ln, r.y + dy * ln); ctx.stroke();
           });
         }
-        if (L.puzzled) {                                                             // the pre-spark: "?" drifting up on a lazy cycle; offsets left when the top-right slot is taken
-          var puzX = faceRight + 6 - ((L.frustrated || L.oops) ? 16 : 0) + kx;
+        if (L.puzzled) {                                                             // the pre-spark: a loose cloud of "?" around the head — grawlix mechanics, gentle register
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          for (var qi = 0; qi < 2; qi++) {
-            var qper = 3.6, qlife = 2.1, qt = ((t + qi * 1.7) % qper);
-            if (qt > qlife) continue;
-            var qu = qt / qlife, qa = qu < 0.15 ? qu / 0.15 : Math.max(0, 1 - (qu - 0.15) / 0.85);
-            ctx.globalAlpha = 0.62 * qa; ctx.font = "600 " + (14 - qi * 3) + "px ui-sans-serif, sans-serif"; ctx.fillStyle = "#7a6a55";
-            ctx.fillText("?", puzX + qi * 9, (faceTop - 8 + ky) - qu * 11);
+          var QN = 5, qper = 3.4, qlife = 2.4, qcx = Math.min(faceCX, 92) + kx, qcy = faceMidY + ky;
+          for (var qi = 0; qi < QN; qi++) {
+            var qrr = mulberry32(L.seed + qi * 173 + 37);
+            var qbirth = qrr() * qper, qang = qrr() * 6.2832, qrad = 20 + qrr() * 34;
+            var qage = (((t - qbirth) % qper) + qper) % qper;
+            if (qage > qlife) continue;
+            var qu = qage / qlife;
+            var qrise = qu < 0.15 ? 2 * (qu / 0.15) : 2 - 14 * ((qu - 0.15) / 0.85);   // tiny bob, then a slow drift up
+            var qx = qcx + Math.cos(qang) * qrad, qy = qcy + Math.sin(qang) * qrad * 0.6 + qrise;
+            var qscl = 0.85 + 0.3 * qrr(), qa = qu < 0.18 ? qu / 0.18 : Math.max(0, 1 - (qu - 0.18) / 0.82);
+            ctx.globalAlpha = 0.5 * qa;
+            ctx.font = "600 " + (11.5 * qscl).toFixed(1) + "px ui-sans-serif, sans-serif";
+            ctx.fillStyle = qi % 3 === 0 ? "#9a8a6a" : "#7a6a55";
+            ctx.fillText("?", qx, qy);
           }
           ctx.globalAlpha = 1; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
         }

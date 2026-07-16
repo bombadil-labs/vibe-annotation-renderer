@@ -84,14 +84,15 @@ genuinely holds; their whole value is that they're uncommon.
 | `awe` | the face shrinks and tilts up while the field swells and deepens — the one gesture where the face *loses*: made small by something vast |
 | `vertigo` | a one-level Droste: the whole banner appears inside itself, lower right, flags omitted within. The loop just sits there |
 | `resolute` | concentration lines (集中線) flare inward from the frame edges toward the face, then hold faint — the ignition of determination |
-| `puzzled` | one or two "?" drift up and fade by the head — productive stuckness, the pre-spark (steps left when 💢 or the oops-! occupy the slot) |
+| `puzzled` | a loose cloud of "?" pops, drifts up, and fades around the head — grawlix mechanics in a gentle register; productive stuckness, the pre-spark |
 
-The **renderer** composes flags safely — face transforms accumulate; full-frame **dimming is
-max-pooled** across contributors (solemn/anxious/angry never sum toward mud) while colored washes
-like tender's warmth stay independent; face-adjacent marks resolve slot collisions with fixed,
-deterministic offsets. The **skill's** discipline, however, is **one flag per banner**: with this
-many registers, stacked flags read as noise rather than nuance. Composition support remains for
-graceful degradation and for forks or hand-authored payloads that want it.
+**The contract is one flag per banner, and the renderer enforces it.** If a payload sets
+several, the highest-priority flag renders and the rest are dropped — deterministically, in
+this order (roughly "the state whose absence would most misrepresent the moment wins"):
+`angry → solemn → awe → vertigo → dramatic → laugh → anxious → surprised → excited → spark →
+rhyme → resolute → oops → frustrated → groan → puzzled → mirth → melancholy → tender →
+at_peace`. With this many registers, stacked flags read as noise rather than nuance — so
+composition isn't a discipline, it's simply not in the grammar.
 
 Motion is deliberately slow and small — this is letterhead on every reply, so it stays
 ambient, never busy. It falls back to a **static SVG** under `prefers-reduced-motion` or
