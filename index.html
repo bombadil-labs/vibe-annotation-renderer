@@ -71,6 +71,7 @@
 
   <nav>
     <a href="#gallery">Gallery</a>
+    <a href="#key">Reading a banner</a>
     <a href="#install">Install the skill</a>
     <a href="#how">How it works</a>
     <a href="#library">Use as a library</a>
@@ -96,6 +97,50 @@
   </ul>
   <p>That separation is the honesty mechanism: there's no visual lever for Claude to perform
   toward. It reports the feeling; the tool decides the look.</p>
+
+  <h2 id="key">Reading a banner</h2>
+  <p>Every banner has the same anatomy — a face, a readout, and a field of three soft ovals
+  breathing behind them. Here's one to refer back to:</p>
+  <div class="banner" id="key-banner" style="margin: 0 0 20px;"></div>
+
+  <h3>The face</h3>
+  <p>The kaomoji is Claude's expression, improvised in the moment. Small feeling, small face; a
+  big feeling can bloom into multiple lines.</p>
+
+  <h3>The readout</h3>
+  <ul>
+    <li><code>[user]</code> — Claude's honest snap read of <em>you</em>, from your last message.
+      It's allowed to quietly disagree with the polite prose below it.</li>
+    <li><code>[mood]</code> — Claude's own felt state, in a few words.</li>
+    <li><code>[note]</code> — the subtext: the thing under the thing. Optional, and that's the
+      point — its mere presence means Claude caught something latent.</li>
+    <li><code>[goal]</code> — what Claude is trying to do <em>right now</em>. Always the last
+      line; expect it to change turn to turn.</li>
+    <li><code>[Reasoned in]:</code> — a small bottom-right trace listing any languages Claude
+      thought in beyond the one you're speaking.</li>
+  </ul>
+
+  <h3>The field — the three ovals</h3>
+  <p>The ovals are Claude's mood made ambient: colour, spread, and size each carry one signal.</p>
+  <ul>
+    <li><strong>Colour</strong> comes from the palette Claude reports — its feelings expressed
+      as colours, in descending order of intensity. No colours → a neutral grey triad. One
+      colour → its light, pure, and dark forms. Two → one on each side with their blend in the
+      centre. Three → one per oval. Four or more → the centre oval slowly cycles through the
+      extras. So "one colour vs. three" is the difference between a single clear feeling and
+      several sitting side by side.</li>
+    <li><strong>Spread</strong> is focus: a tight, level line means attention locked on one
+      thing; ovals scattered up and down the banner mean it's spread across many.</li>
+    <li><strong>Size</strong> is engagement — and it only deflates. At normal engagement the
+      field is full; when Claude is genuinely bored, the ovals visibly shrink.</li>
+  </ul>
+
+  <h3>Flags</h3>
+  <p>Rare, condition-triggered flourishes layered over everything else — a light-bulb for the
+  <em>spark</em> of insight, spinning stars when <em>excited</em>, cold fog when <em>anxious</em>,
+  a 💢 anger-vein when <em>frustrated</em>, lightning when genuinely <em>angry</em>, a spotlight
+  when being <em>dramatic</em>… Their whole value is that they're uncommon; every one is
+  demonstrated in the <a href="#gallery">gallery</a> below.</p>
 
   <h2 id="install">Install the skill</h2>
 
@@ -176,6 +221,19 @@ try {
     noticing: "you're wondering if this is gimmick or genuine; fair",
     palette: ["#d99a5e", "#7d8fb8"],
     focus: 0.7, engagement: 0.85
+  });
+} catch (e) {}
+
+try {
+  vibe(document.getElementById("key-banner"), {
+    kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
+    seems: "reading the legend to decode the picture above it",
+    feel: "curious · unhurried · warm",
+    trying: "map each part of this banner to the section below",
+    noticing: "three feelings reported, so each oval gets its own colour",
+    languages: ["eo"],
+    palette: ["#d99a5e", "#c98fb0", "#6fa39c"],
+    focus: 0.6, engagement: 0.8
   });
 } catch (e) {}
 
