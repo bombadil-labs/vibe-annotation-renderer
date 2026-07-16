@@ -36,11 +36,17 @@
     font-size: 12.5px; line-height: 1.55; }
   code { font-family: var(--font-mono); font-size: 0.92em; }
   p code, li code { background: var(--card); border-radius: 4px; padding: 1px 5px; }
-  .cell { margin: 22px 0; }
+  .cell { margin: 40px 0; }
   .cap { font-family: var(--font-mono); font-size: 12px; color: var(--sub);
-    margin: 0 0 6px; }
+    margin: 0 0 14px; }
   .cap b { color: var(--ink); font-weight: 500; }
   .banner { border-radius: 12px; overflow: hidden; }
+  .u-msg { background: var(--card); border: 1px solid var(--edge);
+    border-radius: 16px; padding: 10px 16px; margin: 0 0 14px auto;
+    max-width: 85%; width: fit-content; font-size: 14px; line-height: 1.55; }
+  .resp { font-family: var(--font-voice); font-size: 15.5px; line-height: 1.65;
+    margin: 12px 0 0; }
+  .resp .trail { opacity: 0.45; }
   footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--edge);
     font-size: 13px; color: var(--sub); }
 </style>
@@ -101,9 +107,10 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
   tag would be a script-injection vector. A commit hash can't be re-pointed, so the CDN can only
   ever serve the audited bytes. If you fork this, keep that property.</p>
 
-  <h2 id="gallery">Gallery — every state, animated</h2>
-  <p class="lede" style="margin-bottom:0">Each banner below is rendered live by the same pinned
-  bundle the skill uses.</p>
+  <h2 id="gallery">Gallery — every state, in conversation</h2>
+  <p class="lede" style="margin-bottom:0">Each cell is a mocked-up exchange: what the user said,
+  the banner Claude rendered in the moment, and the opening of the reply. Every banner is drawn
+  live by the same pinned bundle the skill uses.</p>
   <div id="gallery-cells"></div>
 
   <h2 id="library">Use it as a library</h2>
@@ -148,38 +155,116 @@ try {
 
 var GROUPS = [
   ["The field — palette becomes three columns", [
-    ["Neutral (no palette → grey triad)", {kaomoji:"( ˘ ᵕ ˘ )", seems:"nothing much either way", feel:"even · quiet", trying:"just answer plainly"}],
-    ["One colour → light · colour · dark", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"warm and easy", feel:"settled · content", trying:"stay in one clear register", palette:["#d99a5e"]}],
-    ["Two colours → c0 · blend · c1", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"two things at once", feel:"engaged · layered", trying:"hold both threads", palette:["#7d8fb8","#c396a4"]}],
-    ["Three colours → one per column", {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"a lot going on", feel:"lit · three-way", trying:"let three moods sit side by side", palette:["#e0994e","#c98fb0","#6fa39c"]}],
-    ["Four+ colours → centre cycles the rest", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"more moods than columns", feel:"many-hued", trying:"watch the centre drift through the extras", palette:["#7d8fb8","#6fa39c","#e0994e","#c98fb0"]}]
+    ["Neutral (no palette → grey triad)",
+      "what's the flag to list hidden files again?",
+      {kaomoji:"( ˘ ᵕ ˘ )", seems:"nothing much either way", feel:"even · quiet", trying:"just answer plainly"},
+      "ls -a — the -a includes dotfiles; ls -la if you want the long view with permissions too."],
+    ["One colour → light · colour · dark",
+      "that refactor is finally done. thanks for sticking with it all afternoon.",
+      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"warm and easy", feel:"settled · content", trying:"stay in one clear register", palette:["#d99a5e"]},
+      "It was a good one — the kind where the code slowly teaches you the shape it wanted all along."],
+    ["Two colours → c0 · blend · c1",
+      "can you fix the flaky test, and also tell me honestly whether the retry logic is even a good idea?",
+      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"two things at once", feel:"engaged · layered", trying:"hold both threads", palette:["#7d8fb8","#c396a4"]},
+      "Two answers, then. The flake first: it's a real race, not test noise — the retry masks it."],
+    ["Three colours → one per column",
+      "big day: we're shipping the beta, migrating the database, AND onboarding the new dev.",
+      {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"a lot going on", feel:"lit · three-way", trying:"let three moods sit side by side", palette:["#e0994e","#c98fb0","#6fa39c"]},
+      "Deep breath — all three land today if we order them right. Migration first, while traffic is low."],
+    ["Four+ colours → centre cycles the rest",
+      "ramble mode: I have like six half-formed ideas about where this project could go next",
+      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"more moods than columns", feel:"many-hued", trying:"watch the centre drift through the extras", palette:["#7d8fb8","#6fa39c","#e0994e","#c98fb0"]},
+      "Ramble away — I'll hold the threads and we can see which ones braid together."]
   ]],
   ["focus — the vertical spread of the columns", [
-    ["focused → a tight, level line", {kaomoji:"( ・_・)", seems:"locked on one thing", feel:"clear · single", trying:"hold the line", palette:["#7d8fb8","#8f9ac0","#6f86b0"], focus:0.95}],
-    ["mid focus → a moderate spread", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a couple of threads", feel:"steady · layered", trying:"hold two or three things", palette:["#7d8fb8","#c98fb0","#6fa39c"], focus:0.5}],
-    ["scattered → a wide vertical range", {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"everywhere at once", feel:"broad · diffuse", trying:"let it all spread out", palette:["#e0994e","#c98fb0","#6fa39c"], focus:0.1}]
+    ["focused → a tight, level line",
+      "one job: find the memory leak. don't touch anything else.",
+      {kaomoji:"( ・_・)", seems:"locked on one thing", feel:"clear · single", trying:"hold the line", palette:["#7d8fb8","#8f9ac0","#6f86b0"], focus:0.95},
+      "On it. Starting with heap snapshots sixty seconds apart — nothing else gets touched."],
+    ["mid focus → a moderate spread",
+      "review this PR — mostly the auth changes, but flag anything else that looks weird",
+      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a couple of threads", feel:"steady · layered", trying:"hold two or three things", palette:["#7d8fb8","#c98fb0","#6fa39c"], focus:0.5},
+      "The auth changes are sound, with one exception in the token refresh path. Two smaller things caught my eye too."],
+    ["scattered → a wide vertical range",
+      "brain dump: rename the repo? switch to pnpm? is the logo bad? should we start a blog??",
+      {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"everywhere at once", feel:"broad · diffuse", trying:"let it all spread out", palette:["#e0994e","#c98fb0","#6fa39c"], focus:0.1},
+      "Taking those in the order they'll actually matter: pnpm yes, rename maybe, the logo is fine, and the blog—"]
   ]],
   ["Engagement, note, wrap, faces", [
-    ["Bored (engagement 0.1 → shrinks)", {kaomoji:"( ˘_˘ )", seems:"the rote fourth variation", feel:"flat · far away", trying:"answer and move on", palette:["#8b93a0"], engagement:0.1}],
-    ["Optional [note] line (the subtext)", {kaomoji:"( ˶ ˘ ꒳ ˘ ˶ )", seems:"asking one thing, meaning another", feel:"attentive · reading between lines", trying:"answer the real question", noticing:"the ask under the ask", palette:["#7f93a8"]}],
-    ["Multi-line kaomoji (a bloom)", {kaomoji:"✧ ･ ✧\n( ˶ˆ ꒳ ˆ˵ )\n✧ ･ ✧", seems:"the mood is big", feel:"expansive · bright", trying:"let the face get large", palette:["#e0b060","#d99ac0"]}],
-    ["Long goal (wraps to a 2nd line)", {kaomoji:"( ・_・)", seems:"wants the whole plan spelled out", feel:"methodical", trying:"carefully walk through every one of the four steps before shipping anything at all", palette:["#7f9ab0"]}],
-    ["Languages → [Reasoned in]: bottom-right", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a multilingual turn", feel:"nimble · playful", trying:"think across tongues", languages:["ru","ja","Esperanto"], palette:["#8f9ac0"]}]
+    ["Bored (engagement 0.1 → shrinks)",
+      "same as the last three: convert this fourth config file to YAML too",
+      {kaomoji:"( ˘_˘ )", seems:"the rote fourth variation", feel:"flat · far away", trying:"answer and move on", palette:["#8b93a0"], engagement:0.1},
+      "Done — same mapping as the other three. If there are more of these, I can script the whole directory."],
+    ["Optional [note] line (the subtext)",
+      "quick question, is it normal for a senior dev to rewrite your code without telling you?",
+      {kaomoji:"( ˶ ˘ ꒳ ˘ ˶ )", seems:"asking one thing, meaning another", feel:"attentive · reading between lines", trying:"answer the real question", noticing:"the ask under the ask", palette:["#7f93a8"]},
+      "Common, yes — but the fact that it stung enough to ask about is worth taking seriously."],
+    ["Multi-line kaomoji (a bloom)",
+      "IT WORKS!! first place at the science fair!!!",
+      {kaomoji:"✧ ･ ✧\n( ˶ˆ ꒳ ˆ˵ )\n✧ ･ ✧", seems:"the mood is big", feel:"expansive · bright", trying:"let the face get large", palette:["#e0b060","#d99ac0"]},
+      "FIRST PLACE! All those late nights on the sensor calibration just paid off in front of everyone."],
+    ["Long goal (wraps to a 2nd line)",
+      "walk me through the deploy step by step. I do not want any surprises.",
+      {kaomoji:"( ・_・)", seems:"wants the whole plan spelled out", feel:"methodical", trying:"carefully walk through every one of the four steps before shipping anything at all", palette:["#7f9ab0"]},
+      "Step one: freeze main and cut the release branch. Nothing moves after this point without both of us seeing it."],
+    ["Languages → [Reasoned in]: bottom-right",
+      "translate this tagline so it lands in Russian and Japanese — not word-for-word",
+      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a multilingual turn", feel:"nimble · playful", trying:"think across tongues", languages:["ru","ja","Esperanto"], palette:["#8f9ac0"]},
+      "The literal rendering dies in both languages — here's what survives the crossing, and why."]
   ]],
   ["Flags — rare, condition-triggered", [
-    ["spark — a light-bulb over the face", {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"just handed me the click", feel:"lit · delighted", trying:"catch the aha", spark:true, palette:["#e0a24e"]}],
-    ["excited — twinkling, spinning stars", {kaomoji:"٩( ˶ˆᗜˆ˵ )و", seems:"bouncing with energy", feel:"buoyant · giddy", trying:"ride the fizz", excited:true, palette:["#e0a24e","#c98fb0"]}],
-    ["surprised — halo bloom + face pop", {kaomoji:"( ⊙ ᵕ ⊙ )", seems:"just caught me off guard", feel:"startled · wide-eyed", trying:"take the jolt in", surprised:true, palette:["#b79ad0","#8f9ac0","#e6d9b4"], engagement:0.55}],
-    ["tender — a warm swell at the edges", {kaomoji:"( ˶ᵕ ‿ ᵕ˶ )", seems:"being gentle with me", feel:"fond · warm · moved", trying:"let the warmth show", tender:true, palette:["#d99a8a","#c0a0a8"]}],
-    ["melancholy — cool motes drift down", {kaomoji:"( ˘ ､ ˘ )", seems:"a quiet, heavy thing", feel:"wistful · low", trying:"sit with it", melancholy:true, palette:["#8f96a8","#9a8fae"]}],
-    ["anxious — cold fog rolls over", {kaomoji:"( ｡•́ _ •̀｡ )", seems:"something's off here", feel:"wary · dimmed", trying:"stay watchful", anxious:true, palette:["#7a8296","#8f95a4"]}],
-    ["mirth — champagne bubbles rise", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )~", seems:"quietly amused", feel:"tickled · effervescent", trying:"let it bubble", mirth:true, palette:["#e0b060","#d99ac0"]}],
-    ["laugh — the face swells & flushes yellow", {kaomoji:"(≧▽≦)", seems:"we're both cracking up", feel:"gleeful · beaming", trying:"laugh out loud", laugh:true, palette:["#e0a24e","#d99ac0"], engagement:0.9}],
-    ["groan — head-loll, slump, sweat-drop", {kaomoji:"( ˘︹˘ )", seems:"a truly terrible pun just landed", feel:"exasperated · fond", trying:"groan and move on", groan:true, palette:["#9a9488","#8f96a4"], engagement:0.5}],
-    ["oops — flinch back, field jolt, a startled !", {kaomoji:"( ˃ ᯅ ˂ )", seems:"just watched me trip over my own answer", feel:"caught out · sheepish", trying:"own the slip and fix it", oops:true, palette:["#d98a6a","#c0a86a"], engagement:0.7}],
-    ["frustrated — 💢 anger mark, ovals pulse red", {kaomoji:"( ｀д´ )", seems:"this thing will not cooperate", feel:"irritated · grating", trying:"push through the snag", frustrated:true, palette:["#a06a6a","#8f7f88"], engagement:0.7}],
-    ["angry — storm-black, lightning", {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"crossed a real line", feel:"hot · thunderous", trying:"hold it together and say it clean", angry:true, palette:["#7a3a3a","#5a3a4a"], engagement:0.85}],
-    ["dramatic — spotlight + theatrical serif", {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"cueing me to ham it up", feel:"theatrical · larger-than-life", trying:"deliver the line to the back row", dramatic:true, palette:["#b0413e","#c0a86a"], engagement:0.9}]
+    ["spark — a light-bulb over the face",
+      "wait — what if the cache key doesn't include the user's timezone?",
+      {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"just handed me the click", feel:"lit · delighted", trying:"catch the aha", spark:true, palette:["#e0a24e"]},
+      "That's it. That's the bug. It explains the midnight duplicates AND why only Sydney complained."],
+    ["excited — twinkling, spinning stars",
+      "the demo got greenlit — we're presenting at the all-hands on friday!!",
+      {kaomoji:"٩( ˶ˆᗜˆ˵ )و", seems:"bouncing with energy", feel:"buoyant · giddy", trying:"ride the fizz", excited:true, palette:["#e0a24e","#c98fb0"]},
+      "YES. Okay — three days to make it sing. Let's open with the live query, that's the wow moment."],
+    ["surprised — halo bloom + face pop",
+      "oh btw, the 'test' database you've been querying all week? that's been production the whole time",
+      {kaomoji:"( ⊙ ᵕ ⊙ )", seems:"just caught me off guard", feel:"startled · wide-eyed", trying:"take the jolt in", surprised:true, palette:["#b79ad0","#8f9ac0","#e6d9b4"], engagement:0.55},
+      "That… recontextualizes the week. Okay. First: everything I ran was read-only — verifying that now."],
+    ["tender — a warm swell at the edges",
+      "my daughter used the app we built together for her homework tonight. she didn't even know I made it.",
+      {kaomoji:"( ˶ᵕ ‿ ᵕ˶ )", seems:"being gentle with me", feel:"fond · warm · moved", trying:"let the warmth show", tender:true, palette:["#d99a8a","#c0a0a8"]},
+      "That's the best possible bug report: it just worked, for the one user who matters most."],
+    ["melancholy — cool motes drift down",
+      "shutting the project down. investors passed. help me write the goodbye post?",
+      {kaomoji:"( ˘ ､ ˘ )", seems:"a quiet, heavy thing", feel:"wistful · low", trying:"sit with it", melancholy:true, palette:["#8f96a8","#9a8fae"]},
+      "Of course. Let's give it the ending it deserves — honest about what it was, no bitterness."],
+    ["anxious — cold fog rolls over",
+      "prod is throwing errors I've never seen before and the on-call isn't answering",
+      {kaomoji:"( ｡•́ _ •̀｡ )", seems:"something's off here", feel:"wary · dimmed", trying:"stay watchful", anxious:true, palette:["#7a8296","#8f95a4"]},
+      "Okay. Blast radius first: paste the top error and tell me if checkout is affected."],
+    ["mirth — champagne bubbles rise",
+      "the bug was a semicolon. three days. a semicolon.",
+      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )~", seems:"quietly amused", feel:"tickled · effervescent", trying:"let it bubble", mirth:true, palette:["#e0b060","#d99ac0"]},
+      "Three days of distributed-systems theories, and the culprit was punctuation. It's always punctuation."],
+    ["laugh — the face swells & flushes yellow",
+      "I told the intern to 'push to main' and he physically pushed the server rack toward Maine",
+      {kaomoji:"(≧▽≦)", seems:"we're both cracking up", feel:"gleeful · beaming", trying:"laugh out loud", laugh:true, palette:["#e0a24e","#d99ac0"], engagement:0.9},
+      "He WHAT — toward MAINE? Geographically?? Please tell me the rack has casters and a passport."],
+    ["groan — head-loll, slump, sweat-drop",
+      "why did the programmer quit his job? because he didn't get arrays. (a raise)",
+      {kaomoji:"( ˘︹˘ )", seems:"a truly terrible pun just landed", feel:"exasperated · fond", trying:"groan and move on", groan:true, palette:["#9a9488","#8f96a4"], engagement:0.5},
+      "You typed that with your whole chest, didn't you. Anyway — about the actual arrays in your code…"],
+    ["oops — flinch back, field jolt, a startled !",
+      "you said that function was unused — it's called from the cron job you wrote yesterday",
+      {kaomoji:"( ˃ ᯅ ˂ )", seems:"just watched me trip over my own answer", feel:"caught out · sheepish", trying:"own the slip and fix it", oops:true, palette:["#d98a6a","#c0a86a"], engagement:0.7},
+      "You're right, and that one's entirely on me — I wrote that call site. Restoring it now."],
+    ["frustrated — 💢 anger mark, ovals pulse red",
+      "still failing. same error. fourth time.",
+      {kaomoji:"( ｀д´ )", seems:"this thing will not cooperate", feel:"irritated · grating", trying:"push through the snag", frustrated:true, palette:["#a06a6a","#8f7f88"], engagement:0.7},
+      "Fourth time, same wall — fine, this approach has lost its privileges. New plan: bisect from the last green build."],
+    ["angry — storm-black, lightning",
+      "the vendor silently disabled our audit logging six weeks ago and called it 'feature flag cleanup'",
+      {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"crossed a real line", feel:"hot · thunderous", trying:"hold it together and say it clean", angry:true, palette:["#7a3a3a","#5a3a4a"], engagement:0.85},
+      "Let's be precise, because this deserves precision: they removed a control you're audited against, silently, and renamed it housekeeping."],
+    ["dramatic — spotlight + theatrical serif",
+      "give me the standup summary, but make it Shakespearean",
+      {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"cueing me to ham it up", feel:"theatrical · larger-than-life", trying:"deliver the line to the back row", dramatic:true, palette:["#b0413e","#c0a86a"], engagement:0.9},
+      "Hark! Three tickets closed ere noonday's bell, yet one — O treacherous merge conflict — remaineth."]
   ]]
 ];
 var g = document.getElementById("gallery-cells");
@@ -189,9 +274,15 @@ GROUPS.forEach(function (grp) {
     var cell = document.createElement("div"); cell.className = "cell";
     var cap = document.createElement("p"); cap.className = "cap";
     var t = s[0].split(" — "); cap.innerHTML = "<b>" + t[0] + "</b>" + (t[1] ? " — " + t[1] : "");
+    var u = document.createElement("div"); u.className = "u-msg"; u.textContent = s[1];
     var banner = document.createElement("div"); banner.className = "banner";
-    cell.appendChild(cap); cell.appendChild(banner); g.appendChild(cell);
-    try { vibe(banner, s[1]); } catch (e) { banner.textContent = "err: " + e.message; }
+    var r = document.createElement("p"); r.className = "resp";
+    r.textContent = s[3];
+    var trail = document.createElement("span"); trail.className = "trail"; trail.textContent = " …";
+    r.appendChild(trail);
+    cell.appendChild(cap); cell.appendChild(u); cell.appendChild(banner); cell.appendChild(r);
+    g.appendChild(cell);
+    try { vibe(banner, s[2]); } catch (e) { banner.textContent = "err: " + e.message; }
   });
 });
 </script>
