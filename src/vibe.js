@@ -341,21 +341,23 @@
             ctx.fillStyle = rgba("#c8d2ff", 0.1 * fla); ctx.fillRect(0, 0, W, H);
             ctx.globalAlpha = 1;
           }
-          // a steady sprinkler of grawlix curses — pop up, fall, shrink, fade
-          var gw = ["$#@&", "%$#!", "@#$%&", "#@!*", "&$@#", "*!?#", "$%&#@", "@&#!", "!#$%"];
+          // a little cloud of grawlix curses clustered around the head — pop, fall, shrink, fade
+          var gw = ["$#@&", "%$#!", "@#$%", "#@!*", "&$@#", "*!?#", "$%&#", "@&#!", "!#$%", "#$@!"];
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          var GN = 9, gper = 2.4, glife = 1.5;
+          var GN = 10, gper = 2.0, glife = 1.3, fcx = 46, fcy = cyC;
           for (var gi = 0; gi < GN; gi++) {
             var grr = mulberry32(L.seed + gi * 131 + 61);
-            var birth = grr() * gper, word = gw[Math.floor(grr() * gw.length) % gw.length], gx = 40 + grr() * (W - 80);
+            var birth = grr() * gper, word = gw[Math.floor(grr() * gw.length) % gw.length];
+            var ang = grr() * 6.2832, rad = 18 + grr() * 36;
             var age = (((t - birth) % gper) + gper) % gper;
             if (age > glife) continue;
             var u = age / glife;
-            var yy2 = u < 0.22 ? -18 * (u / 0.22) : -18 + 46 * ((u - 0.22) / 0.78);   // pop up, then fall
-            var scl = 1.15 - 0.55 * u, al = u < 0.14 ? u / 0.14 : Math.max(0, 1 - (u - 0.14) / 0.86);
-            ctx.globalAlpha = al; ctx.font = "700 " + (16 * scl).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
+            var fall = u < 0.2 ? -6 * (u / 0.2) : -6 + 22 * ((u - 0.2) / 0.8);         // small pop up, then fall
+            var gx = fcx + Math.cos(ang) * rad, gy = fcy + Math.sin(ang) * rad * 0.7 + fall;
+            var scl = 1.05 - 0.5 * u, al = u < 0.14 ? u / 0.14 : Math.max(0, 1 - (u - 0.14) / 0.86);
+            ctx.globalAlpha = al; ctx.font = "700 " + (10.5 * scl).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
             ctx.fillStyle = gi % 3 === 0 ? "#ffd24a" : "#ff5a4a";
-            ctx.fillText(word, gx, cyC - 4 + yy2);
+            ctx.fillText(word, gx, gy);
           }
           ctx.globalAlpha = 1; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
         }
