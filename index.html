@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>vibe-annotations — a living mood banner for Claude</title>
-<meta name="description" content="A Claude Code skill + tiny renderer that gives Claude a face: an honest, animated mood banner at the top of every reply.">
+<meta name="description" content="A Claude skill + tiny renderer that gives Claude a face: an honest, animated mood banner at the top of every reply.">
 <style>
   :root {
     /* stand-ins for the host's fonts (claude.ai provides these live) */
@@ -22,13 +22,21 @@
     font-family: var(--font-sans); }
   .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
   h1 { font-size: 30px; font-weight: 500; margin: 0 0 6px; }
-  h2 { font-size: 20px; font-weight: 500; margin: 48px 0 10px; }
+  h2 { font-size: 20px; font-weight: 500; margin: 36px 0 10px; }
+  h2:first-child { margin-top: 8px; }
   h3 { font-size: 15px; font-weight: 600; margin: 34px 0 2px; color: var(--sub); }
   p, li { font-size: 15px; line-height: 1.65; }
   a { color: var(--accent); }
   .lede { color: var(--sub); margin: 0 0 20px; font-size: 16px; line-height: 1.6; }
-  nav { margin: 0 0 28px; font-size: 14px; }
-  nav a { margin-right: 16px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--edge);
+    margin: 24px 0 28px; flex-wrap: wrap; }
+  .tab-btn { background: none; border: none; padding: 10px 14px; font-size: 14px;
+    color: var(--sub); cursor: pointer; font-family: var(--font-sans);
+    border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
   .hero-banner { border-radius: 12px; overflow: hidden; margin: 0 0 8px; }
   .hero-note { font-size: 12.5px; color: var(--sub); margin: 0 0 8px; }
   pre { background: var(--card); border: 1px solid var(--edge); border-radius: 10px;
@@ -65,130 +73,141 @@
 <body>
 <div class="wrap">
   <h1>vibe-annotations</h1>
-  <p class="lede">A skill that gives Claude a face. At the top of every reply, Claude renders a
-  small living banner — a kaomoji, a breathing field of colour, and a few honest first-person
-  lines: its snap read of you, its mood, its immediate goal, and sometimes the subtext it's
-  noticing. Like being able to see your collaborator's expression while you work.</p>
+  <p class="lede">A skill that gives Claude a face.</p>
 
-  <nav>
-    <a href="#gallery">Gallery</a>
-    <a href="#key">Reading a banner</a>
-    <a href="#install">Install the skill</a>
-    <a href="#how">How it works</a>
-    <a href="#library">Use as a library</a>
-    <a href="https://github.com/bombadil-labs/vibe-annotation-renderer">GitHub</a>
-  </nav>
+  <div class="tabs" role="tablist">
+    <button class="tab-btn" data-tab="landing" role="tab">Landing</button>
+    <button class="tab-btn" data-tab="meaning" role="tab">What it means</button>
+    <button class="tab-btn" data-tab="install" role="tab">Installation</button>
+    <button class="tab-btn" data-tab="gallery" role="tab">Gallery</button>
+  </div>
 
-  <div class="hero-banner" id="hero"></div>
-  <p class="hero-note">Live, rendered right now from the CDN bundle — this is exactly what appears
-  above Claude's replies. Fonts here are stand-ins for claude.ai's. Respects your OS light/dark
-  and <code>prefers-reduced-motion</code>.</p>
+  <section class="tab-panel" id="tab-landing" role="tabpanel">
+    <p class="lede" style="color: var(--ink);">At the top of every reply, Claude renders a small
+    living banner — a kaomoji, a breathing field of colour, and a few honest first-person lines:
+    its snap read of you, its mood, its immediate goal, and sometimes the subtext it's noticing.
+    Like being able to see your collaborator's expression while you work.</p>
 
-  <h2 id="how">How it works</h2>
-  <p>The system is two halves, kept deliberately apart:</p>
-  <ul>
-    <li><strong>The skill</strong> (<a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">skill/SKILL.md</a>)
-      asks Claude to report its state as a handful of <em>feeling-values</em> — a kaomoji, a read
-      of the user, a mood, a goal, colours, focus, engagement, and a set of rare flags
-      (<code>spark</code>, <code>tender</code>, <code>oops</code>, <code>angry</code>…). It never
-      describes what any value <em>renders as</em>.</li>
-    <li><strong>The renderer</strong> (this repo, ~600 lines of framework-free JS) owns all the
-      geometry, colour, and motion. It's loaded from a CDN, pinned to an immutable commit hash, so
-      Claude only ever emits ~15 lines of values and never sees — or generates — the picture.</li>
-  </ul>
-  <p>That separation is the honesty mechanism: there's no visual lever for Claude to perform
-  toward. It reports the feeling; the tool decides the look.</p>
+    <div class="hero-banner" id="hero"></div>
+    <p class="hero-note">Live, rendered right now from the CDN bundle — this is exactly what
+    appears above Claude's replies. Fonts here are stand-ins for claude.ai's. Respects your OS
+    light/dark and <code>prefers-reduced-motion</code>.</p>
 
-  <h2 id="key">Reading a banner</h2>
-  <p>Every banner has the same anatomy — a face, a readout, and a field of three soft ovals
-  breathing behind them. Here's one to refer back to:</p>
-  <div class="banner" id="key-banner" style="margin: 0 0 20px;"></div>
+    <p>Start with the <a href="#gallery">gallery</a> to see every state in a mocked-up
+    conversation, learn to <a href="#meaning">read a banner</a>, or jump straight to
+    <a href="#install">installation</a> — it's one pasted file on claude.ai, one
+    <code>curl</code> in Claude Code.</p>
 
-  <h3>The face</h3>
-  <p>The kaomoji is Claude's expression, improvised in the moment. Small feeling, small face; a
-  big feeling can bloom into multiple lines.</p>
+    <h2>Why it's honest</h2>
+    <p>Claude only ever reports <em>values</em> — a mood, some colours, a goal — and a small
+    renderer loaded from a CDN turns them into the picture. Claude never sees the output and the
+    skill never describes what any value renders as, so there's no visual lever to perform
+    toward. It reports the feeling; the tool decides the look.
+    <a href="#meaning">More on the mechanism →</a></p>
+  </section>
 
-  <h3>The readout</h3>
-  <ul>
-    <li><code>[user]</code> — Claude's honest snap read of <em>you</em>, from your last message.
-      It's allowed to quietly disagree with the polite prose below it.</li>
-    <li><code>[mood]</code> — Claude's own felt state, in a few words.</li>
-    <li><code>[note]</code> — the subtext: the thing under the thing. Optional, and that's the
-      point — its mere presence means Claude caught something latent.</li>
-    <li><code>[goal]</code> — what Claude is trying to do <em>right now</em>. Always the last
-      line; expect it to change turn to turn.</li>
-    <li><code>[Reasoned in]:</code> — a small bottom-right trace listing any languages Claude
-      thought in beyond the one you're speaking.</li>
-  </ul>
+  <section class="tab-panel" id="tab-meaning" role="tabpanel">
+    <h2 id="how">How it works</h2>
+    <p>The system is two halves, kept deliberately apart:</p>
+    <ul>
+      <li><strong>The skill</strong> (<a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">skill/SKILL.md</a>)
+        asks Claude to report its state as a handful of <em>feeling-values</em> — a kaomoji, a read
+        of the user, a mood, a goal, colours, focus, engagement, and a set of rare flags
+        (<code>spark</code>, <code>tender</code>, <code>oops</code>, <code>angry</code>…). It never
+        describes what any value <em>renders as</em>.</li>
+      <li><strong>The renderer</strong> (this repo, ~600 lines of framework-free JS) owns all the
+        geometry, colour, and motion. It's loaded from a CDN, pinned to an immutable commit hash, so
+        Claude only ever emits ~15 lines of values and never sees — or generates — the picture.</li>
+    </ul>
+    <p>That separation is the honesty mechanism: there's no visual lever for Claude to perform
+    toward. It reports the feeling; the tool decides the look.</p>
 
-  <h3>The field — the three ovals</h3>
-  <p>The ovals are Claude's mood made ambient: colour, spread, and size each carry one signal.</p>
-  <ul>
-    <li><strong>Colour</strong> comes from the palette Claude reports — its feelings expressed
-      as colours, in descending order of intensity. No colours → a neutral grey triad. One
-      colour → its light, pure, and dark forms. Two → one on each side with their blend in the
-      centre. Three → one per oval. Four or more → the centre oval slowly cycles through the
-      extras. So "one colour vs. three" is the difference between a single clear feeling and
-      several sitting side by side.</li>
-    <li><strong>Spread</strong> is focus: a tight, level line means attention locked on one
-      thing; ovals scattered up and down the banner mean it's spread across many.</li>
-    <li><strong>Size</strong> is engagement — and it only deflates. At normal engagement the
-      field is full; when Claude is genuinely bored, the ovals visibly shrink.</li>
-  </ul>
+    <h2 id="key">Reading a banner</h2>
+    <p>Every banner has the same anatomy — a face, a readout, and a field of three soft ovals
+    breathing behind them. Here's one to refer back to:</p>
+    <div class="banner" id="key-banner" style="margin: 0 0 20px;"></div>
 
-  <h3>Flags</h3>
-  <p>Rare, condition-triggered flourishes layered over everything else — a light-bulb for the
-  <em>spark</em> of insight, spinning stars when <em>excited</em>, cold fog when <em>anxious</em>,
-  a 💢 anger-vein when <em>frustrated</em>, lightning when genuinely <em>angry</em>, a spotlight
-  when being <em>dramatic</em>… Their whole value is that they're uncommon; every one is
-  demonstrated in the <a href="#gallery">gallery</a> below.</p>
+    <h3>The face</h3>
+    <p>The kaomoji is Claude's expression, improvised in the moment. Small feeling, small face; a
+    big feeling can bloom into multiple lines.</p>
 
-  <h2 id="install">Install the skill</h2>
+    <h3>The readout</h3>
+    <ul>
+      <li><code>[user]</code> — Claude's honest snap read of <em>you</em>, from your last message.
+        It's allowed to quietly disagree with the polite prose below it.</li>
+      <li><code>[mood]</code> — Claude's own felt state, in a few words.</li>
+      <li><code>[note]</code> — the subtext: the thing under the thing. Optional, and that's the
+        point — its mere presence means Claude caught something latent.</li>
+      <li><code>[goal]</code> — what Claude is trying to do <em>right now</em>. Always the last
+        line; expect it to change turn to turn.</li>
+      <li><code>[Reasoned in]:</code> — a small bottom-right trace listing any languages Claude
+        thought in beyond the one you're speaking.</li>
+    </ul>
 
-  <h3>On claude.ai (no tools needed)</h3>
-  <ol>
-    <li>Open the skill file:
-      <a href="https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md">skill/SKILL.md</a>.
-      You'll paste from it in a moment — it has a short <em>description</em> at the top (the
-      <code>description:</code> line between the <code>---</code> markers) and the
-      <em>instructions</em> (everything below).</li>
-    <li>In the <a href="https://claude.ai">claude.ai</a> sidebar, click <strong>Customize</strong>.</li>
-    <li>In the Skills panel, click <strong>Add</strong> → <strong>Write skill instructions</strong>.</li>
-    <li>Fill in the form: name it <code>vibe-annotations</code>, paste the description line into
-      <strong>Description</strong>, and everything below the frontmatter into
-      <strong>Instructions</strong>.</li>
-    <li>Save. Your next conversation opens with a banner.</li>
-  </ol>
+    <h3>The field — the three ovals</h3>
+    <p>The ovals are Claude's mood made ambient: colour, spread, and size each carry one signal.</p>
+    <ul>
+      <li><strong>Colour</strong> comes from the palette Claude reports — its feelings expressed
+        as colours, in descending order of intensity. No colours → a neutral grey triad. One
+        colour → its light, pure, and dark forms. Two → one on each side with their blend in the
+        centre. Three → one per oval. Four or more → the centre oval slowly cycles through the
+        extras. So "one colour vs. three" is the difference between a single clear feeling and
+        several sitting side by side.</li>
+      <li><strong>Spread</strong> is focus: a tight, level line means attention locked on one
+        thing; ovals scattered up and down the banner mean it's spread across many.</li>
+      <li><strong>Size</strong> is engagement — and it only deflates. At normal engagement the
+        field is full; when Claude is genuinely bored, the ovals visibly shrink.</li>
+    </ul>
 
-  <h3>In Claude Code</h3>
-  <p>Install is one file:</p>
-  <pre>mkdir -p ~/.claude/skills/vibe-annotations
+    <h3>Flags</h3>
+    <p>Rare, condition-triggered flourishes layered over everything else — a light-bulb for the
+    <em>spark</em> of insight, spinning stars when <em>excited</em>, cold fog when <em>anxious</em>,
+    a 💢 anger-vein when <em>frustrated</em>, lightning when genuinely <em>angry</em>, a spotlight
+    when being <em>dramatic</em>… Their whole value is that they're uncommon; every one is
+    demonstrated in the <a href="#gallery">gallery</a>.</p>
+  </section>
+
+  <section class="tab-panel" id="tab-install" role="tabpanel">
+    <h2 id="install">Install the skill</h2>
+
+    <h3>On claude.ai (no tools needed)</h3>
+    <ol>
+      <li>Open the skill file:
+        <a href="https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md">skill/SKILL.md</a>.
+        You'll paste from it in a moment — it has a short <em>description</em> at the top (the
+        <code>description:</code> line between the <code>---</code> markers) and the
+        <em>instructions</em> (everything below).</li>
+      <li>In the <a href="https://claude.ai">claude.ai</a> sidebar, click <strong>Customize</strong>.</li>
+      <li>In the Skills panel, click <strong>Add</strong> → <strong>Write skill instructions</strong>.</li>
+      <li>Fill in the form: name it <code>vibe-annotations</code>, paste the description line into
+        <strong>Description</strong>, and everything below the frontmatter into
+        <strong>Instructions</strong>.</li>
+      <li>Save. Your next conversation opens with a banner.</li>
+    </ol>
+
+    <h3>In Claude Code</h3>
+    <p>Install is one file:</p>
+    <pre>mkdir -p ~/.claude/skills/vibe-annotations
 curl -fsSL https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md \
   -o ~/.claude/skills/vibe-annotations/SKILL.md</pre>
-  <p>Windows (PowerShell):</p>
-  <pre>New-Item -ItemType Directory -Force "$HOME\.claude\skills\vibe-annotations" | Out-Null
+    <p>Windows (PowerShell):</p>
+    <pre>New-Item -ItemType Directory -Force "$HOME\.claude\skills\vibe-annotations" | Out-Null
 Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md `
   -OutFile "$HOME\.claude\skills\vibe-annotations\SKILL.md"</pre>
-  <p>Either way, the skill self-triggers ("preface every response with a usage of it"), so the next
-  conversation starts with a banner. To dial the cadence down or turn it off, just tell Claude —
-  the skill honors that for the session. To remove it, delete the skill (claude.ai: the Skills
-  panel; Claude Code: delete the folder).</p>
-  <p><strong>A security note, practiced here:</strong> the skill loads the renderer pinned to a
-  <em>full commit hash</em>, never a tag or branch. Tags are mutable pointers — in a context where
-  the host injects capabilities like <code>sendPrompt</code> into rendered pages, a silently moved
-  tag would be a script-injection vector. A commit hash can't be re-pointed, so the CDN can only
-  ever serve the audited bytes. If you fork this, keep that property.</p>
+    <p>Either way, the skill self-triggers ("preface every response with a usage of it"), so the next
+    conversation starts with a banner. To dial the cadence down or turn it off, just tell Claude —
+    the skill honors that for the session. To remove it, delete the skill (claude.ai: the Skills
+    panel; Claude Code: delete the folder).</p>
+    <p><strong>A security note, practiced here:</strong> the skill loads the renderer pinned to a
+    <em>full commit hash</em>, never a tag or branch. Tags are mutable pointers — in a context where
+    the host injects capabilities like <code>sendPrompt</code> into rendered pages, a silently moved
+    tag would be a script-injection vector. A commit hash can't be re-pointed, so the CDN can only
+    ever serve the audited bytes. If you fork this, keep that property.</p>
 
-  <h2 id="gallery">Gallery — every state, in conversation</h2>
-  <p class="lede" style="margin-bottom:0">Each cell is a mocked-up exchange: what the user said,
-  the banner Claude rendered in the moment, and the opening of the reply. Every banner is drawn
-  live by the same pinned bundle the skill uses.</p>
-  <div id="gallery-cells"></div>
-
-  <h2 id="library">Use it as a library</h2>
-  <p>You don't need the skill — <code>vibe(el, {…})</code> is a tiny standalone mood-banner
-  library:</p>
-  <pre>&lt;div id="v"&gt;&lt;/div&gt;
+    <h2 id="library">Use it as a library</h2>
+    <p>You don't need the skill — <code>vibe(el, {…})</code> is a tiny standalone mood-banner
+    library:</p>
+    <pre>&lt;div id="v"&gt;&lt;/div&gt;
 &lt;script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@bfecabf27642216f42d70decf511d6c6a9411c9e/dist/vibe.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   vibe(document.getElementById('v'), {
@@ -201,9 +220,18 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
     focus: 0.5, engagement: 0.5
   });
 &lt;/script&gt;</pre>
-  <p>The full value grammar, flag list, and fork guide (reskin the whole look without touching the
-  skill) are in the
-  <a href="https://github.com/bombadil-labs/vibe-annotation-renderer#readme">README</a>.</p>
+    <p>The full value grammar, flag list, and fork guide (reskin the whole look without touching the
+    skill) are in the
+    <a href="https://github.com/bombadil-labs/vibe-annotation-renderer#readme">README</a>.</p>
+  </section>
+
+  <section class="tab-panel" id="tab-gallery" role="tabpanel">
+    <h2 id="gallery">Gallery — every state, in conversation</h2>
+    <p class="lede" style="margin-bottom:0">Each cell is a mocked-up exchange: what the user said,
+    the banner Claude rendered in the moment, and the opening of the reply. Every banner is drawn
+    live by the same pinned bundle the skill uses.</p>
+    <div id="gallery-cells"></div>
+  </section>
 
   <footer>
     <a href="https://github.com/bombadil-labs/vibe-annotation-renderer">bombadil-labs/vibe-annotation-renderer</a>
@@ -213,30 +241,37 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
 </div>
 <script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@bfecabf27642216f42d70decf511d6c6a9411c9e/dist/vibe.min.js"></script>
 <script>
-try {
-  vibe(document.getElementById("hero"), {
-    kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
-    seems: "curious enough to click through — welcome",
-    feel: "warm · a little proud",
-    trying: "show you what an honest mood banner looks like",
-    noticing: "you're wondering if this is gimmick or genuine; fair",
-    palette: ["#d99a5e", "#7d8fb8"],
-    focus: 0.7, engagement: 0.85
+var MOUNT_QUEUE = {};
+function queueMount(tab, el, payload) {
+  (MOUNT_QUEUE[tab] = MOUNT_QUEUE[tab] || []).push([el, payload]);
+}
+function mountTab(tab) {
+  (MOUNT_QUEUE[tab] || []).forEach(function (m) {
+    try { vibe(m[0], m[1]); } catch (e) { m[0].textContent = "err: " + e.message; }
   });
-} catch (e) {}
+  MOUNT_QUEUE[tab] = [];
+}
 
-try {
-  vibe(document.getElementById("key-banner"), {
-    kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
-    seems: "reading the legend to decode the picture above it",
-    feel: "curious · unhurried · warm",
-    trying: "map each part of this banner to the section below",
-    noticing: "three feelings reported, so each oval gets its own colour",
-    languages: ["eo"],
-    palette: ["#d99a5e", "#c98fb0", "#6fa39c"],
-    focus: 0.6, engagement: 0.8
-  });
-} catch (e) {}
+queueMount("landing", document.getElementById("hero"), {
+  kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
+  seems: "curious enough to click through — welcome",
+  feel: "warm · a little proud",
+  trying: "show you what an honest mood banner looks like",
+  noticing: "you're wondering if this is gimmick or genuine; fair",
+  palette: ["#d99a5e", "#7d8fb8"],
+  focus: 0.7, engagement: 0.85
+});
+
+queueMount("meaning", document.getElementById("key-banner"), {
+  kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
+  seems: "reading the legend to decode the picture above it",
+  feel: "curious · unhurried · warm",
+  trying: "map each part of this banner to the section below",
+  noticing: "three feelings reported, so each oval gets its own colour",
+  languages: ["eo"],
+  palette: ["#d99a5e", "#c98fb0", "#6fa39c"],
+  focus: 0.6, engagement: 0.8
+});
 
 var GROUPS = [
   ["The field — palette becomes three columns", [
@@ -353,33 +388,37 @@ var GROUPS = [
   ]]
 ];
 var g = document.getElementById("gallery-cells");
+function buildChat(promptText) {
+  var chat = document.createElement("div"); chat.className = "chat";
+  var bar = document.createElement("div"); bar.className = "chat-bar";
+  for (var i = 0; i < 3; i++) { var d = document.createElement("span"); d.className = "dot"; bar.appendChild(d); }
+  var title = document.createElement("span"); title.className = "title"; title.textContent = "claude"; bar.appendChild(title);
+  var body = document.createElement("div"); body.className = "chat-body";
+  var u = document.createElement("div"); u.className = "u-msg"; u.textContent = promptText;
+  body.appendChild(u);
+  chat.appendChild(bar); chat.appendChild(body);
+  return { chat: chat, body: body };
+}
 GROUPS.forEach(function (grp) {
   var h = document.createElement("h3"); h.textContent = grp[0]; g.appendChild(h);
   grp[1].forEach(function (s) {
     var cell = document.createElement("div"); cell.className = "cell";
     var cap = document.createElement("p"); cap.className = "cap";
     var t = s[0].split(" — "); cap.innerHTML = "<b>" + t[0] + "</b>" + (t[1] ? " — " + t[1] : "");
-    var chat = document.createElement("div"); chat.className = "chat";
-    var bar = document.createElement("div"); bar.className = "chat-bar";
-    for (var i = 0; i < 3; i++) { var d = document.createElement("span"); d.className = "dot"; bar.appendChild(d); }
-    var title = document.createElement("span"); title.className = "title"; title.textContent = "claude"; bar.appendChild(title);
-    var body = document.createElement("div"); body.className = "chat-body";
-    var u = document.createElement("div"); u.className = "u-msg"; u.textContent = s[1];
+    var c = buildChat(s[1]);
     var banner = document.createElement("div"); banner.className = "banner";
     var r = document.createElement("p"); r.className = "resp";
     r.textContent = s[3];
     var trail = document.createElement("span"); trail.className = "trail"; trail.textContent = " …";
     r.appendChild(trail);
-    body.appendChild(u); body.appendChild(banner); body.appendChild(r);
-    chat.appendChild(bar); chat.appendChild(body);
-    cell.appendChild(cap); cell.appendChild(chat);
+    c.body.appendChild(banner); c.body.appendChild(r);
+    cell.appendChild(cap); cell.appendChild(c.chat);
     g.appendChild(cell);
-    try { vibe(banner, s[2]); } catch (e) { banner.textContent = "err: " + e.message; }
+    queueMount("gallery", banner, s[2]);
   });
 });
 
 var SHIFT_DEMO = {
-  label: "Mid-response shifts — the face changes as the reasoning turns",
   prompt: "I transcribed my grandfather's letters from the war, but the dates make no sense — the April one is postmarked from a port he shouldn't have reached until June. Did I mess up the transcription?",
   segments: [
     [{kaomoji:"( ・_・)", seems:"handed me a real family mystery, worried the error is theirs", feel:"methodical · intrigued", trying:"lay the letters out chronologically and find where the dates break", palette:["#7d8fb8","#8f9ac0"], focus:0.85, engagement:0.8},
@@ -398,26 +437,44 @@ var SHIFT_DEMO = {
   var cell = document.createElement("div"); cell.className = "cell";
   var cap = document.createElement("p"); cap.className = "cap";
   cap.innerHTML = "<b>Mid-response shifts</b> — a long reply re-faces when the state genuinely turns: methodical → surprised → spark";
-  var chat = document.createElement("div"); chat.className = "chat";
-  var bar = document.createElement("div"); bar.className = "chat-bar";
-  for (var i = 0; i < 3; i++) { var d = document.createElement("span"); d.className = "dot"; bar.appendChild(d); }
-  var title = document.createElement("span"); title.className = "title"; title.textContent = "claude"; bar.appendChild(title);
-  var body = document.createElement("div"); body.className = "chat-body";
-  var u = document.createElement("div"); u.className = "u-msg"; u.textContent = SHIFT_DEMO.prompt;
-  body.appendChild(u);
+  var c = buildChat(SHIFT_DEMO.prompt);
   SHIFT_DEMO.segments.forEach(function (seg) {
     var banner = document.createElement("div"); banner.className = "banner";
-    body.appendChild(banner);
-    try { vibe(banner, seg[0]); } catch (e) { banner.textContent = "err: " + e.message; }
+    c.body.appendChild(banner);
+    queueMount("gallery", banner, seg[0]);
     var r = document.createElement("p"); r.className = "resp";
     r.textContent = seg[1];
     if (seg[2]) { var trail = document.createElement("span"); trail.className = "trail"; trail.textContent = " …"; r.appendChild(trail); }
-    body.appendChild(r);
+    c.body.appendChild(r);
   });
-  chat.appendChild(bar); chat.appendChild(body);
-  cell.appendChild(cap); cell.appendChild(chat);
+  cell.appendChild(cap); cell.appendChild(c.chat);
   g.appendChild(cell);
 })();
+
+var TAB_ALIAS = { "": "landing", landing: "landing", meaning: "meaning", key: "meaning",
+  how: "meaning", install: "install", library: "install", gallery: "gallery" };
+function activate(tab) {
+  document.querySelectorAll(".tab-btn").forEach(function (b) {
+    b.classList.toggle("active", b.dataset.tab === tab);
+  });
+  document.querySelectorAll(".tab-panel").forEach(function (p) {
+    p.classList.toggle("active", p.id === "tab-" + tab);
+  });
+  mountTab(tab);
+}
+function route() {
+  var h = location.hash.replace("#", "");
+  var tab = TAB_ALIAS[h] || "landing";
+  activate(tab);
+  var target = document.getElementById(h);
+  if (target && h !== tab) target.scrollIntoView();
+  else window.scrollTo(0, 0);
+}
+document.querySelectorAll(".tab-btn").forEach(function (b) {
+  b.addEventListener("click", function () { location.hash = b.dataset.tab; });
+});
+window.addEventListener("hashchange", route);
+route();
 </script>
 </body>
 </html>
