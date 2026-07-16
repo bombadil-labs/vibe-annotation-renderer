@@ -28,7 +28,10 @@
     ".fx{font-family:var(--font-mono);font-size:12px;fill:#7a5f2c;stroke-width:2.2}" +
     "@media (prefers-color-scheme:dark){.txt{stroke:#241a06}" +
     ".fk,.fkt{fill:#f6ead0}.lbl{fill:#c9ad78}.fr{fill:#dcc79c}" +
-    ".fw{fill:#f0e0bf}.fg{fill:#ecdcb8}.fx{fill:#d4bb8a}}";
+    ".fw{fill:#f0e0bf}.fg{fill:#ecdcb8}.fx{fill:#d4bb8a}}" +
+    ".drama .fk,.drama .fkt{font-family:var(--font-voice)}" +
+    ".drama .fr,.drama .fw,.drama .fg{font-family:var(--font-voice);font-style:italic;font-weight:600;letter-spacing:.04em}" +
+    ".drama .lbl{font-family:var(--font-voice);text-transform:uppercase;letter-spacing:.18em;font-style:normal}";
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function g(n) { return String(Math.round(n * 1000) / 1000); }
@@ -152,14 +155,14 @@
     return {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + langSVG + readSVG,
       spark: !!p.spark, excited: !!p.excited, seed: seedOf(p),
-      awe: !!p.awe, tender: !!p.tender, melancholy: !!p.melancholy, unease: !!p.unease, mirth: !!p.mirth, laugh: !!p.laugh, groan: !!p.groan, oops: !!p.oops
+      awe: !!p.awe, tender: !!p.tender, melancholy: !!p.melancholy, unease: !!p.unease, mirth: !!p.mirth, laugh: !!p.laugh, groan: !!p.groan, oops: !!p.oops, dramatic: !!p.dramatic
     };
   }
 
   /* ---- static SVG (fallback + node tests): identical grammar, no motion ---- */
   function buildSVG(p) {
     var L = layout(p), out = [];
-    out.push('<svg width="100%" viewBox="0 0 ' + W + ' ' + L.H + '" role="img" xmlns="http://www.w3.org/2000/svg">');
+    out.push('<svg width="100%"' + (L.dramatic ? ' class="drama"' : '') + ' viewBox="0 0 ' + W + ' ' + L.H + '" role="img" xmlns="http://www.w3.org/2000/svg">');
     out.push('<title>Mood annotation</title><desc>Ambient mood field with a user read and a first-person feel/intent readout</desc>');
     out.push('<style>' + STYLE + '</style>');
     out.push('<g opacity="0.5">');
@@ -167,6 +170,11 @@
       out.push('<ellipse cx="' + g(b.cx) + '" cy="' + g(b.cy) + '" rx="' + g(b.rx) + '" ry="' + g(b.ry) + '" fill="' + b.fill + '" opacity="' + g(b.op) + '"/>');
     });
     out.push('</g>');
+    if (L.dramatic) {                                                                             // spotlight: dim the stage, pool light on the star
+      out.push('<defs><radialGradient id="drsp" cx="6.8%" cy="50%" r="72%">' +
+        '<stop offset="0%" stop-color="#08080f" stop-opacity="0"/><stop offset="52%" stop-color="#08080f" stop-opacity="0.16"/><stop offset="100%" stop-color="#08080f" stop-opacity="0.46"/></radialGradient></defs>' +
+        '<rect x="0" y="0" width="' + W + '" height="' + L.H + '" fill="url(#drsp)"/>');
+    }
     var glow = [];
     if (L.spark) glow.push('<ellipse cx="672" cy="10" rx="54" ry="40" fill="#f7dd94" opacity="0.11"/><ellipse cx="672" cy="10" rx="28" ry="21" fill="#fbe6a0" opacity="0.22"/><ellipse cx="672" cy="10" rx="11" ry="9" fill="#fdf0c4" opacity="0.4"/>');
     if (L.excited) sparkleData(L.H, L.seed).forEach(function (st) { for (var a = 0; a < 3; a++) glow.push('<ellipse cx="' + st.cx.toFixed(1) + '" cy="' + st.cy.toFixed(1) + '" rx="' + st.s.toFixed(1) + '" ry="' + (st.s * st.ry).toFixed(2) + '" fill="#f7e3a8" opacity="' + st.op.toFixed(2) + '" transform="rotate(' + (st.rot + 60 * a).toFixed(1) + ' ' + st.cx.toFixed(1) + ' ' + st.cy.toFixed(1) + ')"/>'); });
@@ -185,7 +193,7 @@
     el.innerHTML =
       '<div style="position:relative;width:100%">' +
       '<canvas style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none"></canvas>' +
-      '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" role="img" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:1;display:block">' +
+      '<svg width="100%"' + (L.dramatic ? ' class="drama"' : '') + ' viewBox="0 0 ' + W + ' ' + H + '" role="img" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:1;display:block">' +
       '<title>Mood annotation</title><desc>Living mood field with a user read and a first-person feel/intent readout</desc>' +
       '<style>' + STYLE + '</style>' + L.textSVG + '</svg>' +
       '</div>';
@@ -246,13 +254,14 @@
         if (ot < 0.1) { oopsE = ot / 0.1; oopsOsc = oopsE; }                                         // snap: instant recoil
         else if (ot < 1.4) { var od = ot - 0.1; var oenv = Math.exp(-od * 3.4); oopsE = oenv; oopsOsc = oenv * Math.cos(od * 22); }  // damped spring-back
       }
-      if (kaoEl && (L.laugh || L.excited || L.unease || L.melancholy || L.groan || L.oops)) {   // animate the face itself
+      if (kaoEl && (L.laugh || L.excited || L.unease || L.melancholy || L.groan || L.oops || L.dramatic)) {   // animate the face itself
         var kx = 0, ky = 0, ks = 1, krot = 0, kfill = "";
         if (laughKp > 0.03) { ks *= 1 + laughKp * 0.15; kfill = mixCss(baseFill, [255, 223, 58], laughKp * 0.92); }  // laugh: swell + flush yellow
         if (L.excited) { kx += Math.tanh(3 * Math.sin(t * 1.0)) * 10; }                                              // excited: sway foot-to-foot, dwell at each pole
         if (L.unease) { kx += (Math.sin(t * 41) + Math.sin(t * 57)) * 0.7; ky += Math.sin(t * 47) * 0.6; }           // unease: shiver
         if (L.groan) { ky += groanGr * 7; krot += groanGr * 13; if (!kfill) kfill = mixCss(baseFill, [138, 140, 150], groanGr * 0.4); }  // groan: sink, head-loll, colour drains
         if (L.oops) { ky -= oopsE * 5; kx += oopsOsc * 4; krot += oopsOsc * 6; ks *= 1 - oopsE * 0.06; if (!kfill) kfill = mixCss(baseFill, [206, 208, 220], oopsE * 0.5); }  // oops: hop back, wobble, blanch
+        if (L.dramatic) { ks *= 1.06; ky += Math.sin(t * 0.8) * 1.2; }                                               // dramatic: swell, hold the stage with a slow sway
         if (L.melancholy && !kfill) { kfill = mixCss(baseFill, [120, 134, 176], 0.45); }                            // melancholy: the face goes a bit blue
         kaoEl.style.transform = "translate(" + kx.toFixed(2) + "px," + ky.toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";
         kaoEl.style.fill = kfill;
@@ -268,6 +277,15 @@
         ellipse(cx, cy, rx, ry, b.fill, b.op * opP);
       });
       ctx.globalAlpha = 1;
+      if (L.dramatic) {                                                                            // spotlight: warm pool on the star, the rest of the stage dimmed
+        var dx = 46, dy = cyC, fl = 0.94 + 0.06 * Math.sin(t * 5.5) + 0.03 * Math.sin(t * 11);      // faint candle-flicker
+        var pool = ctx.createRadialGradient(dx, dy - 4, 6, dx, dy, 168);
+        pool.addColorStop(0, rgba("#fff2cf", 0.5 * fl)); pool.addColorStop(0.5, rgba("#ffe6a8", 0.16 * fl)); pool.addColorStop(1, rgba("#ffe6a8", 0));
+        ctx.fillStyle = pool; ctx.fillRect(0, 0, W, H);
+        var dim = ctx.createRadialGradient(dx, dy, 46, dx, dy, Math.max(W, H) * 0.72);
+        dim.addColorStop(0, rgba("#08080f", 0)); dim.addColorStop(0.5, rgba("#08080f", 0.16 * fl)); dim.addColorStop(1, rgba("#08080f", 0.46 * fl));
+        ctx.fillStyle = dim; ctx.fillRect(0, 0, W, H);
+      }
       if (L.spark) {
         var sp2 = 0.6 + 0.4 * Math.sin(2.6 * t);                       // strong, quick pulse
         var hp = (t % 2.4) / 2.4, hr = 22 + hp * 74, ha = 0.24 * (1 - hp);   // expanding halo ring
