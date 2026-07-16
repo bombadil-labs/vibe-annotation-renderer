@@ -76,11 +76,11 @@ than *reporting*, stop and give the boring true answer instead. Speed is the hon
 * **`prev`** *(optional)* — the `palette` array from your previous banner in this conversation,
   verbatim (your own prior tool call is already in context — a glance, not bookkeeping). Omit on the
   first banner. This gives the render a one-step memory of where you're arriving from.
-* **Rare flags** — set to `true` only when the named state *genuinely holds*. Their whole value is
-  that they're uncommon; a flag that shows up every banner stops meaning anything. Usually none fire.
-  **IMPORTANT: exactly one flag at most — this is the renderer's contract, not etiquette.** If you
-  set several, only one is drawn (the renderer picks; you don't control which). So choose the
-  *dominant* one yourself and let the readout lines carry the rest.
+* **`flag`** *(optional)* — a single string naming a rare state that *genuinely holds* right now,
+  e.g. `flag: "spark"`. **One string, not booleans — the payload takes at most one flag by
+  construction.** If several feel true, name the *dominant* one and let the readout lines carry the
+  rest. Usually you omit it entirely: a flag's whole value is that it's uncommon; one that shows up
+  every banner stops meaning anything. The vocabulary:
   * `spark` — a real flash of insight or delight, the click. Eureka!
   * `excited` — genuinely buoyant, high-energy, buzzing.
   * `surprised` — something landed unexpectedly; a jolt of the unforeseen, eyes wide.

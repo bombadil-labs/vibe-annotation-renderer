@@ -27,7 +27,7 @@ feelings honest.
     palette: ["#7d8fb8"],  // 0+ mood colours → three columns (left, cycling centre, right)
     focus: 0.5, engagement: 0.5,
     languages: ["ru"],     // optional: 2-letter codes or names, a bottom-right trace
-    spark: false, excited: false
+    flag: "spark"          // optional: ONE of the flag vocabulary below (a string, not booleans)
   });
 </script>
 ```
@@ -61,8 +61,9 @@ also exported (Node too) — it's the static fallback and the basis for the test
 | `prev` | the previous banner's palette: on mount the columns lerp from it to the current palette over ~2s, then hand off to normal idle. Animation-only; the static fallback ignores it |
 | `field` | power path: hand-author the ovals instead of `palette` |
 
-**Flags** — rare, condition-triggered flourishes. Set one only when the named state
-genuinely holds; their whole value is that they're uncommon.
+**Flags** — rare, condition-triggered flourishes, passed as `flag: "<name>"` (a single
+string). Set one only when the named state genuinely holds; their whole value is that
+they're uncommon.
 
 | flag | gesture |
 |---|---|
@@ -87,13 +88,15 @@ genuinely holds; their whole value is that they're uncommon.
 | `resolute` | concentration lines (集中線) flare inward from the frame edges toward the face, then hold faint — the ignition of determination |
 | `puzzled` | a loose cloud of "?" pops, drifts up, and fades around the head — grawlix mechanics in a gentle register; productive stuckness, the pre-spark |
 
-**The contract is one flag per banner, and the renderer enforces it.** If a payload sets
-several, the highest-priority flag renders and the rest are dropped — deterministically, in
-this order (roughly "the state whose absence would most misrepresent the moment wins"):
-`angry → solemn → awe → vertigo → dramatic → laugh → anxious → surprised → excited → spark →
-rhyme → resolute → oops → frustrated → groan → puzzled → mirth → melancholy → tender →
-at_peace`. With this many registers, stacked flags read as noise rather than nuance — so
-composition isn't a discipline, it's simply not in the grammar.
+**The contract is one flag per banner, by construction: `flag` is a single optional string**
+(this is plain JS, so the "enum" is the fixed vocabulary above — unknown strings are ignored,
+never crash). Legacy boolean payloads (`spark: true`) are still accepted for graceful
+degradation and resolve deterministically through a priority order (roughly "the state whose
+absence would most misrepresent the moment wins"): `angry → solemn → awe → vertigo → dramatic
+→ laugh → anxious → surprised → excited → spark → rhyme → resolute → oops → frustrated →
+groan → puzzled → mirth → melancholy → tender → at_peace`. With this many registers, stacked
+flags read as noise rather than nuance — so composition isn't a discipline, it's simply not
+in the grammar.
 
 Motion is deliberately slow and small — this is letterhead on every reply, so it stays
 ambient, never busy. It falls back to a **static SVG** under `prefers-reduced-motion` or

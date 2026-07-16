@@ -160,8 +160,9 @@
     var conson = clamp01(p.consonance, 1);                     // 1 integrated (compact, solid) → 0 split (diffuse washes); omitted = 1
     var prevFills = null;                                      // one-step trajectory: previous banner's palette, columns lerp in on mount
     if (p.prev != null) prevFills = fieldFromPalette(p.prev).map(function (c) { return c.fill; });
-    var activeFlag = null;                                     // the contract: one flag; highest priority wins, the rest are dropped
-    for (var fi = 0; fi < FLAG_PRIORITY.length; fi++) { if (p[FLAG_PRIORITY[fi]]) { activeFlag = FLAG_PRIORITY[fi]; break; } }
+    var activeFlag = null;                                     // the contract: flag?: string — exactly one of FLAG_PRIORITY, or none
+    if (typeof p.flag === "string") { if (FLAG_PRIORITY.indexOf(p.flag) >= 0) activeFlag = p.flag; }  // unknown strings are ignored
+    else for (var fi = 0; fi < FLAG_PRIORITY.length; fi++) { if (p[FLAG_PRIORITY[fi]]) { activeFlag = FLAG_PRIORITY[fi]; break; } }  // legacy boolean payloads: highest priority wins
 
     var vr = mulberry32(seed + 7);
     var vdir = vr() < 0.5 ? -1 : 1;                            // outer ovals together, centre opposite → a clear up/down/up (never a straight slope)
@@ -231,6 +232,7 @@
 
     var L = {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
+      restSVG: readSVG + langSVG + flagSVG,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
       stance: stance, conson: conson, prevFills: prevFills
@@ -296,7 +298,10 @@
     }
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
     if (L.rhyme) out.push('<g opacity="0.12" transform="translate(14,6)">' + L.kaoSVG + '</g>');   // the echo of the face, behind-ish and offset
-    out.push(L.textSVG + '</svg>');
+    var kao = L.kaoSVG;                                        // constant-pose flags transform the face in the still frame too
+    if (L.awe) kao = '<g transform="translate(46 ' + g(L.coreCy - 3) + ') scale(0.78) rotate(-3) translate(-46 ' + g(-L.coreCy) + ')">' + kao + '</g>';
+    else if (L.solemn) kao = '<g transform="translate(46 ' + g(L.coreCy + 3) + ') rotate(4) translate(-46 ' + g(-L.coreCy) + ')">' + kao + '</g>';
+    out.push(kao + L.restSVG + '</svg>');
     return out.join("");
   }
 
@@ -407,7 +412,7 @@
           if (L.oops) { ky -= oopsE * 5; kx += oopsOsc * 4; krot += oopsOsc * 6; ks *= 1 - oopsE * 0.06; if (!kfill) kfill = mixCss(baseFill, [206, 208, 220], oopsE * 0.5); }
           if (L.dramatic) { ks *= 1.06; ky += Math.sin(t * 0.8) * 1.2; }
           if (L.solemn) { krot += 4; ky += 3; }                                                                              // solemn: the face bows, held
-          if (L.awe) { ks *= 0.88; ky -= 2; krot -= 3; }                                                                     // awe: the face made small, tilted up
+          if (L.awe) { ks *= 0.78; ky -= 3; krot -= 3; }                                                                     // awe: the face made small, tilted up
           if (L.frustrated) { kx += Math.sin(t * 34) * 0.9; if (!kfill) kfill = mixCss(baseFill, [150, 44, 40], 0.3 + 0.2 * frP); }  // frustrated: tense micro-shake, red
           if (L.angry) { kx += Math.sin(t * 46) * 1.4; ky += Math.sin(t * 39) * 0.8; kfill = mixCss(baseFill, [200, 60, 46], 0.6); } // angry: hard shake, hot red
           if (L.solemn && !kfill) { kfill = mixCss(baseFill, [112, 106, 96], 0.35); }
