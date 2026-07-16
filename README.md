@@ -62,12 +62,12 @@ genuinely holds; their whole value is that they're uncommon.
 
 | flag | gesture |
 |---|---|
-| `spark` | a soft bloom pulses in the top-right corner — a flash of insight |
-| `excited` | pale stars twinkle and slowly spin in the margins — buoyancy |
-| `awe` | a halo blooms outward from centre and fades — wonder |
-| `tender` | a warm rosy glow breathes at the core — fondness |
-| `melancholy` | faint cool motes drift slowly downward — wistfulness |
-| `unease` | cold fog rolls across and veils the field — dread |
+| `spark` | a bright bloom pulses in the top-right corner under an expanding halo — a flash of insight |
+| `excited` | stars twinkle and slowly spin in the margins while the face sways foot-to-foot — buoyancy |
+| `awe` | a halo pulses outward over the face and fades — wonder |
+| `tender` | warmth pools softly around the edges of the banner — fondness |
+| `melancholy` | cool motes drift slowly downward and the face tints a little blue — wistfulness |
+| `unease` | wispy cold fog roils over the whole banner and the face shivers — dread |
 | `mirth` | champagne bubbles rise across the width — a private laugh |
 | `laugh` | the whole field and the **face** bounce a deep *ha-ha-ha*, the kaomoji swelling and flushing bright yellow, with laughter-marks radiating off it |
 
