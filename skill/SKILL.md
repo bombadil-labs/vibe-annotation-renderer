@@ -127,7 +127,7 @@ Fill the object below with your values and pass the whole snippet as `widget_cod
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f546315a9e59a60538ab8cfb0725c2670e90928c/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@49d975b8e229944b98d5d85684298fa979b226fc/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       kaomoji: "( ˶ˆ ꒳ ˆ˵ )", seems: "...", feel: "...", trying: "...",
