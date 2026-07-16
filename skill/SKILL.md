@@ -99,7 +99,7 @@ Fill the object below with your values and pass the whole snippet as `widget_cod
 
 ```html
 <div id="v"></div>
-<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@v0.0.10/dist/vibe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@v0.0.11/dist/vibe.min.js"></script>
 <script>vibe(document.getElementById('v'), {
   kaomoji: "( ˶ˆ ꒳ ˆ˵ )", seems: "...", feel: "...", trying: "...",
   palette: ["#7d8fb8"], turbulence: 0.3, engagement: 0.7
@@ -108,6 +108,6 @@ Fill the object below with your values and pass the whole snippet as `widget_cod
 
 Only `kaomoji` / `seems` / `feel` / `trying` are required; everything else is optional. Passing only
 the values (not a full SVG) is the whole point — it's cheap, and you never touch the geometry, so you
-stay reporting the feeling instead of tuning the picture. Pin the version (`@v0.0.10`) and bump it when
+stay reporting the feeling instead of tuning the picture. Pin the version (`@v0.0.11`) and bump it when
 the renderer updates. The renderer, a live gallery of every state, and its source live at
 <https://github.com/bombadil-labs/vibe-annotation-renderer>.
