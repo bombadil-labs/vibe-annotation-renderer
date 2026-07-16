@@ -75,6 +75,23 @@ Motion is deliberately slow and small — this is letterhead on every reply, so 
 ambient, never busy. It falls back to a **static SVG** under `prefers-reduced-motion` or
 on any error, pauses when scrolled off-screen, and stops when detached.
 
+## The skill
+
+This repo also ships the **`vibe-annotations` skill** — [`skill/SKILL.md`](skill/SKILL.md) — the
+Claude Code skill that drives Claude to render these banners. It's the honest half: it asks Claude to
+report the feeling (never describing what any value *renders* as), then emits a one-line
+`vibe(el, {…})` call that loads this bundle from the CDN. Claude passes only values and never sees the
+picture, which is what keeps the readings honest.
+
+Install it by copying that file to your skills directory:
+
+```bash
+mkdir -p ~/.claude/skills/vibe-annotations
+cp skill/SKILL.md ~/.claude/skills/vibe-annotations/
+```
+
+It pins a renderer version (`@vX.Y.Z`); bump that line when you cut a new renderer release.
+
 ## Develop
 
 ```bash
