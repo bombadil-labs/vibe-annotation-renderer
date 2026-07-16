@@ -108,8 +108,10 @@ open gallery.html  # local preview of every state
 ```
 
 **Release:** bump `package.json`, `npm run build`, commit `dist/vibe.min.js`,
-`git tag vX.Y.Z && git push --tags`, then repin consumers (skill, site, README) to the
-**full commit hash** of the release. jsDelivr serves any commit immediately.
+`git tag vX.Y.Z && git push --tags`, then `npm run pin` — it rewrites every consumer
+(skill, README, site) to the release commit's **full SHA** and refuses to pin a commit
+that doesn't contain `dist/vibe.min.js`. Commit the repin, push, and reinstall the skill
+(copy to `~/.claude/skills/`, re-paste on claude.ai). jsDelivr serves any commit immediately.
 
 ## Make it your own (fork it!)
 

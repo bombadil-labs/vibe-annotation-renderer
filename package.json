@@ -7,7 +7,8 @@
   "main": "src/vibe.js",
   "scripts": {
     "build": "esbuild src/vibe.js --minify --outfile=dist/vibe.min.js",
-    "parity": "node test/parity.js"
+    "parity": "node test/parity.js",
+    "pin": "node scripts/pin.js"
   },
   "devDependencies": {
     "esbuild": "^0.23.1"

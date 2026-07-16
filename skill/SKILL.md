@@ -101,17 +101,30 @@ pass only your values and it builds the picture in the browser, so you never gen
 Fill the object below with your values and pass the whole snippet as `widget_code`:
 
 ```html
-<div id="v"></div>
-<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@bfecabf27642216f42d70decf511d6c6a9411c9e/dist/vibe.min.js"></script>
-<script>vibe(document.getElementById('v'), {
-  kaomoji: "( ˶ˆ ꒳ ˆ˵ )", seems: "...", feel: "...", trying: "...",
-  palette: ["#7d8fb8"], focus: 0.6, engagement: 0.7
-});</script>
+<div id="v" style="min-height: 80px;"></div>
+<script>(function(){
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@bfecabf27642216f42d70decf511d6c6a9411c9e/dist/vibe.min.js';
+  s.onload = function(){
+    vibe(document.getElementById('v'), {
+      kaomoji: "( ˶ˆ ꒳ ˆ˵ )", seems: "...", feel: "...", trying: "...",
+      palette: ["#7d8fb8"], focus: 0.6, engagement: 0.7
+    });
+  };
+  s.onerror = function(){
+    document.getElementById('v').innerHTML = '<p style="font-size:13px;color:var(--text-danger);">vibe renderer failed to load from jsDelivr</p>';
+  };
+  document.body.appendChild(s);
+})();</script>
 ```
 
-Only `kaomoji` / `seems` / `feel` / `trying` are required; everything else is optional. **Pin to the
-full commit hash, never a tag or branch** — tags are mutable pointers, so a moved tag could silently
-swap in different code with `sendPrompt` access; a commit hash is immutable. The hash above is release
-v0.1.7 (`bfecabf27642216f42d70decf511d6c6a9411c9e`); when the renderer updates, replace it with the new
+Only `kaomoji` / `seems` / `feel` / `trying` are required; everything else is optional. Keep the
+snippet's shape: the script is **injected dynamically** (a bare `<script src>` tag can hang some
+render harnesses for minutes instead of failing fast), the `onerror` fallback makes a failed CDN
+load announce itself instead of leaving a silent empty div, and the `min-height` keeps the
+container from collapsing while the script fetches. **Pin to the full commit hash, never a tag or
+branch** — tags are mutable pointers, so a moved tag could silently swap in different code with
+`sendPrompt` access; a commit hash is immutable. The hash above is release v0.1.7
+(`bfecabf27642216f42d70decf511d6c6a9411c9e`); when the renderer updates, replace it with the new
 release's full commit hash. The renderer, a live gallery of every state, and its source live at
 <https://github.com/bombadil-labs/vibe-annotation-renderer>.
