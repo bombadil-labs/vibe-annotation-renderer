@@ -237,6 +237,7 @@
       if (!cv.isConnected) { if (ro) ro.disconnect(); if (io) io.disconnect(); return; } // detached -> stop
       if (t0 == null) t0 = now; var t = (now - t0) / 1000;
       if (!visible) { requestAnimationFrame(frame); return; }
+      try {
       ctx.setTransform(sx, 0, 0, sy, 0, 0);
       ctx.clearRect(0, 0, W, H);
       var laughB = 1, lLt = 0, lCyc = 0, laughKp = 0;   // laugh: a slow, deep, rich ha-ha-ha
@@ -278,7 +279,7 @@
       });
       ctx.globalAlpha = 1;
       if (L.dramatic) {                                                                            // spotlight: warm pool on the star, the rest of the stage dimmed
-        var dx = 46, dy = cyC, fl = 0.94 + 0.06 * Math.sin(t * 5.5) + 0.03 * Math.sin(t * 11);      // faint candle-flicker
+        var dx = 46, dy = L.coreCy, fl = 0.94 + 0.06 * Math.sin(t * 5.5) + 0.03 * Math.sin(t * 11);      // faint candle-flicker
         var pool = ctx.createRadialGradient(dx, dy - 4, 6, dx, dy, 168);
         pool.addColorStop(0, rgba("#fff2cf", 0.5 * fl)); pool.addColorStop(0.5, rgba("#ffe6a8", 0.16 * fl)); pool.addColorStop(1, rgba("#ffe6a8", 0));
         ctx.fillStyle = pool; ctx.fillRect(0, 0, W, H);
@@ -393,6 +394,7 @@
         ctx.beginPath(); ctx.arc(exX, exY + 7, 1.9, 0, 6.2832); ctx.fill();
         ctx.globalAlpha = 1;
       }
+      } catch (err) { if (root.console && root.console.warn) root.console.warn("vibe: frame crashed, falling back to static", err); try { el.innerHTML = buildSVG(p); } catch (_) {} return; }
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
