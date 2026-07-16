@@ -16,7 +16,7 @@ feelings honest.
 
 ```html
 <div id="v"></div>
-<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@v0.0.12/dist/vibe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@v0.0.13/dist/vibe.min.js"></script>
 <script>
   vibe(document.getElementById('v'), {
     kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
@@ -71,6 +71,7 @@ genuinely holds; their whole value is that they're uncommon.
 | `mirth` | champagne bubbles rise across the width — a private laugh |
 | `laugh` | the whole field and the **face** bounce a deep *ha-ha-ha*, the kaomoji swelling and flushing bright yellow, with laughter-marks radiating off it |
 | `groan` | the face lolls its head and sinks, the field sags, a sweat-drop wells up — an affectionate *ughhh* |
+| `oops` | the face flinches back with a wobble, the field jolts sideways, a startled `!` pops up — a quick self-catch |
 
 Motion is deliberately slow and small — this is letterhead on every reply, so it stays
 ambient, never busy. It falls back to a **static SVG** under `prefers-reduced-motion` or

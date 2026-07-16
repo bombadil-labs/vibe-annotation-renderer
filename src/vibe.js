@@ -152,7 +152,7 @@
     return {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + langSVG + readSVG,
       spark: !!p.spark, excited: !!p.excited, seed: seedOf(p),
-      awe: !!p.awe, tender: !!p.tender, melancholy: !!p.melancholy, unease: !!p.unease, mirth: !!p.mirth, laugh: !!p.laugh, groan: !!p.groan
+      awe: !!p.awe, tender: !!p.tender, melancholy: !!p.melancholy, unease: !!p.unease, mirth: !!p.mirth, laugh: !!p.laugh, groan: !!p.groan, oops: !!p.oops
     };
   }
 
@@ -240,19 +240,26 @@
       }
       var groanGr = 0;   // groan: sink + head-loll, hold the "ughhh", recover, then rest
       if (L.groan) { var gt = t % 5; groanGr = gt < 0.5 ? gt / 0.5 : (gt < 1.8 ? 1 : (gt < 2.6 ? 1 - (gt - 1.8) / 0.8 : 0)); }
-      if (kaoEl && (L.laugh || L.excited || L.unease || L.melancholy || L.groan)) {   // animate the face itself
+      var oopsE = 0, oopsOsc = 0;   // oops: a sharp flinch that springs back — a self-catch
+      if (L.oops) {
+        var ot = t % 4.5;
+        if (ot < 0.1) { oopsE = ot / 0.1; oopsOsc = oopsE; }                                         // snap: instant recoil
+        else if (ot < 1.4) { var od = ot - 0.1; var oenv = Math.exp(-od * 3.4); oopsE = oenv; oopsOsc = oenv * Math.cos(od * 22); }  // damped spring-back
+      }
+      if (kaoEl && (L.laugh || L.excited || L.unease || L.melancholy || L.groan || L.oops)) {   // animate the face itself
         var kx = 0, ky = 0, ks = 1, krot = 0, kfill = "";
         if (laughKp > 0.03) { ks *= 1 + laughKp * 0.15; kfill = mixCss(baseFill, [255, 223, 58], laughKp * 0.92); }  // laugh: swell + flush yellow
         if (L.excited) { kx += Math.tanh(3 * Math.sin(t * 1.0)) * 10; }                                              // excited: sway foot-to-foot, dwell at each pole
         if (L.unease) { kx += (Math.sin(t * 41) + Math.sin(t * 57)) * 0.7; ky += Math.sin(t * 47) * 0.6; }           // unease: shiver
         if (L.groan) { ky += groanGr * 7; krot += groanGr * 13; if (!kfill) kfill = mixCss(baseFill, [138, 140, 150], groanGr * 0.4); }  // groan: sink, head-loll, colour drains
+        if (L.oops) { ky -= oopsE * 5; kx += oopsOsc * 4; krot += oopsOsc * 6; ks *= 1 - oopsE * 0.06; if (!kfill) kfill = mixCss(baseFill, [206, 208, 220], oopsE * 0.5); }  // oops: hop back, wobble, blanch
         if (L.melancholy && !kfill) { kfill = mixCss(baseFill, [120, 134, 176], 0.45); }                            // melancholy: the face goes a bit blue
         kaoEl.style.transform = "translate(" + kx.toFixed(2) + "px," + ky.toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";
         kaoEl.style.fill = kfill;
       }
       B.forEach(function (m) {
         var b = m.b;
-        var ox = amp * Math.sin(m.w1 * sp * t + m.p1) + amp * 0.4 * Math.sin(m.w2 * sp * t + m.p2);
+        var ox = amp * Math.sin(m.w1 * sp * t + m.p1) + amp * 0.4 * Math.sin(m.w2 * sp * t + m.p2) + oopsOsc * 10;   // oops jolts the field sideways
         var oy = amp * 0.75 * Math.sin(m.w3 * sp * t + m.p3) + groanGr * 9;   // groan sags the field down
         var br = (1 + 0.09 * Math.sin(m.wb * sp * t + m.pb)) * laughB;  // breathe × laugh bounce
         var opP = 1 + 0.2 * Math.sin(m.wb * sp * t + m.pb + 1.3);    // breathe (brightness)
@@ -359,6 +366,13 @@
         ctx.globalAlpha = 0.75 * groanGr; ctx.fillStyle = "#a9c4e0";
         ctx.beginPath(); ctx.arc(sdx, sdy, 3.2, 0, 6.2832); ctx.fill();
         ctx.beginPath(); ctx.moveTo(sdx - 2.4, sdy - 1.8); ctx.lineTo(sdx, sdy - 7.5); ctx.lineTo(sdx + 2.4, sdy - 1.8); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      if (L.oops && oopsE > 0.04) {                                                                  // a startled "!" pops above the face
+        var exX = 90 + oopsOsc * 4, exY = cyC - 30 - oopsE * 5;
+        ctx.globalAlpha = Math.min(1, oopsE * 1.3); ctx.strokeStyle = "#e07a5f"; ctx.fillStyle = "#e07a5f"; ctx.lineWidth = 3; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(exX, exY - 9); ctx.lineTo(exX, exY + 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(exX, exY + 7, 1.9, 0, 6.2832); ctx.fill();
         ctx.globalAlpha = 1;
       }
       requestAnimationFrame(frame);
