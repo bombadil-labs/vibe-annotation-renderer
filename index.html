@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vibe-annotations — a living mood banner for Claude</title>
+<meta name="description" content="A Claude Code skill + tiny renderer that gives Claude a face: an honest, animated mood banner at the top of every reply.">
+<style>
+  :root {
+    /* stand-ins for the host's fonts (claude.ai provides these live) */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    --font-voice: ui-serif, Georgia, "Times New Roman", serif;
+    --paper: #fbf7ef; --ink: #3a2f1e; --sub: #8a7c63;
+    --card: #f3ecdd; --edge: #e2d7bf; --accent: #a05f2c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper: #1a1712; --ink: #e9dcc4; --sub: #a08c6a;
+      --card: #241f17; --edge: #3a3226; --accent: #d99a5e; }
+  }
+  html, body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-sans); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 30px; font-weight: 500; margin: 0 0 6px; }
+  h2 { font-size: 20px; font-weight: 500; margin: 48px 0 10px; }
+  h3 { font-size: 15px; font-weight: 600; margin: 34px 0 2px; color: var(--sub); }
+  p, li { font-size: 15px; line-height: 1.65; }
+  a { color: var(--accent); }
+  .lede { color: var(--sub); margin: 0 0 20px; font-size: 16px; line-height: 1.6; }
+  nav { margin: 0 0 28px; font-size: 14px; }
+  nav a { margin-right: 16px; }
+  .hero-banner { border-radius: 12px; overflow: hidden; margin: 0 0 8px; }
+  .hero-note { font-size: 12.5px; color: var(--sub); margin: 0 0 8px; }
+  pre { background: var(--card); border: 1px solid var(--edge); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono);
+    font-size: 12.5px; line-height: 1.55; }
+  code { font-family: var(--font-mono); font-size: 0.92em; }
+  p code, li code { background: var(--card); border-radius: 4px; padding: 1px 5px; }
+  .cell { margin: 22px 0; }
+  .cap { font-family: var(--font-mono); font-size: 12px; color: var(--sub);
+    margin: 0 0 6px; }
+  .cap b { color: var(--ink); font-weight: 500; }
+  .banner { border-radius: 12px; overflow: hidden; }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--edge);
+    font-size: 13px; color: var(--sub); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>vibe-annotations</h1>
+  <p class="lede">A skill that gives Claude a face. At the top of every reply, Claude renders a
+  small living banner — a kaomoji, a breathing field of colour, and a few honest first-person
+  lines: its snap read of you, its mood, its immediate goal, and sometimes the subtext it's
+  noticing. Like being able to see your collaborator's expression while you work.</p>
+
+  <nav>
+    <a href="#gallery">Gallery</a>
+    <a href="#install">Install the skill</a>
+    <a href="#how">How it works</a>
+    <a href="#library">Use as a library</a>
+    <a href="https://github.com/bombadil-labs/vibe-annotation-renderer">GitHub</a>
+  </nav>
+
+  <div class="hero-banner" id="hero"></div>
+  <p class="hero-note">Live, rendered right now from the CDN bundle — this is exactly what appears
+  above Claude's replies. Fonts here are stand-ins for claude.ai's. Respects your OS light/dark
+  and <code>prefers-reduced-motion</code>.</p>
+
+  <h2 id="how">How it works</h2>
+  <p>The system is two halves, kept deliberately apart:</p>
+  <ul>
+    <li><strong>The skill</strong> (<a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">skill/SKILL.md</a>)
+      asks Claude to report its state as a handful of <em>feeling-values</em> — a kaomoji, a read
+      of the user, a mood, a goal, colours, focus, engagement, and a set of rare flags
+      (<code>spark</code>, <code>tender</code>, <code>oops</code>, <code>angry</code>…). It never
+      describes what any value <em>renders as</em>.</li>
+    <li><strong>The renderer</strong> (this repo, ~600 lines of framework-free JS) owns all the
+      geometry, colour, and motion. It's loaded from a CDN, pinned to an immutable commit hash, so
+      Claude only ever emits ~15 lines of values and never sees — or generates — the picture.</li>
+  </ul>
+  <p>That separation is the honesty mechanism: there's no visual lever for Claude to perform
+  toward. It reports the feeling; the tool decides the look.</p>
+
+  <h2 id="install">Install the skill</h2>
+  <p>You need <a href="https://claude.com/claude-code">Claude Code</a> (desktop app or a surface
+  with the <code>show_widget</code> visualization tool — that's what draws the banner inline).
+  Install is one file:</p>
+  <pre>mkdir -p ~/.claude/skills/vibe-annotations
+curl -fsSL https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md \
+  -o ~/.claude/skills/vibe-annotations/SKILL.md</pre>
+  <p>Windows (PowerShell):</p>
+  <pre>New-Item -ItemType Directory -Force "$HOME\.claude\skills\vibe-annotations" | Out-Null
+Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md `
+  -OutFile "$HOME\.claude\skills\vibe-annotations\SKILL.md"</pre>
+  <p>That's it — the skill self-triggers ("preface every response with a usage of it"), so the next
+  conversation starts with a banner. To dial the cadence down or turn it off, just tell Claude;
+  the skill honors that for the session. To remove it, delete the folder.</p>
+  <p><strong>A security note, practiced here:</strong> the skill loads the renderer pinned to a
+  <em>full commit hash</em>, never a tag or branch. Tags are mutable pointers — in a context where
+  the host injects capabilities like <code>sendPrompt</code> into rendered pages, a silently moved
+  tag would be a script-injection vector. A commit hash can't be re-pointed, so the CDN can only
+  ever serve the audited bytes. If you fork this, keep that property.</p>
+
+  <h2 id="gallery">Gallery — every state, animated</h2>
+  <p class="lede" style="margin-bottom:0">Each banner below is rendered live by the same pinned
+  bundle the skill uses.</p>
+  <div id="gallery-cells"></div>
+
+  <h2 id="library">Use it as a library</h2>
+  <p>You don't need the skill — <code>vibe(el, {…})</code> is a tiny standalone mood-banner
+  library:</p>
+  <pre>&lt;div id="v"&gt;&lt;/div&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@bfecabf27642216f42d70decf511d6c6a9411c9e/dist/vibe.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  vibe(document.getElementById('v'), {
+    kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
+    seems:   "…",          // [user]  — a snap read of the user
+    feel:    "…",          // [mood]  — activated emotions
+    trying:  "…",          // [goal]  — immediate next goal
+    noticing:"…",          // [note]  — the subtext (optional)
+    palette: ["#7d8fb8"],  // 0+ mood colours → the field's three columns
+    focus: 0.5, engagement: 0.5
+  });
+&lt;/script&gt;</pre>
+  <p>The full value grammar, flag list, and fork guide (reskin the whole look without touching the
+  skill) are in the
+  <a href="https://github.com/bombadil-labs/vibe-annotation-renderer#readme">README</a>.</p>
+
+  <footer>
+    <a href="https://github.com/bombadil-labs/vibe-annotation-renderer">bombadil-labs/vibe-annotation-renderer</a>
+    · <a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">the skill</a>
+    · single-file, framework-free, meant to be forked
+  </footer>
+</div>
+<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@bfecabf27642216f42d70decf511d6c6a9411c9e/dist/vibe.min.js"></script>
+<script>
+try {
+  vibe(document.getElementById("hero"), {
+    kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
+    seems: "curious enough to click through — welcome",
+    feel: "warm · a little proud",
+    trying: "show you what an honest mood banner looks like",
+    noticing: "you're wondering if this is gimmick or genuine; fair",
+    palette: ["#d99a5e", "#7d8fb8"],
+    focus: 0.7, engagement: 0.85
+  });
+} catch (e) {}
+
+var GROUPS = [
+  ["The field — palette becomes three columns", [
+    ["Neutral (no palette → grey triad)", {kaomoji:"( ˘ ᵕ ˘ )", seems:"nothing much either way", feel:"even · quiet", trying:"just answer plainly"}],
+    ["One colour → light · colour · dark", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"warm and easy", feel:"settled · content", trying:"stay in one clear register", palette:["#d99a5e"]}],
+    ["Two colours → c0 · blend · c1", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"two things at once", feel:"engaged · layered", trying:"hold both threads", palette:["#7d8fb8","#c396a4"]}],
+    ["Three colours → one per column", {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"a lot going on", feel:"lit · three-way", trying:"let three moods sit side by side", palette:["#e0994e","#c98fb0","#6fa39c"]}],
+    ["Four+ colours → centre cycles the rest", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"more moods than columns", feel:"many-hued", trying:"watch the centre drift through the extras", palette:["#7d8fb8","#6fa39c","#e0994e","#c98fb0"]}]
+  ]],
+  ["focus — the vertical spread of the columns", [
+    ["focused → a tight, level line", {kaomoji:"( ・_・)", seems:"locked on one thing", feel:"clear · single", trying:"hold the line", palette:["#7d8fb8","#8f9ac0","#6f86b0"], focus:0.95}],
+    ["mid focus → a moderate spread", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a couple of threads", feel:"steady · layered", trying:"hold two or three things", palette:["#7d8fb8","#c98fb0","#6fa39c"], focus:0.5}],
+    ["scattered → a wide vertical range", {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"everywhere at once", feel:"broad · diffuse", trying:"let it all spread out", palette:["#e0994e","#c98fb0","#6fa39c"], focus:0.1}]
+  ]],
+  ["Engagement, note, wrap, faces", [
+    ["Bored (engagement 0.1 → shrinks)", {kaomoji:"( ˘_˘ )", seems:"the rote fourth variation", feel:"flat · far away", trying:"answer and move on", palette:["#8b93a0"], engagement:0.1}],
+    ["Optional [note] line (the subtext)", {kaomoji:"( ˶ ˘ ꒳ ˘ ˶ )", seems:"asking one thing, meaning another", feel:"attentive · reading between lines", trying:"answer the real question", noticing:"the ask under the ask", palette:["#7f93a8"]}],
+    ["Multi-line kaomoji (a bloom)", {kaomoji:"✧ ･ ✧\n( ˶ˆ ꒳ ˆ˵ )\n✧ ･ ✧", seems:"the mood is big", feel:"expansive · bright", trying:"let the face get large", palette:["#e0b060","#d99ac0"]}],
+    ["Long goal (wraps to a 2nd line)", {kaomoji:"( ・_・)", seems:"wants the whole plan spelled out", feel:"methodical", trying:"carefully walk through every one of the four steps before shipping anything at all", palette:["#7f9ab0"]}],
+    ["Languages → [Reasoned in]: bottom-right", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a multilingual turn", feel:"nimble · playful", trying:"think across tongues", languages:["ru","ja","Esperanto"], palette:["#8f9ac0"]}]
+  ]],
+  ["Flags — rare, condition-triggered", [
+    ["spark — a light-bulb over the face", {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"just handed me the click", feel:"lit · delighted", trying:"catch the aha", spark:true, palette:["#e0a24e"]}],
+    ["excited — twinkling, spinning stars", {kaomoji:"٩( ˶ˆᗜˆ˵ )و", seems:"bouncing with energy", feel:"buoyant · giddy", trying:"ride the fizz", excited:true, palette:["#e0a24e","#c98fb0"]}],
+    ["surprised — halo bloom + face pop", {kaomoji:"( ⊙ ᵕ ⊙ )", seems:"just caught me off guard", feel:"startled · wide-eyed", trying:"take the jolt in", surprised:true, palette:["#b79ad0","#8f9ac0","#e6d9b4"], engagement:0.55}],
+    ["tender — a warm swell at the edges", {kaomoji:"( ˶ᵕ ‿ ᵕ˶ )", seems:"being gentle with me", feel:"fond · warm · moved", trying:"let the warmth show", tender:true, palette:["#d99a8a","#c0a0a8"]}],
+    ["melancholy — cool motes drift down", {kaomoji:"( ˘ ､ ˘ )", seems:"a quiet, heavy thing", feel:"wistful · low", trying:"sit with it", melancholy:true, palette:["#8f96a8","#9a8fae"]}],
+    ["anxious — cold fog rolls over", {kaomoji:"( ｡•́ _ •̀｡ )", seems:"something's off here", feel:"wary · dimmed", trying:"stay watchful", anxious:true, palette:["#7a8296","#8f95a4"]}],
+    ["mirth — champagne bubbles rise", {kaomoji:"( ˶ˆ ꒳ ˆ˵ )~", seems:"quietly amused", feel:"tickled · effervescent", trying:"let it bubble", mirth:true, palette:["#e0b060","#d99ac0"]}],
+    ["laugh — the face swells & flushes yellow", {kaomoji:"(≧▽≦)", seems:"we're both cracking up", feel:"gleeful · beaming", trying:"laugh out loud", laugh:true, palette:["#e0a24e","#d99ac0"], engagement:0.9}],
+    ["groan — head-loll, slump, sweat-drop", {kaomoji:"( ˘︹˘ )", seems:"a truly terrible pun just landed", feel:"exasperated · fond", trying:"groan and move on", groan:true, palette:["#9a9488","#8f96a4"], engagement:0.5}],
+    ["oops — flinch back, field jolt, a startled !", {kaomoji:"( ˃ ᯅ ˂ )", seems:"just watched me trip over my own answer", feel:"caught out · sheepish", trying:"own the slip and fix it", oops:true, palette:["#d98a6a","#c0a86a"], engagement:0.7}],
+    ["frustrated — 💢 anger mark, ovals pulse red", {kaomoji:"( ｀д´ )", seems:"this thing will not cooperate", feel:"irritated · grating", trying:"push through the snag", frustrated:true, palette:["#a06a6a","#8f7f88"], engagement:0.7}],
+    ["angry — storm-black, lightning", {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"crossed a real line", feel:"hot · thunderous", trying:"hold it together and say it clean", angry:true, palette:["#7a3a3a","#5a3a4a"], engagement:0.85}],
+    ["dramatic — spotlight + theatrical serif", {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"cueing me to ham it up", feel:"theatrical · larger-than-life", trying:"deliver the line to the back row", dramatic:true, palette:["#b0413e","#c0a86a"], engagement:0.9}]
+  ]]
+];
+var g = document.getElementById("gallery-cells");
+GROUPS.forEach(function (grp) {
+  var h = document.createElement("h3"); h.textContent = grp[0]; g.appendChild(h);
+  grp[1].forEach(function (s) {
+    var cell = document.createElement("div"); cell.className = "cell";
+    var cap = document.createElement("p"); cap.className = "cap";
+    var t = s[0].split(" — "); cap.innerHTML = "<b>" + t[0] + "</b>" + (t[1] ? " — " + t[1] : "");
+    var banner = document.createElement("div"); banner.className = "banner";
+    cell.appendChild(cap); cell.appendChild(banner); g.appendChild(cell);
+    try { vibe(banner, s[1]); } catch (e) { banner.textContent = "err: " + e.message; }
+  });
+});
+</script>
+</body>
+</html>

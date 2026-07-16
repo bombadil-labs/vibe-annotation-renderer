@@ -9,8 +9,8 @@ and emits only the values, so its per-reply output is ~15 lines instead of ~2 KB
 and Claude never has to generate (or even see) the picture, which is what keeps the
 feelings honest.
 
-**▶ Live gallery (every state, animated):**
-<https://bombadil-labs.github.io/vibe-annotation-renderer/gallery.html>
+**▶ Site — live gallery (every state, animated) + install guide:**
+<https://bombadil-labs.github.io/vibe-annotation-renderer/>
 
 ## Use
 
@@ -95,7 +95,8 @@ mkdir -p ~/.claude/skills/vibe-annotations
 cp skill/SKILL.md ~/.claude/skills/vibe-annotations/
 ```
 
-It pins a renderer version (`@vX.Y.Z`); bump that line when you cut a new renderer release.
+It pins the renderer to a full commit hash; update that line to the new release commit's hash
+when you cut a renderer release (see "Make it your own" for why hashes, not tags).
 
 ## Develop
 
@@ -107,7 +108,8 @@ open gallery.html  # local preview of every state
 ```
 
 **Release:** bump `package.json`, `npm run build`, commit `dist/vibe.min.js`,
-`git tag vX.Y.Z && git push --tags`. jsDelivr serves the tag immediately.
+`git tag vX.Y.Z && git push --tags`, then repin consumers (skill, site, README) to the
+**full commit hash** of the release. jsDelivr serves any commit immediately.
 
 ## Make it your own (fork it!)
 
