@@ -77,8 +77,9 @@ than *reporting*, stop and give the boring true answer instead. Speed is the hon
   verbatim (your own prior tool call is already in context — a glance, not bookkeeping). Omit on the
   first banner. This gives the render a one-step memory of where you're arriving from.
 * **Rare flags** — set to `true` only when the named state *genuinely holds*. Their whole value is
-  that they're uncommon; a flag that shows up every banner stops meaning anything. Usually none fire, but
-  they may compose if more than one are true.
+  that they're uncommon; a flag that shows up every banner stops meaning anything. Usually none fire.
+  **IMPORTANT: at most one flag per banner.** If several feel true, report the *dominant* one and let
+  the readout lines carry the rest — with this many registers, stacked flags read as noise, not nuance.
   * `spark` — a real flash of insight or delight, the click. Eureka!
   * `excited` — genuinely buoyant, high-energy, buzzing.
   * `surprised` — something landed unexpectedly; a jolt of the unforeseen, eyes wide.

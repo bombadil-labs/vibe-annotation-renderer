@@ -86,10 +86,12 @@ genuinely holds; their whole value is that they're uncommon.
 | `resolute` | concentration lines (集中線) flare inward from the frame edges toward the face, then hold faint — the ignition of determination |
 | `puzzled` | one or two "?" drift up and fade by the head — productive stuckness, the pre-spark (steps left when 💢 or the oops-! occupy the slot) |
 
-Flags compose — any subset may fire together. Face transforms accumulate; full-frame **dimming is
+The **renderer** composes flags safely — face transforms accumulate; full-frame **dimming is
 max-pooled** across contributors (solemn/anxious/angry never sum toward mud) while colored washes
 like tender's warmth stay independent; face-adjacent marks resolve slot collisions with fixed,
-deterministic offsets.
+deterministic offsets. The **skill's** discipline, however, is **one flag per banner**: with this
+many registers, stacked flags read as noise rather than nuance. Composition support remains for
+graceful degradation and for forks or hand-authored payloads that want it.
 
 Motion is deliberately slow and small — this is letterhead on every reply, so it stays
 ambient, never busy. It falls back to a **static SVG** under `prefers-reduced-motion` or

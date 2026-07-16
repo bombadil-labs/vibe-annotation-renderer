@@ -242,12 +242,12 @@
     out.push('<g opacity="0.5">');
     L.blobs.forEach(function (b) {
       var cy = b.cyBase + b.bias * L.env;                     // vertical position set by focus
-      var fill = b.fill;
+      var fill = b.fill, opMul = (1 - 0.4 * soft);
       if (L.solemn) fill = lerpHex(fill, grayLum(fill), 0.7); // solemn: the field desaturates
-      if (L.awe) fill = lerpHex(fill, darken(fill, 0.5), 0.4);
+      if (L.awe) { fill = lerpHex(fill, darken(fill, 0.72), 0.3); opMul *= 1.3; }  // awe: deeper = denser, never vanishing into a dark page
       var edge = L.stance > 0                                  // stance: declarative → a definite contour; asking keeps the open falloff
         ? ' stroke="' + darken(fill, 0.66) + '" stroke-opacity="' + g(0.55 * L.stance) + '" stroke-width="1.5"' : '';
-      out.push('<ellipse cx="' + g(b.cx) + '" cy="' + g(cy) + '" rx="' + g(b.rx * sizeMul) + '" ry="' + g(b.ry * sizeMul) + '" fill="' + fill + '" opacity="' + g(b.op * (1 - 0.4 * soft)) + '"' + edge + '/>');
+      out.push('<ellipse cx="' + g(b.cx) + '" cy="' + g(cy) + '" rx="' + g(b.rx * sizeMul) + '" ry="' + g(b.ry * sizeMul) + '" fill="' + fill + '" opacity="' + g(Math.min(0.9, b.op * opMul)) + '"' + edge + '/>');
     });
     out.push('</g>');
     if (L.solemn) {                                            // one dim pass + a single steady ember, low in the frame
@@ -302,7 +302,8 @@
     var wrap = el.firstChild, cv = wrap.firstChild, ctx = cv.getContext("2d");
     if (L.vertigo) {                                           // Droste: the banner inside its own banner, depth hard-capped at one (flags omitted inside)
       var mini = document.createElement("div");
-      mini.style.cssText = "position:absolute;right:8px;bottom:" + (L.hasLangs ? 20 : 6) + "px;width:14%;z-index:2;pointer-events:none;opacity:0.9";
+      mini.style.cssText = "position:absolute;right:8px;bottom:" + (L.hasLangs ? 20 : 6) + "px;width:22%;z-index:2;pointer-events:none;opacity:0.92;" +
+        "border:1px solid rgba(128,120,104,0.45);border-radius:6px;overflow:hidden";   // framed, so it reads as the banner recurring, not a smudge
       mini.innerHTML = buildSVG({
         kaomoji: p.kaomoji, seems: p.seems, feel: p.feel, trying: p.trying, noticing: p.noticing,
         palette: p.palette, field: p.field, focus: p.focus, engagement: p.engagement
@@ -412,9 +413,10 @@
           if (arrive < 1) fill = lerpHex(L.prevFills[bi] || fill, fill, arrive);     // one-time arrival transition, then normal idle
           if (L.frustrated) fill = lerpHex(fill, "#7a1616", frP * 0.5);              // frustrated: ovals pulse dark red and back
           if (L.solemn) fill = lerpHex(fill, grayLum(fill), 0.7);                    // solemn: the field desaturates
-          if (L.awe) fill = lerpHex(fill, darken(fill, 0.5), 0.4);                   // awe: the field deepens as it swells
+          var bop = b.op;
+          if (L.awe) { fill = lerpHex(fill, darken(fill, 0.72), 0.3); bop = Math.min(0.9, bop * 1.3); }  // awe: deeper = denser, never vanishing into a dark page
           ctx.globalAlpha = 0.5;
-          ellipse(b.cx + ox, b.cyBase + oy, b.rx * br, b.ry * br, fill, b.op, soft);
+          ellipse(b.cx + ox, b.cyBase + oy, b.rx * br, b.ry * br, fill, bop, soft);
           if (L.stance > 0) {                                                        // stance: declarative → the ovals gain a definite edge
             ctx.beginPath(); ctx.ellipse(b.cx + ox, b.cyBase + oy, b.rx * br, b.ry * br, 0, 0, 6.2832);
             ctx.strokeStyle = rgba(darken(fill, 0.66), 0.55 * L.stance); ctx.lineWidth = 1.5; ctx.stroke();
