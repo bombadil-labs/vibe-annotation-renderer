@@ -231,16 +231,21 @@
       if (!visible) { requestAnimationFrame(frame); return; }
       ctx.setTransform(sx, 0, 0, sy, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      var laughB = 1, lLt = 0, lCyc = 0;   // laugh: a slow, deep, rich ha-ha-ha
+      var laughB = 1, lLt = 0, lCyc = 0, laughKp = 0;   // laugh: a slow, deep, rich ha-ha-ha
       if (L.laugh) {
         lLt = t % 4.6; lCyc = Math.floor(t / 4.6);
         var lenv = (lLt < 1.5) ? Math.exp(-lLt * 1.7) * Math.sin(lLt * 13) : 0;
         laughB = 1 + 0.15 * lenv;                          // deep oval bounce
-        var kp = Math.max(0, lenv);                        // kaomoji swells + flushes yellow on each "ha"
-        if (kaoEl) {
-          kaoEl.style.transform = "scale(" + (1 + kp * 0.15) + ")";
-          kaoEl.style.fill = kp > 0.03 ? mixCss(baseFill, [255, 223, 58], kp * 0.92) : "";
-        }
+        laughKp = Math.max(0, lenv);
+      }
+      if (kaoEl && (L.laugh || L.excited || L.unease || L.melancholy)) {   // animate the face itself
+        var kx = 0, ky = 0, ks = 1, kfill = "";
+        if (laughKp > 0.03) { ks *= 1 + laughKp * 0.15; kfill = mixCss(baseFill, [255, 223, 58], laughKp * 0.92); }  // laugh: swell + flush yellow
+        if (L.excited) { kx += Math.tanh(3 * Math.sin(t * 1.0)) * 10; }                                              // excited: sway foot-to-foot, dwell at each pole
+        if (L.unease) { kx += (Math.sin(t * 41) + Math.sin(t * 57)) * 0.7; ky += Math.sin(t * 47) * 0.6; }           // unease: shiver
+        if (L.melancholy && !kfill) { kfill = mixCss(baseFill, [120, 134, 176], 0.45); }                            // melancholy: the face goes a bit blue
+        kaoEl.style.transform = "translate(" + kx.toFixed(2) + "px," + ky.toFixed(2) + "px) scale(" + ks.toFixed(3) + ")";
+        kaoEl.style.fill = kfill;
       }
       B.forEach(function (m) {
         var b = m.b;
@@ -254,10 +259,15 @@
       });
       ctx.globalAlpha = 1;
       if (L.spark) {
-        var pulse = 0.85 + 0.15 * Math.sin(1.6 * t);
-        ellipse(W - 8, 10, 54, 40, "#f7dd94", 0.11 * pulse);
-        ellipse(W - 8, 10, 28, 21, "#fbe6a0", 0.22 * pulse);
-        ellipse(W - 8, 10, 11, 9, "#fdf0c4", 0.4 * pulse);
+        var sp2 = 0.6 + 0.4 * Math.sin(2.6 * t);                       // strong, quick pulse
+        var hp = (t % 2.4) / 2.4, hr = 22 + hp * 74, ha = 0.24 * (1 - hp);   // expanding halo ring
+        var hg = ctx.createRadialGradient(W - 8, 10, hr * 0.62, W - 8, 10, hr);
+        hg.addColorStop(0, rgba("#fff0b8", 0)); hg.addColorStop(0.6, rgba("#fff0b8", ha)); hg.addColorStop(1, rgba("#fff0b8", 0));
+        ctx.globalAlpha = 1; ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(W - 8, 10, hr, 0, 6.2832); ctx.fill();
+        var pb = 0.9 + 0.2 * sp2;
+        ellipse(W - 8, 10, 60 * pb, 45 * pb, "#f7dd94", 0.15 * sp2);
+        ellipse(W - 8, 10, 30, 23, "#fce8a4", 0.32 * sp2);
+        ellipse(W - 8, 10, 12, 10, "#fff8d6", 0.62 * sp2);
       }
       if (stars.length) {
         ctx.strokeStyle = "#f7e3a8"; ctx.lineCap = "round";
@@ -276,12 +286,20 @@
       }
       // --- rare easter-egg flags: diffuse gestures for uncommon states ---
       var cyC = L.coreCy;
-      if (L.tender) { ellipse(300, cyC, 260, 100, "#e2a19c", 0.09 + 0.06 * Math.sin(1.1 * t)); }   // warm swell
-      if (L.awe) {                                                                                  // halo bloom
-        var per = 8, tt = (t % per) / per, r = 50 + tt * 320, aa = 0.2 * Math.max(0, 1 - tt);
-        var ag = ctx.createRadialGradient(310, cyC, r * 0.72, 310, cyC, r * 1.1);
-        ag.addColorStop(0, rgba("#efe6c8", 0)); ag.addColorStop(0.5, rgba("#efe6c8", aa)); ag.addColorStop(1, rgba("#efe6c8", 0));
-        ctx.globalAlpha = 1; ctx.fillStyle = ag; ctx.beginPath(); ctx.arc(310, cyC, r * 1.1, 0, 6.2832); ctx.fill();
+      if (L.tender) {                                                                               // warmth pooling around the edges
+        var twa = 0.15 + 0.05 * Math.sin(0.9 * t);
+        var tg = ctx.createRadialGradient(W / 2, cyC, Math.min(W, H) * 0.34, W / 2, cyC, W * 0.58);
+        tg.addColorStop(0, rgba("#e8a48f", 0)); tg.addColorStop(0.72, rgba("#e6a090", twa * 0.45)); tg.addColorStop(1, rgba("#e09a84", twa));
+        ctx.globalAlpha = 1; ctx.fillStyle = tg; ctx.fillRect(0, 0, W, H);
+      }
+      if (L.awe) {                                                                                  // halo bloom, centred on the face, quicker
+        var acx = 46, acy = cyC, per = 4.4;
+        [0, 0.5].forEach(function (ph) {
+          var tt = ((t / per + ph) % 1), r = 26 + tt * 210, aa = 0.22 * Math.max(0, 1 - tt);
+          var ag = ctx.createRadialGradient(acx, acy, r * 0.72, acx, acy, r * 1.1);
+          ag.addColorStop(0, rgba("#efe6c8", 0)); ag.addColorStop(0.5, rgba("#efe6c8", aa)); ag.addColorStop(1, rgba("#efe6c8", 0));
+          ctx.globalAlpha = 1; ctx.fillStyle = ag; ctx.beginPath(); ctx.arc(acx, acy, r * 1.1, 0, 6.2832); ctx.fill();
+        });
       }
       if (L.melancholy) {                                                                           // slow downward motes, full width
         ctx.fillStyle = "#9aa2b4";
@@ -292,13 +310,14 @@
         }
         ctx.globalAlpha = 1;
       }
-      if (L.unease) {                                                                               // cold fog rolling over, veiling
-        var fog = [[10, 160, 78, 0.15], [7, 210, 96, 0.12], [14, 175, 66, 0.13]];
-        fog.forEach(function (f, i) {
-          var fx = ((t * f[0] + i * 320) % (W + 460)) - 230;
-          var fy = cyC + (i - 1) * 26 + 12 * Math.sin(t * 0.18 + i);
-          ellipse(fx, fy, f[1], f[2], "#8b90a0", f[3] + 0.03 * Math.sin(t * 0.3 + i));
-        });
+      if (L.unease) {                                                                               // wispy cold fog roiling over the whole banner
+        for (var fi = 0; fi < 8; fi++) {
+          var fsp = 5 + (fi % 4) * 5;                                                                // varied drift speed
+          var fx = ((t * fsp + fi * 190) % (W + 520)) - 260;
+          var fy = 4 + ((fi * 53) % (H - 8)) + 16 * Math.sin(t * 0.22 + fi * 1.3);                    // spread over the full height, roiling
+          var frx = 95 + ((fi * 37) % 130), fry = 24 + ((fi * 19) % 36);                              // uneven thickness
+          ellipse(fx, fy, frx, fry, "#8a90a0", 0.05 + 0.04 * (0.5 + 0.5 * Math.sin(t * 0.35 + fi * 2)));  // low, throbbing
+        }
       }
       if (L.mirth) {                                                                                // champagne bubbles across the full width
         ctx.fillStyle = "#f2e0ac";
