@@ -275,6 +275,13 @@
       if (!visible) { requestAnimationFrame(frame); return; }
       try {
         var cyC = L.coreCy;
+        // measure the face's real box so face-attached marks anchor correctly at any size (incl. multi-line blooms)
+        var fb = null;
+        if (kaoEl && kaoEl.getBBox) { try { var _b = kaoEl.getBBox(); if (_b && _b.width) fb = _b; } catch (e) { } }
+        var faceCX = fb ? fb.x + fb.width / 2 : 46;
+        var faceTop = fb ? fb.y : cyC - 15;
+        var faceRight = fb ? fb.x + fb.width : 92;
+        var faceMidY = fb ? fb.y + fb.height / 2 : cyC;
         ctx.setTransform(sx, 0, 0, sy, 0, 0);
         ctx.clearRect(0, 0, W, H);
 
@@ -344,7 +351,7 @@
           // a little cloud of grawlix curses clustered around the head — pop, fall, shrink, fade
           var gw = ["$#@&", "%$#!", "@#$%", "#@!*", "&$@#", "*!?#", "$%&#", "@&#!", "!#$%", "#$@!"];
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          var GN = 10, gper = 2.0, glife = 1.3, fcx = 46, fcy = cyC;
+          var GN = 10, gper = 2.0, glife = 1.3, fcx = Math.min(faceCX, 92), fcy = faceMidY;
           for (var gi = 0; gi < GN; gi++) {
             var grr = mulberry32(L.seed + gi * 131 + 61);
             var birth = grr() * gper, word = gw[Math.floor(grr() * gw.length) % gw.length];
@@ -362,7 +369,7 @@
           ctx.globalAlpha = 1; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
         }
         if (L.dramatic) {
-          var dx = 46, dy = cyC, fl = 0.94 + 0.06 * Math.sin(t * 5.5) + 0.03 * Math.sin(t * 11);
+          var dx = faceCX, dy = faceMidY, fl = 0.94 + 0.06 * Math.sin(t * 5.5) + 0.03 * Math.sin(t * 11);
           var pool = ctx.createRadialGradient(dx, dy - 4, 6, dx, dy, 168);
           pool.addColorStop(0, rgba("#fff2cf", 0.5 * fl)); pool.addColorStop(0.5, rgba("#ffe6a8", 0.16 * fl)); pool.addColorStop(1, rgba("#ffe6a8", 0));
           ctx.fillStyle = pool; ctx.fillRect(0, 0, W, H);
@@ -371,7 +378,7 @@
           ctx.fillStyle = dim; ctx.fillRect(0, 0, W, H);
         }
         if (L.spark) {                                                               // light-bulb over the face: a periodic "click on"
-          var bx = 46, by = cyC - 32, scyc = t % 3.0, on;
+          var bx = faceCX, by = faceTop - 14, scyc = t % 3.0, on;
           if (scyc < 0.12) on = scyc / 0.12;                                          // fast attack — the click
           else if (scyc < 1.6) on = 1;                                               // hold bright
           else if (scyc < 2.1) on = 1 - (scyc - 1.6) / 0.5;                          // dim down
@@ -410,7 +417,7 @@
           ctx.fillStyle = tg; ctx.fillRect(0, 0, W, H);
         }
         if (L.surprised) {                                                           // halo bloom off the face (kept from awe)
-          var acx = 46, acy = cyC, per2 = 4.4;
+          var acx = faceCX, acy = faceMidY, per2 = 4.4;
           [0, 0.5].forEach(function (ph) {
             var tt = ((t / per2 + ph) % 1), r = 26 + tt * 210, aa = 0.22 * Math.max(0, 1 - tt);
             var ag = ctx.createRadialGradient(acx, acy, r * 0.72, acx, acy, r * 1.1);
@@ -452,7 +459,7 @@
           ctx.globalAlpha = 1;
         }
         if (L.laugh) {
-          var faceCx = 46, faceCy = cyC, NM = 7, MLIFE = 1.25;
+          var faceCx = faceCX, faceCy = faceMidY, NM = 7, MLIFE = 1.25;
           ctx.strokeStyle = "#ffdf3a"; ctx.lineWidth = 1.8; ctx.lineCap = "round";
           for (var li = 0; li < NM; li++) {
             var life = (lLt - li * 0.12) / MLIFE;
@@ -474,7 +481,7 @@
           ctx.globalAlpha = 1;
         }
         if (L.frustrated) {                                                          // a tilted red hash mark by the head
-          var hxc = 92, hyc = cyC - 22;
+          var hxc = faceRight + 2, hyc = faceTop + 2;
           ctx.globalAlpha = 0.5 + 0.5 * frP; ctx.strokeStyle = "#dd3322"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
           ctx.save(); ctx.translate(hxc, hyc); ctx.rotate(0.18);
           [-3, 3].forEach(function (d) { ctx.beginPath(); ctx.moveTo(d, -7); ctx.lineTo(d, 7); ctx.stroke(); });
@@ -482,14 +489,14 @@
           ctx.restore(); ctx.globalAlpha = 1;
         }
         if (L.groan && groanGr > 0.05) {
-          var sdx = 80, sdy = cyC - 26 + groanGr * 7;
+          var sdx = faceRight - 8, sdy = faceTop + 4 + groanGr * 7;
           ctx.globalAlpha = 0.75 * groanGr; ctx.fillStyle = "#a9c4e0";
           ctx.beginPath(); ctx.arc(sdx, sdy, 3.2, 0, 6.2832); ctx.fill();
           ctx.beginPath(); ctx.moveTo(sdx - 2.4, sdy - 1.8); ctx.lineTo(sdx, sdy - 7.5); ctx.lineTo(sdx + 2.4, sdy - 1.8); ctx.closePath(); ctx.fill();
           ctx.globalAlpha = 1;
         }
         if (L.oops && oopsE > 0.04) {
-          var exX = 90 + oopsOsc * 4, exY = cyC - 30 - oopsE * 5;
+          var exX = (faceRight - 4) + oopsOsc * 4, exY = faceTop - 8 - oopsE * 5;
           ctx.globalAlpha = Math.min(1, oopsE * 1.3); ctx.strokeStyle = "#e07a5f"; ctx.fillStyle = "#e07a5f"; ctx.lineWidth = 3; ctx.lineCap = "round";
           ctx.beginPath(); ctx.moveTo(exX, exY - 9); ctx.lineTo(exX, exY + 2); ctx.stroke();
           ctx.beginPath(); ctx.arc(exX, exY + 7, 1.9, 0, 6.2832); ctx.fill();
