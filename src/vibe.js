@@ -24,14 +24,14 @@
     ".txt{paint-order:stroke;stroke:#fff8ec;stroke-linejoin:round}" +
     ".fk{font-family:var(--font-sans);font-size:19px;fill:#5c4320;stroke-width:2.6}" +
     ".fkt{font-family:var(--font-mono);font-size:15px;fill:#5c4320;stroke-width:2.4}" +
-    ".lbl{font-family:var(--font-mono);font-size:11px;fill:#8a6c33;stroke-width:2.2}" +
-    ".fr{font-family:var(--font-voice);font-size:12px;font-style:italic;fill:#6b5230;stroke-width:2.2}" +
+    ".lbl{font-family:var(--font-mono);font-size:11px;fill:#453118;stroke-width:2.2}" +
+    ".fr{font-family:var(--font-voice);font-size:12px;font-style:italic;fill:#5c4320;stroke-width:2.2}" +
     ".fw{font-family:var(--font-voice);font-size:14px;font-style:italic;fill:#5c4320;stroke-width:2.4}" +
     ".fg{font-family:var(--font-sans);font-size:13px;fill:#5c4320;stroke-width:2.2}" +
-    ".fl{font-family:var(--font-mono);font-size:10px;fill:#8a7250;stroke-width:1.8}" +
+    ".fl{font-family:var(--font-mono);font-size:10px;fill:#786040;stroke-width:1.8}" +
     "@media (prefers-color-scheme:dark){.txt{stroke:#241a06}" +
-    ".fk,.fkt{fill:#f6ead0}.lbl{fill:#c9ad78}.fr{fill:#dcc79c}" +
-    ".fw{fill:#f0e0bf}.fg{fill:#ecdcb8}.fl{fill:#b7a079}}" +
+    ".fk,.fkt{fill:#f6ead0}.lbl{fill:#d8c5a0}.fr{fill:#f6ead0}" +
+    ".fw{fill:#f6ead0}.fg{fill:#f6ead0}.fl{fill:#b7a079}}" +
     ".drama .fk,.drama .fkt{font-family:var(--font-voice)}" +
     ".drama .fr,.drama .fw,.drama .fg{font-family:var(--font-voice);font-style:italic;font-weight:600;letter-spacing:.04em}" +
     ".drama .lbl{font-family:var(--font-voice);text-transform:uppercase;letter-spacing:.18em;font-style:normal}";
