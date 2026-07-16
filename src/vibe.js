@@ -188,13 +188,13 @@
     var kaoLines = String(p.kaomoji).split("\n");
     var multiline = kaoLines.length > 1, kaoLh = multiline ? 20 : 0;
 
-    function line(label, value, cls, x) {
+    function line(label, value, cls, x, key) {
       x = x == null ? TEXT_X : x;
       var head = label ? '<tspan class="lbl">' + esc(label) + '</tspan> ' : '';
-      return { x: x, inner: head + '<tspan class="' + cls + '">' + esc(value) + '</tspan>' };
+      return { x: x, key: key || "", inner: head + '<tspan class="' + cls + '">' + esc(value) + '</tspan>' };
     }
-    var lines = [line("[user]", p.seems, "fr"), line("[mood]", p.feel, "fw")];
-    if (p.noticing) lines.push(line("[note]", p.noticing, "fr"));
+    var lines = [line("[user]", p.seems, "fr", null, "user"), line("[mood]", p.feel, "fw")];
+    if (p.noticing) lines.push(line("[note]", p.noticing, "fr", null, "note"));
     var goal = String(p.trying);
     if (goal.length > GOAL_CAP) {
       var cut = goal.lastIndexOf(" ", GOAL_CAP); if (cut <= 0) cut = GOAL_CAP;
@@ -235,7 +235,7 @@
       ? '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fkt vk">' +
       kaoLines.map(function (l, i) { return '<tspan x="' + FACE_X + '"' + (i === 0 ? "" : ' dy="20"') + fit(l, 15) + '>' + esc(l) + '</tspan>'; }).join("") + '</text>'
       : '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fk vk"' + fit(String(p.kaomoji), 19) + '>' + esc(p.kaomoji) + '</text>';
-    var readSVG = lines.map(function (ln, i) { return '<text x="' + ln.x + '" y="' + g(rightAbs[i]) + '" class="txt">' + ln.inner + '</text>'; }).join("");
+    var readSVG = lines.map(function (ln, i) { return '<text x="' + ln.x + '" y="' + g(rightAbs[i]) + '" class="txt' + (ln.key ? ' vr-' + ln.key : '') + '">' + ln.inner + '</text>'; }).join("");
     var langSVG = "";
     if (langs.length) {                                        // pinned bottom-right: [Reasoned in]: 🇷🇺 · eo
       var parts = '<tspan opacity="0.7">[Reasoned in]:</tspan> ';
@@ -349,6 +349,29 @@
         palette: p.palette, field: p.field, focus: p.focus, engagement: p.engagement
       });
       wrap.appendChild(mini);
+    }
+    // Attunement cues: where the host injects sendPrompt (Claude surfaces), the inference
+    // lines become tappable. Tap once to arm (dotted underline, 3.5s), tap again to send a
+    // tiny stage-direction flicker into the chat — not a correction, not a dispute: just the
+    // user's face becoming momentarily visible to the reporter. Absent sendPrompt (plain web,
+    // the gallery), the affordance doesn't exist. Mount-only; the static fallback is inert.
+    if (typeof root.sendPrompt === "function") {
+      [["user", p.seems], ["note", p.noticing]].forEach(function (pair) {
+        var row = wrap.querySelector(".vr-" + pair[0]);
+        if (!row || pair[1] == null) return;
+        row.style.cursor = "pointer";
+        var armed = false, tmr = null;
+        row.addEventListener("click", function () {
+          if (!armed) {
+            armed = true; row.style.textDecoration = "underline dotted";
+            tmr = setTimeout(function () { armed = false; row.style.textDecoration = ""; }, 3500);
+          } else {
+            clearTimeout(tmr); armed = false; row.style.textDecoration = "";
+            var q = String(pair[1]); if (q.length > 60) q = q.slice(0, 57) + "…";
+            root.sendPrompt('*a flicker at your [' + pair[0] + '] read ("' + q + '") — it doesn\'t quite land*');
+          }
+        });
+      });
     }
     var kaoEl = wrap.querySelector(".vk"), baseFill = [92, 67, 32];
     if (kaoEl) {

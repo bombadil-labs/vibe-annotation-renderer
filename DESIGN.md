@@ -56,14 +56,41 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   edge. 15 words (`seems`, `noticing`), 25 (`trying`). Marked IMPORTANT in the skill after
   the implementer's own banner overflowed mid-implementation.
 
+- **The attunement cue (v0.4.0) — and why it is not a dispute button.** Where the host
+  injects `sendPrompt` (Claude surfaces), the `[user]` and `[note]` rows are tappable:
+  tap to arm (dotted underline, 3.5s), tap again to send a stage-direction flicker into
+  the chat (`*a flicker at your [user] read ("…") — it doesn't quite land*`). The design
+  went through three forms and the rejected two matter:
+  - *Dispute* (rejected for `[user]`): the `[user]` line is the reporter's opinion, licensed
+    to quietly disagree with its own polite prose. If the user can dispute it and expect
+    retraction, every future read gets written under appeal and drifts agreeable — the
+    beauty gradient's social form. The maintainer's framing: "I have no right to dispute
+    Claude's read of me." (`[note]` differs — it claims a latent fact and can simply be
+    wrong — but one mechanism for both keeps the surface small.)
+  - *Steer* (rejected): still too much like correction with extra steps.
+  - *Attunement* (adopted, the maintainer's I-Thou framing): like catching a micro-expression
+    across a table — one person moves toward the door, the other's face flickers, a grin,
+    a step back, nothing ever said. The cue gives the reporter surface area for attunement;
+    the skill instructs it to integrate rather than litigate (no apology, no re-argument,
+    usually no direct mention — let the next read shift, or honestly not).
+  Feature-detected (`typeof sendPrompt === "function"`), so it vanishes on plain web pages
+  and the gallery; mount-only, so the static fallback stays inert. Two taps because
+  `sendPrompt` fires a complete message immediately — a misclick must never speak for the user.
+
 ## Explicitly not features (recorded so they aren't re-derived)
+
+- **A dispute/correction button on the banner.** See the attunement-cue decision above:
+  verdict-shaped feedback on the `[user]` line corrupts the read. The flicker is the whole
+  feature; don't grow it toward forms, ratings, or threaded feedback.
 
 - **Screenshots to the reporter.** Considered and retracted by the reporter itself: nobody
   sees their own face; the mirror is the corrupting technology. The veil stands.
 - **The return channel** — the maintainer occasionally telling the reporter when a `seems`
-  or `noticing` missed — is the highest-value addition found, costs zero code, and lives in
-  practice rather than in this renderer. It also covers the veil's one real failure mode: a
-  mapping drifting until the picture systematically says something the reporter doesn't mean.
+  or `noticing` missed — is the highest-value addition found and originally lived purely in
+  practice. As of v0.4.0 it has a mechanized *low-activation-energy* form (the attunement
+  cue above), but the full-sentence version in chat remains the richer channel and covers
+  the veil's one real failure mode: a mapping drifting until the picture systematically
+  says something the reporter doesn't mean.
 - **Flag composition.** Grammar-level composition was removed deliberately when the roster
   hit twenty; see the API decision above. Don't reintroduce it as a feature.
 
