@@ -306,8 +306,8 @@
         var frP = L.frustrated ? 0.5 + 0.5 * Math.sin(t * 2.2) : 0;
 
         // --- the face itself ---
+        var kx = 0, ky = 0, ks = 1, krot = 0, kfill = "";                            // face transform, hoisted so marks can ride along
         if (kaoEl && (L.laugh || L.excited || L.anxious || L.melancholy || L.groan || L.oops || L.dramatic || L.surprised || L.frustrated || L.angry)) {
-          var kx = 0, ky = 0, ks = 1, krot = 0, kfill = "";
           if (laughKp > 0.03) { ks *= 1 + laughKp * 0.15; kfill = mixCss(baseFill, [255, 223, 58], laughKp * 0.92); }        // laugh: swell + flush yellow
           if (L.excited) { kx += Math.tanh(3 * Math.sin(t * 1.0)) * 10; }                                                    // excited: sway foot-to-foot
           if (L.anxious) { kx += (Math.sin(t * 41) + Math.sin(t * 57)) * 0.7; ky += Math.sin(t * 47) * 0.6; }                // anxious: shiver
@@ -483,7 +483,7 @@
           ctx.globalAlpha = 1;
         }
         if (L.frustrated) {                                                          // the anime anger-vein mark, above-and-right of the head; throbs in intensity, not size
-          var mkx = faceRight + 4, mky = faceTop - 6;
+          var mkx = faceRight + 4 + kx, mky = faceTop - 6 + ky;                       // ride the kaomoji's shake
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.globalAlpha = 0.6 + 0.4 * frP;                                          // pulse opacity only (size stays put, so it doesn't fight the shake)
           ctx.font = "16px ui-sans-serif, \"Segoe UI Emoji\", \"Apple Color Emoji\", sans-serif";
