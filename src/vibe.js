@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@a3073ae371ac3e9a54c57ded5406bec6c6dc1f56/assets/sepia-sheet.png";   // 3 frames per mood: base / shimmer / blink
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f0002d31176bb503cfeaa0c02e831c0380837a7d/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -155,7 +155,13 @@
     },
     "sepia": function (item) {
       var i = SEPIA_MOODS.indexOf(item); if (i < 0) i = Math.max(0, Math.min(31, parseInt(item, 10) || 0));
-      return { url: SEPIA_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 16, index: i, anim: { frames: 3, frameRows: 4, stride: 32, maskStart: 96 } };   // shimmer + blink cycled natively; mask cell maskStart+index gates the smooth chromo layer per mood
+      return {
+        url: SEPIA_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 12, index: i,
+        anim: {
+          frames: 2, frameRows: 4, stride: 32, maskStart: 64,
+          fins: "rrftdtfrfffrdtrfdtttfcdrtrcrrdrf"            // per-mood fin posture (derives from gen-sepia's FRILL_OF — keep in sync): r ripple, f flared, d drooped, t tucked, c calm
+        }
+      };
     }
   };
 
@@ -658,6 +664,18 @@
       kaoEl.style.pointerEvents = "auto";                      // the face is tappable; the rest of the layer lets water-clicks through
       faceLayer.appendChild(kaoEl); wrap.appendChild(faceLayer);
     }
+    // SUB-PIXEL FINS (v0.21.0): the grid could only crenelate; membranes flow. Each
+    // flank wears a tapered ribbon whose outer edge is a travelling sine wave, posture
+    // per mood: undulating at rest, rippling furiously when flared, sagging when
+    // drooped, tucked to a sliver when scared. Drawn every frame; rides every pose.
+    var finC = null;
+    var FINP = { r: [4, 1.8, 1.1], f: [5.5, 2.9, 3.0], d: [3, 1.1, 0.45], c: [3.5, 1.0, 0.4], t: [1.6, 0.5, 0.6] };   // [baseW, amp, rate] in 64-cell units
+    if (kaoEl && fm && fm.kind === "sprite" && fm.anim && fm.anim.fins) {
+      finC = document.createElement("canvas");
+      finC.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
+      kaoEl.style.position = "relative";
+      kaoEl.appendChild(finC);
+    }
     // SUB-PIXEL TIME: the body animates in block frames, but the chromatophore layer
     // glides smoothly over it — soft spots in the reporter's live palette colour,
     // drifting continuously, masked to the mantle by the sheet's own mask cell. The
@@ -891,16 +909,43 @@
         // cadence. Native frames, never an animated image — the tidepool's philosophy. ---
         if (kaoEl && fm && fm.kind === "sprite" && fm.anim) {
           var fRows = fm.anim.frameRows || fm.rows / fm.anim.frames;
-          var fr = 0;                                                                // base at rest — the smooth layer carries the continuous motion
-          var sper = 5.2 + (L.seed % 6) * 1.1;                                       // flutter EVENT, not a metronome: an occasional ripple, blink-style
-          if (((t + (L.seed % 9) * 0.8) % sper) < 0.55) fr = 1;
+          var fr = 0;                                                                // base at rest — fins and chromatophores carry all continuous motion now
           var bper = 3.2 + (L.seed % 5) * 0.9;
-          if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 2;                      // blink overrides, ~160ms
+          if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 1;                      // blink, ~160ms on a seeded organic cadence
           if (fr !== spriteFrame) {
             spriteFrame = fr;
             var fcol2 = fm.index % fm.cols, frow2 = Math.floor(fm.index / fm.cols) + fr * fRows;
             kaoEl.style.backgroundPosition =
               g(fm.cols > 1 ? fcol2 / (fm.cols - 1) * 100 : 0) + "% " + g(fm.rows > 1 ? frow2 / (fm.rows - 1) * 100 : 0) + "%";
+          }
+        }
+
+        // --- liquid fins: smooth membranes on each flank, posture from the mood ---
+        if (finC) {
+          var fcw = kaoEl.clientWidth, fch = kaoEl.clientHeight;
+          if (fcw > 4) {
+            if (finC.width !== fcw) { finC.width = fcw; finC.height = fch; }
+            var fx2 = finC.getContext("2d");
+            fx2.clearRect(0, 0, fcw, fch);
+            var fcode = fm.anim.fins.charAt(fm.index) || "r";
+            var fp2 = FINP[fcode] || FINP.r;
+            var fsc = fcw / 64;
+            var baseW = fp2[0] * fsc, famp = fp2[1] * fsc, frate = fp2[2];
+            fx2.fillStyle = rgba("#d8bcc8", 0.92);
+            [[9.5, -1], [54.5, 1]].forEach(function (fside) {
+              var ax = fside[0] * fsc, fdir2 = fside[1];
+              fx2.beginPath();
+              fx2.moveTo(ax, 12 * fsc);
+              for (var fy = 12; fy <= 44; fy++) {
+                var prof = Math.sin((fy - 12) / 32 * Math.PI);                       // tapered ends, widest amidships
+                var sagF = fcode === "d" ? 0.25 + (fy - 12) / 32 * 0.9 : 1;          // drooped: the membrane pools toward the bottom
+                var wv = famp * Math.sin(fy * 0.32 - t * frate * 6.283 * fdir2) * prof;
+                var wdt = Math.max(0, baseW * prof * sagF + wv);
+                fx2.lineTo(ax + fdir2 * wdt, fy * fsc);
+              }
+              fx2.lineTo(ax, 44 * fsc);
+              fx2.closePath(); fx2.fill();
+            });
           }
         }
 
