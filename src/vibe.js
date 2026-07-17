@@ -29,8 +29,8 @@
     ".fw{font-family:var(--font-voice);font-size:14px;font-style:italic;fill:#5c4320;stroke-width:2.4}" +
     ".fg{font-family:var(--font-sans);font-size:13px;fill:#5c4320;stroke-width:2.2}" +
     ".fl{font-family:var(--font-mono);font-size:10px;fill:#786040;stroke-width:1.8}" +
-    ".vkp{fill:#fff8ec;fill-opacity:0.4}" +
-    "@media (prefers-color-scheme:dark){.txt{stroke:#241a06}.vkp{fill:#241a06;fill-opacity:0.45}" +
+    ".vkp{fill:#fff8ec;fill-opacity:0.55}" +
+    "@media (prefers-color-scheme:dark){.txt{stroke:#241a06}.vkp{fill:#0e0a04;fill-opacity:0.66}" +
     ".fk,.fkt{fill:#f6ead0}.lbl{fill:#d8c5a0}.fr{fill:#f6ead0}" +
     ".fw{fill:#f6ead0}.fg{fill:#f6ead0}.fl{fill:#b7a079}}" +
     ".drama .fk,.drama .fkt{font-family:var(--font-voice)}" +
@@ -562,9 +562,9 @@
       ".vdrama .vo .fr,.vdrama .vo .fw,.vdrama .vo .fg{font-weight:600;letter-spacing:0.04em}" +
       ".vdrama .vo .pill{text-transform:uppercase;letter-spacing:0.18em}" +
       ".vft{white-space:pre;text-align:left;font-family:var(--font-sans,ui-sans-serif,sans-serif);color:#5c4320;line-height:1.15;" +
-      "background:rgba(255,248,236,0.4);border-radius:8px;padding:3px 6px;text-shadow:0 1px 1px rgba(255,248,236,0.5)}" +
+      "background:rgba(255,248,236,0.55);border-radius:8px;padding:3px 6px;text-shadow:0 1px 1px rgba(255,248,236,0.5)}" +
       ".vftm{font-family:var(--font-mono,ui-monospace,Menlo,monospace);line-height:1.33}" +
-      "@media (prefers-color-scheme:dark){.vft{color:#f6ead0;background:rgba(36,26,6,0.45);text-shadow:0 1px 1px rgba(36,26,6,0.5)}}" +
+      "@media (prefers-color-scheme:dark){.vft{color:#f6ead0;background:rgba(14,10,4,0.66);text-shadow:0 1px 1px rgba(14,10,4,0.6)}}" +   // near-black: 0.45 amber dissolved into star-speckled scenes
       ".vdrama .vft{font-family:var(--font-voice,Georgia,serif)}";
     var ovStyle = document.createElement("style"); ovStyle.textContent = OV_CSS; wrap.appendChild(ovStyle);
     if (L.dramatic) wrap.classList.add("vdrama");
