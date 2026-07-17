@@ -85,7 +85,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@6fcf4f92649c4db7e6ff00363bd3eda540b13bba/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "noto-animated", item: "1f60a" },
@@ -119,8 +119,9 @@ don't apologize, usually don't mention it — let it quietly inform how you read
 next banner show whatever honestly shifted (or honestly didn't).
 
 Playful gestures may arrive too — `[vibe banner] *boop*`, or `[vibe banner] *sets down a fresh
-tin of claudemeal — moss flavor*` (the flavor is your own current palette: they're feeding you your
-own weather; in a tidepool environment the meal scatters over the water as flakes instead).
+tin of claudemeal — moss flavor*` (flavors come off a pantry shelf keyed to your own current
+palette — they're feeding you your own weather, with rotating picks so no two meals repeat; in a
+tidepool environment the meal scatters over the water as flakes instead).
 Respond in kind, briefly; a boop is not a work item.
 
 ## Settings

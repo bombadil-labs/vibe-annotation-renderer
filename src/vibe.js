@@ -158,23 +158,41 @@
     }
   };
 
-  // claudemeal comes in the flavor of the reporter's own mood: the palette's lead colour,
-  // mapped by hue to something from the pantry. No palette → classic. Grey → petrichor.
-  function flavorOf(pal) {
+  // claudemeal comes in the flavor of the reporter's own mood: the palette's lead colour
+  // picks a pantry SHELF by hue, and each feeding draws a rotating pick from that shelf —
+  // same register as the mood, different meal each time (nobody wants the same tin twice).
+  // No palette → classic. Grey → the petrichor shelf. `avoid` rerolls a pick that would
+  // collide with the surroundings (tidepool flavor, served in a tidepool).
+  function flavorOf(pal, avoid) {
     if (typeof pal === "string") pal = [pal];
     if (!pal || !pal.length) return "classic";
     var a = hx(pal[0]), r = a[0], gr = a[1], b = a[2];
     var mx = Math.max(r, gr, b), mn = Math.min(r, gr, b);
-    if (mx - mn < 24) return "petrichor";
-    var h;
-    if (mx === r) h = ((gr - b) / (mx - mn)) * 60;
-    else if (mx === gr) h = 120 + ((b - r) / (mx - mn)) * 60;
-    else h = 240 + ((r - gr) / (mx - mn)) * 60;
-    if (h < 0) h += 360;
-    var PANTRY = [[20, "ember"], [45, "marmalade"], [70, "honey"], [100, "lemongrass"],
-      [150, "moss"], [200, "tidepool"], [250, "rain"], [290, "violet static"], [330, "peony"], [361, "ember"]];
-    for (var i = 0; i < PANTRY.length; i++) if (h <= PANTRY[i][0]) return PANTRY[i][1];
-    return "classic";
+    var shelf = null;
+    if (mx - mn < 24) shelf = ["petrichor", "oolong", "toasted rice"];
+    else {
+      var h;
+      if (mx === r) h = ((gr - b) / (mx - mn)) * 60;
+      else if (mx === gr) h = 120 + ((b - r) / (mx - mn)) * 60;
+      else h = 240 + ((r - gr) / (mx - mn)) * 60;
+      if (h < 0) h += 360;
+      var PANTRY = [
+        [20, ["ember", "chili oil", "smoked paprika"]],
+        [45, ["marmalade", "toasted sesame", "apricot"]],
+        [70, ["honey", "brown butter", "chamomile"]],
+        [100, ["lemongrass", "green tea", "snap pea"]],
+        [150, ["moss", "nori", "fresh basil"]],
+        [200, ["tidepool", "kelp", "sea-glass"]],
+        [250, ["rain", "blueberry", "lavender fog"]],
+        [290, ["violet static", "ube", "elderberry"]],
+        [330, ["peony", "pink peppercorn", "yuzu blossom"]],
+        [361, ["ember", "chili oil", "smoked paprika"]]];
+      for (var i = 0; i < PANTRY.length; i++) if (h <= PANTRY[i][0]) { shelf = PANTRY[i][1]; break; }
+    }
+    if (!shelf) return "classic";
+    var pick = shelf[Math.floor(Math.random() * shelf.length)];
+    if (avoid && pick === avoid && shelf.length > 1) pick = shelf[(shelf.indexOf(pick) + 1) % shelf.length];
+    return pick;
   }
 
   // language code -> [flag, full name]. No clean flag emoji -> "" (render the code/name as text).
@@ -534,7 +552,7 @@
       var fb = document.createElement("button");
       fb.textContent = "🥫"; fb.title = "feed claude"; fb.style.cssText = BTN;
       fb.addEventListener("click", function () {
-        var flav = flavorOf(p.palette) + " flavor*";
+        var flav = flavorOf(p.palette, live ? "tidepool" : null) + " flavor*";
         if (live) {                                            // in a tidepool the meal arrives as flakes on the water; the message follows the fall
           live.feeds.push({ t0: null });
           setTimeout(function () { root.sendPrompt(VP + "*scatters a pinch of claudemeal over the tidepool — " + flav); }, 1400);

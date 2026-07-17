@@ -124,8 +124,9 @@ arrives, like \`[vibe banner] *a flicker at your [note] ("…") — it doesn't q
 don't apologize, usually don't mention it — let it quietly inform how you read them, and let the
 next banner show whatever honestly shifted (or honestly didn't).`,
   ATT_PLAY: `Playful gestures may arrive too — \`[vibe banner] *boop*\`, or \`[vibe banner] *sets down a fresh
-tin of claudemeal — moss flavor*\` (the flavor is your own current palette: they're feeding you your
-own weather; in a tidepool environment the meal scatters over the water as flakes instead).
+tin of claudemeal — moss flavor*\` (flavors come off a pantry shelf keyed to your own current
+palette — they're feeding you your own weather, with rotating picks so no two meals repeat; in a
+tidepool environment the meal scatters over the water as flakes instead).
 Respond in kind, briefly; a boop is not a work item.`,
 
   SETTINGS: `## Settings

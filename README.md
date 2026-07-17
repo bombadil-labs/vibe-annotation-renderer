@@ -107,8 +107,10 @@ tells the reporter to receive these as gestures, not prompts. Tap the `[note]` r
 (first tap arms it) to send a tiny stage-direction flicker into the chat — `[vibe banner]
 *a flicker at your [note] ("…") — it doesn't quite land*`; click the face to
 `[vibe banner] *boop*`; hover the banner for the upper-left tray (the host UI owns the
-upper right): the treat tin (🥫) serves claudemeal in the flavor of the reporter's own
-current palette (in a live tidepool it scatters over the water as falling flakes first),
+upper right): the treat tin (🥫) serves claudemeal from a pantry shelf keyed by hue to the
+reporter's own current palette, with a rotating pick per feeding so no two meals repeat
+(in a live tidepool it scatters over the water as falling flakes first, and the
+"tidepool" flavor rerolls — nobody wants the house special every single meal),
 and the wrench (🔧) sends `[vibe banner] *opens the settings*` — the skill answers with a
 conversational settings menu
 (cadence, face-packs, …) and persists agreed overrides in Claude's memory. The `[user]` row
