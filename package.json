@@ -9,7 +9,8 @@
     "build": "esbuild src/vibe.js --minify --outfile=dist/vibe.min.js",
     "parity": "node test/parity.js",
     "pin": "node scripts/pin.js",
-    "sepia": "node scripts/gen-sepia.js"
+    "sepia": "node scripts/gen-sepia.js",
+    "skills": "node scripts/gen-skills.js"
   },
   "devDependencies": {
     "esbuild": "^0.23.1"

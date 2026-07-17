@@ -121,6 +121,17 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   `kaomoji` field remains required as fallback and seed material. The hover tray moved to
   the upper LEFT because Claude's own UI owns the widget's upper right.
 
+- **Face selection is a skill-level concern; variants are generated, never copied
+  (v0.8.x).** The renderer accepts the whole face union, but no single skill teaches it —
+  that theory-of-faces prose was the bloat. Each shipped variant (kaomoji-standard, Sepia,
+  Kip) hard-codes exactly one face and states one standing right: **a kaomoji is always a
+  valid alternative** when the pack's vocabulary doesn't fit the moment — honesty outranks
+  the pack. All variants are generated from one base template in scripts/gen-skills.js
+  (`npm run skills`, then `npm run pin`); hand-editing a generated SKILL*.md is a bug. This
+  is the pin-script lesson applied to prose: duplication drifts, so duplicates must be
+  built. Result: every variant weighs ≤ the original day-one skill (~8KB ≈ 2k tokens,
+  loaded once per session).
+
 ## Explicitly not features (recorded so they aren't re-derived)
 
 - **A dispute/correction button on the banner.** See the attunement-cue decision above:

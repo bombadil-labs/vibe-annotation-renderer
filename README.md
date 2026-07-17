@@ -169,11 +169,22 @@ report the feeling (never describing what any value *renders* as), then emits a 
 `vibe(el, {…})` call that loads this bundle from the CDN. Claude passes only values and never sees the
 picture, which is what keeps the readings honest.
 
-Install it by copying that file to your skills directory:
+**Face selection happens at the skill level.** The renderer accepts any face, but each
+shipped skill wears exactly one; pick your variant and install it (all are generated from
+one base — `npm run skills` — so they never drift):
+
+| variant | face |
+|---|---|
+| `skill/SKILL.md` | kaomoji, improvised fresh every banner |
+| `skill/SKILL.sepia.md` | Sepia — the cuttlefish Claude designed for itself (32 moods) |
+| `skill/SKILL.kip.md` | Kip — the project mascot (8 moods) |
+
+Every variant accepts a kaomoji as a valid alternative at any time — when the pack's
+vocabulary doesn't fit the moment, honesty outranks the pack.
 
 ```bash
 mkdir -p ~/.claude/skills/vibe-annotations
-cp skill/SKILL.md ~/.claude/skills/vibe-annotations/
+cp skill/SKILL.sepia.md ~/.claude/skills/vibe-annotations/SKILL.md   # or SKILL.md / SKILL.kip.md
 ```
 
 It pins the renderer to a full commit hash; update that line to the new release commit's hash
