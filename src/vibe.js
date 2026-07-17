@@ -312,7 +312,8 @@
         var col = faceImg.index % faceImg.cols, rowI = Math.floor(faceImg.index / faceImg.cols);
         kaoSVG = '<svg class="vk" x="' + g(ix) + '" y="' + g(iy) + '" width="' + faceImg.w + '" height="' + faceImg.h +
           '" viewBox="' + (col * faceImg.cellW) + ' ' + (rowI * faceImg.cellH) + ' ' + faceImg.cellW + ' ' + faceImg.cellH +
-          '" preserveAspectRatio="xMidYMid meet"><image href="' + esc(faceImg.url) + '" x="0" y="0" width="' + (faceImg.cellW * faceImg.cols) + '" height="' + (faceImg.cellH * faceImg.rows) + '"/></svg>';
+          '" preserveAspectRatio="xMidYMid meet"><image href="' + esc(faceImg.url) + '" x="0" y="0" width="' + (faceImg.cellW * faceImg.cols) + '" height="' + (faceImg.cellH * faceImg.rows) +
+          '" style="image-rendering:crisp-edges;image-rendering:pixelated"/></svg>';   // nearest-neighbour: no cross-cell texture bleed, crisper pixel art
       } else {
         kaoSVG = '<image class="vk" x="' + g(ix) + '" y="' + g(iy) + '" width="' + faceImg.w + '" height="' + faceImg.h +
           '" preserveAspectRatio="xMidYMid meet" href="' + esc(faceImg.url) + '"/>';

@@ -163,11 +163,20 @@ function cellPut(cx, cy, gx, gy, c) {
   for (let dy = 0; dy < SCALE; dy++) for (let dx = 0; dx < SCALE; dx++)
     put(cx + gx * SCALE + dx, cy + gy * SCALE + dy, c);
 }
+// Whole-body response: the big states change the SKIN, then wear pattern as texture —
+// real cuttlefish flush entire. Positive t = wash toward the mood hue; negative = blanch pale.
+const TINT = { anxious: 0.32, angry: 0.28, frustrated: 0.2, awe: -0.5, surprised: -0.32 };
+const mixHex = (a, b, t) => {
+  const A = hex(a), B = hex(b);
+  return "#" + A.map((v, k) => Math.round(v + (B[k] - v) * t).toString(16).padStart(2, "0")).join("");
+};
 MOODS.forEach((mood, i) => {
   const cx = (i % COLS) * CELL, cy = Math.floor(i / COLS) * CELL;
+  const t = TINT[mood[0]] || 0;
+  const skin = t > 0 ? mixHex(COLORS.b, mood[3], t) : t < 0 ? mixHex(COLORS.b, "#f9f4ea", -t) : COLORS.b;
   for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
     const k = BASE[y][x];
-    if (k !== ".") cellPut(cx, cy, x, y, COLORS[k]);
+    if (k !== ".") cellPut(cx, cy, x, y, k === "b" ? skin : COLORS[k]);
   }
   const frill = FRILL[FRILL_OF[mood[0]] || "ripple"];
   frill.concat(mirror(frill)).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS.n));
@@ -196,14 +205,21 @@ MOODS.forEach((mood, i) => {
   {
     const r = rng(i * 104729 + 7);
     const hue = mood[3];
-    const dark = "#" + hex(hue).map(v => Math.max(0, Math.round(v * 0.62)).toString(16).padStart(2, "0")).join("");
-    const ok = (x, y) => {
+    // contrast-safe sibling: light hues get a darker one, dark hues a LIGHTER one —
+    // a dark sibling of a dark hue merges with the body outline and swallows limbs
+    const lum = c => { const h = hex(c); return 0.299 * h[0] + 0.587 * h[1] + 0.114 * h[2]; };
+    const dark = lum(hue) > 120
+      ? "#" + hex(hue).map(v => Math.max(0, Math.round(v * 0.66)).toString(16).padStart(2, "0")).join("")
+      : mixHex(hue, "#e8dcd0", 0.38);
+    const okRaw = (x, y) => {
       if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
       if (BASE[y >> 2][x >> 2] !== "b") return false;                          // mantle only
       if (y >= 19 && y <= 33 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;  // eyes + lashes
       if (x >= 22 && x <= 41 && y >= 34 && y <= 44) return false;              // mouth zone
       return true;
     };
+    const ok = (x, y) =>                                                        // eroded 1px: patterns never touch the silhouette
+      okRaw(x, y) && okRaw(x - 1, y) && okRaw(x + 1, y) && okRaw(x, y - 1) && okRaw(x, y + 1);
     const blob = (bx, by, rad, c) => {                                          // organic patch: jittered edge
       for (let y = Math.floor(by - rad - 2); y <= by + rad + 2; y++)
         for (let x = Math.floor(bx - rad - 2); x <= bx + rad + 2; x++) {
@@ -235,7 +251,10 @@ MOODS.forEach((mood, i) => {
       rings:   () => { ring(20, 12, 5, hue); ring(42, 12, 5, hue); ring(31, 47, 5, hue); blob(31, 11, 2.6, hue); },
       bands:   () => { band(8, 2, 4, hue, r() * 6); band(45, 2, 4, hue, r() * 6); },
       storm:   () => { band(7, 1.8, 6, dark, r() * 6); band(14, 1.4, 1, hue, r() * 6); band(43, 1.8, 6, dark, r() * 6); band(50, 1.4, 1, hue, r() * 6); },
-      camo:    () => { for (let k = 0; k < 6; k++) blob(12 + r() * 40, 8 + r() * 48, 3.5 + r() * 2, k % 2 ? dark : hue); }
+      camo:    () => {                                                          // stratified mottle: full coverage on a tinted body, texture not twine
+        [[24, 10], [40, 12], [14, 40], [49, 40], [22, 50], [42, 50]].forEach(([zx, zy], k) =>
+          blob(zx + (r() - 0.5) * 5, zy + (r() - 0.5) * 4, 3.8 + r() * 1.6, k % 2 ? dark : hue));
+      }
     };
     const PTYPE = {
       awe: "blanch", surprised: "blanch1",
