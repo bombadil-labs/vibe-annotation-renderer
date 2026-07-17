@@ -132,6 +132,16 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   built. Result: every variant weighs ≤ the original day-one skill (~8KB ≈ 2k tokens,
   loaded once per session).
 
+- **The Builder (v0.9.0) — variants become a forge, with one boundary.** The site
+  assembles custom SKILL.md files client-side: face (shipped sets or user-hosted images,
+  one URL per mood — spritesheet math stays first-party-only), cadence, flag vocabulary
+  on/off, attunement/play on/off, editable text, copy + .md/.json download. **The
+  interface boundary: the Builder may only emit what the renderer natively supports.**
+  That boundary forced the only renderer change: `play: false` and `cues: false` payload
+  opt-outs. Content is single-sourced — scripts/gen-skills.js emits both the shipped
+  variants and assets/skill-base.js (the Builder's pieces, pin-stamped like everything
+  else); only the ~30-line assemble() logic is duplicated client-side, by design.
+
 ## Explicitly not features (recorded so they aren't re-derived)
 
 - **A dispute/correction button on the banner.** See the attunement-cue decision above:

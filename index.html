@@ -80,6 +80,7 @@
     <button class="tab-btn" data-tab="meaning" role="tab">What it means</button>
     <button class="tab-btn" data-tab="install" role="tab">Installation</button>
     <button class="tab-btn" data-tab="gallery" role="tab">Gallery</button>
+    <button class="tab-btn" data-tab="builder" role="tab">Builder</button>
   </div>
 
   <section class="tab-panel" id="tab-landing" role="tabpanel">
@@ -259,6 +260,64 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
     <div id="gallery-cells"></div>
   </section>
 
+  <section class="tab-panel" id="tab-builder" role="tabpanel">
+    <h2 id="build">Build your own skill</h2>
+    <p class="lede">Tune the knobs and the full <code>SKILL.md</code> assembles below — same base
+    text the shipped variants are generated from, same renderer pin. Copy it into
+    claude.ai (Customize → Skills → Add → Write skill instructions) or download the file for
+    <code>~/.claude/skills/vibe-annotations/</code>. Everything the builder emits is natively
+    supported by the renderer — no custom parsing, no forks required.</p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin:20px 0;">
+      <label style="font-size:13px; color:var(--sub);">Skill name<br>
+        <input id="b-name" value="vibe-annotations" style="width:100%; margin-top:4px; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:13px;"></label>
+      <label style="font-size:13px; color:var(--sub);">Face<br>
+        <select id="b-face" style="width:100%; margin-top:4px; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:13px;">
+          <option value="kaomoji">kaomoji (improvised)</option>
+          <option value="sepia">Sepia — the cuttlefish</option>
+          <option value="kip">Kip — the mascot</option>
+          <option value="noto-animated">Noto animated emoji</option>
+          <option value="noto">Noto emoji</option>
+          <option value="twemoji">Twemoji</option>
+          <option value="custom">custom (your own image URLs)</option>
+        </select></label>
+      <label style="font-size:13px; color:var(--sub);">Cadence<br>
+        <select id="b-cadence" style="width:100%; margin-top:4px; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:13px;">
+          <option value="every">every reply</option>
+          <option value="shifts">only real shifts</option>
+          <option value="strong">only strong feelings</option>
+        </select></label>
+      <div style="font-size:13px; color:var(--sub); align-self:end;">
+        <label style="display:block;"><input type="checkbox" id="b-flags" checked> flag vocabulary</label>
+        <label style="display:block;"><input type="checkbox" id="b-cues" checked> attunement taps</label>
+        <label style="display:block;"><input type="checkbox" id="b-play" checked> playful tray (boop, tin, wrench)</label>
+      </div>
+    </div>
+
+    <div id="b-custom-wrap" style="display:none; margin:0 0 14px;">
+      <p style="font-size:13px; color:var(--sub); margin:0 0 4px;">Custom face — one
+      <code>mood = url</code> per line. Hosts must be on the widget CDN allowlist
+      (<code>cdn.jsdelivr.net</code>, <code>unpkg.com</code>, <code>cdnjs.cloudflare.com</code>,
+      <code>fonts.gstatic.com</code>) — in practice, push images to a public GitHub repo and use
+      <code>cdn.jsdelivr.net/gh/you/repo@commit/file.png</code>. No spritesheets needed: one image
+      per mood, assembled here, nothing new for the renderer to parse.</p>
+      <textarea id="b-custom" rows="6" spellcheck="false" style="width:100%; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:8px; font-family:var(--font-mono); font-size:12px;">content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png
+delighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png
+puzzled = https://cdn.jsdelivr.net/gh/you/faces@commit/puzzled.png</textarea>
+      <p id="b-custom-warn" style="font-size:12px; color:#c05050; margin:4px 0 0; display:none;"></p>
+    </div>
+
+    <p style="font-size:12.5px; color:var(--sub); margin:0 0 4px;">The result — editable, but
+    changing any knob regenerates it and replaces your edits:</p>
+    <textarea id="b-out" rows="26" spellcheck="false" style="width:100%; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:8px; padding:10px; font-family:var(--font-mono); font-size:11.5px; line-height:1.5;"></textarea>
+    <div style="display:flex; gap:8px; margin:10px 0 0; flex-wrap:wrap;">
+      <button id="b-copy" class="tab-btn" style="border:1px solid var(--edge); border-radius:8px;">Copy</button>
+      <button id="b-dl-md" class="tab-btn" style="border:1px solid var(--edge); border-radius:8px;">Download SKILL.md</button>
+      <button id="b-dl-json" class="tab-btn" style="border:1px solid var(--edge); border-radius:8px;">Download .json</button>
+      <span id="b-status" style="font-size:12.5px; color:var(--sub); align-self:center;"></span>
+    </div>
+  </section>
+
   <footer>
     <a href="https://github.com/bombadil-labs/vibe-annotation-renderer">bombadil-labs/vibe-annotation-renderer</a>
     · <a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">the skill</a>
@@ -266,6 +325,7 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
   </footer>
 </div>
 <script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0f77c4c307f096f4f914eb404b113381fb5b2923/dist/vibe.min.js"></script>
+<script src="assets/skill-base.js"></script>
 <script>
 var MOUNT_QUEUE = {};
 function queueMount(tab, el, payload) {
@@ -562,7 +622,8 @@ document.querySelectorAll("#face-picker button").forEach(function (b) {
 buildGallery();
 
 var TAB_ALIAS = { "": "landing", landing: "landing", meaning: "meaning", key: "meaning",
-  how: "meaning", install: "install", library: "install", gallery: "gallery" };
+  how: "meaning", install: "install", library: "install", gallery: "gallery",
+  builder: "builder", build: "builder" };
 function activate(tab) {
   document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
     b.classList.toggle("active", b.dataset.tab === tab);
@@ -585,6 +646,104 @@ document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
 });
 window.addEventListener("hashchange", route);
 route();
+
+// ---- Builder: assembles a SKILL.md from window.SKILL_PIECES (single-sourced from
+// scripts/gen-skills.js). Mirrors that file's assemble(); content lives in the pieces,
+// so only this ~30-line logic is duplicated. Custom faces emit plain face:"<url>"
+// payloads — natively supported, no new renderer surface.
+(function () {
+  var P = window.SKILL_PIECES;
+  var out = document.getElementById("b-out");
+  if (!P || !out) return;
+  var ALLOW = ["https://cdn.jsdelivr.net/", "https://unpkg.com/", "https://cdnjs.cloudflare.com/", "https://fonts.gstatic.com/"];
+  function customFace() {
+    var lines = document.getElementById("b-custom").value.split("\n");
+    var entries = [], bad = [];
+    lines.forEach(function (ln) {
+      var m = ln.match(/^\s*([a-z_][a-z0-9_ -]*?)\s*=\s*(https?:\S+)\s*$/i);
+      if (!m) return;
+      entries.push([m[1].trim(), m[2]]);
+      if (!ALLOW.some(function (a) { return m[2].indexOf(a) === 0; })) bad.push(m[2]);
+    });
+    var warn = document.getElementById("b-custom-warn");
+    if (bad.length) { warn.style.display = "block"; warn.textContent = "Not on the widget CDN allowlist (will be blocked in Claude surfaces): " + bad.join(" · "); }
+    else warn.style.display = "none";
+    var table = entries.map(function (e) { return "  `" + e[0] + "` → `" + e[1] + "`"; }).join("\n");
+    return {
+      TITLE: " — custom face",
+      DESC: P.FACES.kaomoji.DESC + " This variant wears the user's own face-pack.",
+      PREAMBLE: "This is the vibe-annotations skill with one difference: **your face is a custom pack the\nuser assembled** — one hosted image per mood, listed below. Wear it as offered.",
+      FACE: "wear the user's pack: `face: \"<url>\"`, the exact URL for the mood that honestly\n  fits, from this table (moods not listed: fall back to a kaomoji):\n" + (table || "  *(no valid `mood = url` lines yet)*"),
+      SNIPPET_FACE: '      face: "' + (entries.length ? entries[0][1] : "https://…png") + '",\n      kaomoji: "( ˘ ᵕ ˘ )", seems: "...", feel: "...", trying: "...",'
+    };
+  }
+  function assemble() {
+    var faceKey = document.getElementById("b-face").value;
+    var f = faceKey === "custom" ? customFace() : P.FACES[faceKey];
+    var name = document.getElementById("b-name").value.trim() || "vibe-annotations";
+    var cadence = document.getElementById("b-cadence").value;
+    var flags = document.getElementById("b-flags").checked;
+    var cues = document.getElementById("b-cues").checked;
+    var play = document.getElementById("b-play").checked;
+    var tail = "";
+    if (cues || play) {
+      tail += "\n## Attunement cues\n\n";
+      if (cues) tail += P.ATT_CUES + "\n";
+      if (cues && play) tail += "\n";
+      if (play) tail += P.ATT_PLAY + "\n";
+    }
+    if (play) tail += "\n" + P.SETTINGS + "\n";
+    var popts = (play ? [] : ["play: false"]).concat(cues ? [] : ["cues: false"]);
+    return P.BASE
+      .replace("{{NAME}}", name)
+      .replace("{{DESC}}", f.DESC)
+      .replace("{{TITLE}}", f.TITLE)
+      .replace("{{PREAMBLE}}", f.PREAMBLE)
+      .replace("{{CADENCE}}", P.CADENCE[cadence])
+      .replace("{{FACE}}", f.FACE)
+      .replace("{{FLAGS}}", flags ? P.FLAGS_FULL : P.FLAGS_OFF)
+      .replace("{{SNIPPET_URL}}", P.snippetUrl)
+      .replace("{{SNIPPET_FACE}}", f.SNIPPET_FACE)
+      .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "")
+      .replace("{{TAIL}}", tail);
+  }
+  function regen() {
+    out.value = assemble();
+    document.getElementById("b-custom-wrap").style.display =
+      document.getElementById("b-face").value === "custom" ? "block" : "none";
+    document.getElementById("b-status").textContent = out.value.length + " bytes (~" + Math.round(out.value.length / 4) + " tokens, loaded once per session)";
+  }
+  ["b-name", "b-face", "b-cadence", "b-flags", "b-cues", "b-play"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", regen);
+  });
+  document.getElementById("b-custom").addEventListener("input", regen);
+  function download(fname, text, type) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
+    a.download = fname; a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
+  }
+  function parts() {
+    var text = out.value;
+    var m = text.match(/^---\nname: (.*)\ndescription: "([\s\S]*?)"\n---\n\n([\s\S]*)$/);
+    return m ? { name: m[1], description: m[2], instructions: m[3] } : { name: "vibe-annotations", description: "", instructions: text };
+  }
+  document.getElementById("b-copy").addEventListener("click", function () {
+    navigator.clipboard.writeText(out.value).then(function () {
+      document.getElementById("b-status").textContent = "copied — paste into claude.ai's skill editor";
+    });
+  });
+  document.getElementById("b-dl-md").addEventListener("click", function () {
+    download("SKILL.md", out.value, "text/markdown");
+    document.getElementById("b-status").textContent = "save to ~/.claude/skills/" + parts().name + "/SKILL.md";
+  });
+  document.getElementById("b-dl-json").addEventListener("click", function () {
+    var pr = parts();
+    download(pr.name + ".skill.json", JSON.stringify(pr, null, 2), "application/json");
+    document.getElementById("b-status").textContent = "json: { name, description, instructions }";
+  });
+  regen();
+})();
 </script>
 </body>
 </html>

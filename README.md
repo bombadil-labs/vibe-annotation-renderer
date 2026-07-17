@@ -183,7 +183,12 @@ one base — `npm run skills` — so they never drift):
 | `skill/SKILL.twemoji.md` | Twemoji (flat, tiny, classic) |
 
 Try them before choosing: the site's **Gallery tab has a face picker** that re-dresses
-every scene in any shipped face.
+every scene in any shipped face. And the site's **Builder tab assembles a custom
+SKILL.md** — pick a face (including your own hosted images, one URL per mood — no
+spritesheets needed), tune cadence, toggle flags/attunement/play, hand-edit the text,
+then copy or download (.md or .json). Everything the Builder emits is natively supported
+by the renderer: the payload opt-outs are `play: false` (no tray, no boop) and
+`cues: false` (no [note] tap).
 
 Every variant accepts a kaomoji as a valid alternative at any time — when the pack's
 vocabulary doesn't fit the moment, honesty outranks the pack.

@@ -448,7 +448,9 @@
     // is watched-and-touchable, bending every future read (see DESIGN.md).
     var kaoEl = wrap.querySelector(".vk"), baseFill = [92, 67, 32];
     if (typeof root.sendPrompt === "function") {
-      var row = wrap.querySelector(".vr-note");
+      // native opt-outs (skill-builder surface): cues:false disables the [note] tap,
+      // play:false disables the boop and the hover tray. Defaults stay on.
+      var row = p.cues === false ? null : wrap.querySelector(".vr-note");
       if (row && p.noticing != null) {
         row.style.cursor = "pointer";
         var armed = false, tmr = null;
@@ -463,10 +465,11 @@
           }
         });
       }
-      if (kaoEl) {                                             // boop: the face itself is the button
+      if (kaoEl && p.play !== false) {                         // boop: the face itself is the button
         kaoEl.style.cursor = "pointer";
         kaoEl.addEventListener("click", function () { root.sendPrompt("*boop*"); });
       }
+      if (p.play !== false) {
       var tray = document.createElement("div");                // hover tray, upper LEFT (Claude's own UI owns the upper right)
       tray.style.cssText = "position:absolute;top:2px;left:6px;z-index:3;opacity:0;transition:opacity .25s";
       var BTN = "background:none;border:none;cursor:pointer;font-size:14px;padding:2px;line-height:1";
@@ -483,6 +486,7 @@
       tray.appendChild(fb); tray.appendChild(sb); wrap.appendChild(tray);
       wrap.addEventListener("mouseenter", function () { tray.style.opacity = "0.75"; });
       wrap.addEventListener("mouseleave", function () { tray.style.opacity = "0"; });
+      }
     }
     if (kaoEl) {
       kaoEl.style.transformBox = "fill-box"; kaoEl.style.transformOrigin = "center";
