@@ -634,7 +634,14 @@ route();
     var d = document.createElement("span");
     d.style.cssText = "width:32px;height:32px;flex:0 0 32px;display:inline-block;border-radius:6px;";
     if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "font-size:22px;text-align:center;line-height:32px;"; return d; }
-    if (pv.kind === "text") { d.textContent = mood.k || "( ˘ ᵕ ˘ )"; d.style.cssText += "width:auto;height:auto;flex:0 0 auto;font-size:13px;line-height:1.15;white-space:nowrap;padding:0 3px;"; return d; }   // natural proportions — a fixed 32px line-box read as vertically crushed inside the taller chips
+    var fitPx = arguments[1];
+    if (pv.kind === "text") {                                  // natural proportions, scaled to fit the fixed square chip (the renderer's own rule)
+      var kt = mood.k || "( ˘ ᵕ ˘ )";
+      var fs2 = fitPx ? Math.min(13, (fitPx - 5) / (kt.length * 0.55)) : 13;
+      d.textContent = kt;
+      d.style.cssText += "width:auto;height:auto;flex:0 0 auto;white-space:nowrap;line-height:1.15;font-size:" + (Math.round(fs2 * 10) / 10) + "px;";
+      return d;
+    }
     if (pv.kind === "sheet") {
       var i = pv.moods.indexOf(mood.m); if (i < 0) i = 0;
       var col = i % pv.cols, row = Math.floor(i / pv.cols), sc = 32 / pv.cell;
@@ -647,14 +654,14 @@ route();
   var narrators = [];                                          // every callout registers, so a face or environment switch re-dresses all guides
   function narratorChip(mood) {                                // the narrator sits in their window too — face and home are never apart
     var cell = document.createElement("span");
-    cell.style.cssText = "position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:42px;border-radius:9px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";
+    cell.style.cssText = "position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:9px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";   // a fixed square, every face kind
     var u = sceneUrl();
     if (u) {
       var bg = document.createElement("span");
       bg.style.cssText = "position:absolute;inset:0;background-image:url(" + u + ");background-size:cover;background-position:center;image-rendering:pixelated;opacity:" + Math.min(1, S.sceneOp * 1.4) + ";";
       cell.appendChild(bg);
     }
-    var av = avatar(mood); av.style.position = "relative";
+    var av = avatar(mood, 42); av.style.position = "relative";
     cell.appendChild(av);
     return cell;
   }
@@ -780,14 +787,13 @@ route();
     var u = sceneUrl();
     (pv.strip || []).forEach(function (it) {
       var cell = document.createElement("span");
-      cell.style.cssText = "position:relative;display:inline-flex;align-items:center;justify-content:center;width:" +
-        (pv.kind === "text" ? 72 : 44) + "px;height:44px;border-radius:8px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";
+      cell.style.cssText = "position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:8px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";   // a fixed square, every face kind
       if (u) {
         var bg = document.createElement("span");
         bg.style.cssText = "position:absolute;inset:0;background-image:url(" + u + ");background-size:cover;background-position:center;image-rendering:pixelated;opacity:" + Math.min(1, S.sceneOp * 1.4) + ";";
         cell.appendChild(bg);
       }
-      var av = avatar(pv.kind === "text" ? { k: it } : pv.kind === "sheet" ? { m: it } : { e: it });
+      var av = avatar(pv.kind === "text" ? { k: it } : pv.kind === "sheet" ? { m: it } : { e: it }, 44);
       av.style.position = "relative";
       cell.appendChild(av);
       strip.appendChild(cell);
