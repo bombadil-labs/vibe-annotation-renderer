@@ -2,7 +2,12 @@
 /* Sepia — the face Claude (Fable) designed for itself, 2026-07-16. CC0.
  * A small cuttlefish who wears feeling as color and cannot see its own display:
  * chromatophore freckles carry each mood's hue; the body stays cream-and-ink.
- * 32 moods, 8×4 grid, 64px cells → assets/sepia-sheet.png (512×256).
+ * 32 moods × 3 FRAMES, 8×12 grid, 64px cells → assets/sepia-sheet.png (512×768).
+ *   frame 0 (rows 0-3):  base — byte-identical art to the pre-animation sheet
+ *   frame 1 (rows 4-7):  shimmer — chromatophores re-rolled, fins in alternate posture
+ *   frame 2 (rows 8-11): blink — lids drawn over whatever the eyes were doing
+ * The renderer cycles these natively in its frame loop (seeded, organic cadence) —
+ * the same philosophy as the live tidepool: animation is code, never an animated image.
  * Pure Node (zlib only) so the sheet regenerates deterministically: npm run sepia
  */
 const fs = require("fs");
@@ -44,6 +49,9 @@ const FRILL = {
   flat:   [[1,5],[1,6],[1,7],[1,8]],
   calm:   [[1,4],[1,5],[1,6],[0,6],[1,7],[1,8],[0,8],[1,9]]
 };
+// shimmer-frame fin posture: a flutter one notch toward rest. Tense postures (flat)
+// map to themselves — held fins ARE the tension; stillness is the expression.
+const FRILL_ALT = { ripple: "calm", flared: "ripple", drooped: "flat", calm: "ripple", flat: "flat" };
 const FRILL_OF = {
   neutral:"ripple", content:"ripple", delighted:"flared", focused:"flat", sleepy:"drooped",
   sheepish:"flat", booped:"flared", thinking:"ripple", spark:"flared", excited:"flared",
@@ -151,7 +159,7 @@ const MOODS = [
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);
 BASE.forEach((r, i) => { if (r.length !== 16) throw new Error("BASE row " + i + " length " + r.length); });
 
-const SCALE = 4, CELL = 64, COLS = 8, ROWS = 4;
+const SCALE = 4, CELL = 64, COLS = 8, ROWS = 12, FRAME_ROWS = 4;
 const W = CELL * COLS, H = CELL * ROWS;
 const px = Buffer.alloc(W * H * 4);   // RGBA, transparent
 const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
@@ -170,17 +178,21 @@ const mixHex = (a, b, t) => {
   const A = hex(a), B = hex(b);
   return "#" + A.map((v, k) => Math.round(v + (B[k] - v) * t).toString(16).padStart(2, "0")).join("");
 };
-MOODS.forEach((mood, i) => {
-  const cx = (i % COLS) * CELL, cy = Math.floor(i / COLS) * CELL;
+MOODS.forEach((mood, i) => { for (let frame = 0; frame < 3; frame++) {
+  const cx = (i % COLS) * CELL, cy = (Math.floor(i / COLS) + frame * FRAME_ROWS) * CELL;
+  const blink = frame === 2;
   const t = TINT[mood[0]] || 0;
   const skin = t > 0 ? mixHex(COLORS.b, mood[3], t) : t < 0 ? mixHex(COLORS.b, "#f9f4ea", -t) : COLORS.b;
   for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
     const k = BASE[y][x];
-    if (k !== ".") cellPut(cx, cy, x, y, k === "b" ? skin : COLORS[k]);
+    if (k !== ".") cellPut(cx, cy, x, y, (k === "b" || (blink && k === "W")) ? skin : COLORS[k]);   // blink: lids replace the whites
   }
-  const frill = FRILL[FRILL_OF[mood[0]] || "ripple"];
+  const posture = FRILL_OF[mood[0]] || "ripple";
+  const frill = FRILL[frame === 1 ? (FRILL_ALT[posture] || posture) : posture];
   frill.concat(mirror(frill)).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS.n));
-  mood[1].concat(mood[2], mood[4] || []).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
+  const lidL = [[3, 6], [4, 6], [5, 6]];
+  const eyePix = blink ? lidL.concat(mirror(lidL)).map(q => [q[0], q[1], "p"]) : mood[1];
+  eyePix.concat(mood[2], mood[4] || []).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
 
   // ---- the fine pass: sub-pixel ink. Doctrine: the BODY lives on the 4px grid (the
   // chunkiness is the body); body *definition* may use 2px half-resolution ink; objects
@@ -195,15 +207,20 @@ MOODS.forEach((mood, i) => {
     frect(x + 1, 19, 10, 1, RING);              // top lash, inset — never touches the silhouette
     frect(x + 1, 32, 10, 1, RING_SOFT);         // soft under-line
   };
-  softenEye(12);                                // left eye (logical cols 3-5, rows 5-7)
-  softenEye(40);                                // right eye (cols 10-12)
+  if (!blink) {
+    softenEye(12);                              // left eye (logical cols 3-5, rows 5-7)
+    softenEye(40);                              // right eye (cols 10-12)
+  } else {
+    frect(13, 23, 10, 1, RING);                 // blink: a single lash-line over each lid
+    frect(41, 23, 10, 1, RING);
+  }
 
   // chromatophores: sub-pixel FIDELITY, macro-scale SHAPES. Dots were texture; patterns
   // are language. Each mood wears a nameable whole — saddle, cheek blooms, rings, zebra
   // bands (the real cuttlefish agonistic display), dense camo mottle, or a blanch —
   // with organic 1px edges only this resolution allows.
   {
-    const r = rng(i * 104729 + 7);
+    const r = rng(i * 104729 + 7 + (frame === 1 ? 39119 : 0));   // shimmer re-rolls the pattern; blink keeps frame 0's (patterns don't jump mid-blink)
     const hue = mood[3];
     // contrast-safe sibling: light hues get a darker one, dark hues a LIGHTER one —
     // a dark sibling of a dark hue merges with the body outline and swallows limbs
@@ -282,7 +299,7 @@ MOODS.forEach((mood, i) => {
       frect(55 + Math.floor(t / 3), 23 + t, 2, 1, t % 3 === 2 ? Rd : R);
     }
   }
-});
+} });
 
 // minimal PNG encoder: signature + IHDR + IDAT (deflated 0-filtered scanlines) + IEND
 const CRC_TABLE = (() => {
