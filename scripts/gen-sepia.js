@@ -220,12 +220,10 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 3; frame++) {
   // bands (the real cuttlefish agonistic display), dense camo mottle, or a blanch —
   // with organic 1px edges only this resolution allows.
   {
-    const r = rng(i * 104729 + 7 + (frame === 1 ? 39119 : 0));   // shimmer re-rolls the pattern; blink keeps frame 0's (patterns don't jump mid-blink)
-    // shimmer DRIFT: the pattern anchors themselves travel (edge jitter alone read as a
-    // wiggle-in-place). A separate rng so frame 0 stays byte-identical to the shipped art.
-    const dr = rng(i * 7919 + 31 + frame);
-    const D = frame === 1 ? () => (dr() - 0.5) * 16 : () => 0;   // centres wander up to ±8px — real migration across the mantle
-    const S = frame === 1 ? () => 0.75 + dr() * 0.7 : () => 1;   // radii breathe 0.75–1.45×
+    const r = rng(i * 104729 + 7);               // the SAME pattern on every frame: fins flutter and lids blink, but the baked
+    const D = () => 0;                           // coloration never jumps — a pattern that teleported with the fins read as
+    const S = () => 1;                           // "spots resetting". Continuous pattern motion belongs to the renderer's smooth
+                                                 // roaming layer alone (v0.19.x); the drift channel here is retired.
     const hue = mood[3];
     // contrast-safe sibling: light hues get a darker one, dark hues a LIGHTER one —
     // a dark sibling of a dark hue merges with the body outline and swallows limbs
