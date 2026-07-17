@@ -889,7 +889,9 @@
         // cadence. Native frames, never an animated image — the tidepool's philosophy. ---
         if (kaoEl && fm && fm.kind === "sprite" && fm.anim) {
           var fRows = fm.anim.frameRows || fm.rows / fm.anim.frames;
-          var fr = Math.floor(t / 2.3 + (L.seed % 4) * 0.37) % 2;                    // shimmer: base ↔ alt
+          var fr = 0;                                                                // base at rest — the smooth layer carries the continuous motion
+          var sper = 5.2 + (L.seed % 6) * 1.1;                                       // flutter EVENT, not a metronome: an occasional ripple, blink-style
+          if (((t + (L.seed % 9) * 0.8) % sper) < 0.55) fr = 1;
           var bper = 3.2 + (L.seed % 5) * 0.9;
           if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 2;                      // blink overrides, ~160ms
           if (fr !== spriteFrame) {
@@ -908,19 +910,27 @@
             var cctx = chromo.getContext("2d");
             cctx.clearRect(0, 0, ccw, cch);
             var hueC = (p.palette && p.palette[0]) || "#b89ab0";
-            for (var ci = 0; ci < 5; ci++) {
+            for (var ci = 0; ci < 4; ci++) {
               var crr = mulberry32(L.seed + ci * 7717 + 5);
-              var pax = 0.2 + crr() * 0.6, pay = 0.08 + crr() * 0.62;   // anchors live where the mantle is: upper-centre of the face box
-              var sw1 = 0.045 + crr() * 0.075, sw2 = 0.04 + crr() * 0.065, cp1 = crr() * 6.28, cp2 = crr() * 6.28;
-              // quasi-periodic drift: incommensurate frequencies (golden-ratio multiples)
-              // mean the path never visibly repeats — a wander, not an orbit
-              var cxp = (pax + 0.12 * Math.sin(t * sw1 * 6.28 + cp1) + 0.09 * Math.sin(t * sw1 * 6.28 * 1.618 + cp2 * 2.3) + 0.06 * Math.sin(t * 0.071 + ci * 1.3)) * ccw;
-              var cyp = (pay + 0.12 * Math.sin(t * sw2 * 6.28 + cp2) + 0.09 * Math.sin(t * sw2 * 6.28 * 2.414 + cp1 * 1.7) + 0.06 * Math.sin(t * 0.053 + ci * 2.1)) * cch;
-              var crad = (0.1 + 0.045 * Math.sin(t * 0.6 + ci * 2.1)) * ccw;
-              var cal = 0.26 + 0.14 * Math.sin(t * 0.8 + ci * 1.7);
-              var cg = cctx.createRadialGradient(cxp, cyp, 0, cxp, cyp, crad);
-              cg.addColorStop(0, rgba(hueC, cal)); cg.addColorStop(1, rgba(hueC, 0));
-              cctx.fillStyle = cg; cctx.beginPath(); cctx.arc(cxp, cyp, crad, 0, 6.2832); cctx.fill();
+              var sw1 = 0.04 + crr() * 0.06, sw2 = 0.035 + crr() * 0.055;
+              var cp1 = crr() * 6.28, cp2 = crr() * 6.28, cp3 = crr() * 6.28, cp4 = crr() * 6.28;
+              // free roam: no zones — quasi-periodic wander (incommensurate golden-ratio
+              // frequencies, never repeats) spanning the WHOLE body; the mask is the only
+              // boundary, and crossing the features reads as slipping under them
+              var cxp = (0.5 + 0.34 * Math.sin(t * sw1 * 6.28 + cp1) + 0.24 * Math.sin(t * sw1 * 6.28 * 1.618 + cp2)) * ccw;
+              var cyp = (0.5 + 0.34 * Math.sin(t * sw2 * 6.28 + cp3) + 0.24 * Math.sin(t * sw2 * 6.28 * 2.414 + cp4)) * cch;
+              var cal = 0.24 + 0.12 * Math.sin(t * 0.8 + ci * 1.7);
+              // the spot is an amoeba: three overlapping lobes, each with its own
+              // wandering offset and breathing radius (clamped min/max) — shape mutates
+              for (var kk = 0; kk < 3; kk++) {
+                var kph = cp1 * (kk + 1) + kk * 2.1;
+                var lox = 0.06 * Math.sin(t * (0.21 + kk * 0.07) + kph) * ccw;
+                var loy = 0.06 * Math.sin(t * (0.17 + kk * 0.09) * 1.618 + kph * 1.3) * cch;
+                var lr = (0.055 + 0.05 * (0.5 + 0.5 * Math.sin(t * (0.23 + kk * 0.11) + kph * 0.7))) * ccw;   // radius breathes 0.055–0.105 of the body
+                var cg = cctx.createRadialGradient(cxp + lox, cyp + loy, 0, cxp + lox, cyp + loy, lr);
+                cg.addColorStop(0, rgba(hueC, cal)); cg.addColorStop(1, rgba(hueC, 0));
+                cctx.fillStyle = cg; cctx.beginPath(); cctx.arc(cxp + lox, cyp + loy, lr, 0, 6.2832); cctx.fill();
+              }
             }
             cctx.globalCompositeOperation = "destination-in";
             cctx.imageSmoothingEnabled = false;                // the mask keeps its chunky 4px edges — spots glide, the silhouette does not
