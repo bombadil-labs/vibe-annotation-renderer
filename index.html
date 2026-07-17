@@ -634,7 +634,7 @@ route();
     var d = document.createElement("span");
     d.style.cssText = "width:32px;height:32px;flex:0 0 32px;display:inline-block;border-radius:6px;";
     if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "font-size:22px;text-align:center;line-height:32px;"; return d; }
-    if (pv.kind === "text") { d.textContent = mood.k || "( ˘ ᵕ ˘ )"; d.style.cssText += "font-size:10px;text-align:center;line-height:32px;white-space:nowrap;overflow:hidden;width:64px;flex-basis:64px;"; return d; }
+    if (pv.kind === "text") { d.textContent = mood.k || "( ˘ ᵕ ˘ )"; d.style.cssText += "width:auto;height:auto;flex:0 0 auto;font-size:13px;line-height:1.15;white-space:nowrap;padding:0 3px;"; return d; }   // natural proportions — a fixed 32px line-box read as vertically crushed inside the taller chips
     if (pv.kind === "sheet") {
       var i = pv.moods.indexOf(mood.m); if (i < 0) i = 0;
       var col = i % pv.cols, row = Math.floor(i / pv.cols), sc = 32 / pv.cell;
