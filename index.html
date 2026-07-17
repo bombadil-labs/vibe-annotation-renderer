@@ -637,9 +637,11 @@ route();
     var fitPx = arguments[1];
     if (pv.kind === "text") {                                  // natural proportions, scaled to fit the fixed square chip (the renderer's own rule)
       var kt = mood.k || "( ˘ ᵕ ˘ )";
-      var fs2 = fitPx ? Math.min(13, (fitPx - 5) / (kt.length * 0.55)) : 13;
-      d.textContent = kt;
-      d.style.cssText += "width:auto;height:auto;flex:0 0 auto;white-space:nowrap;line-height:1.15;font-size:" + (Math.round(fs2 * 10) / 10) + "px;background:rgba(20,14,8,0.32);border-radius:6px;padding:1px 4px;";
+      var klines = kt.split("\n");
+      var klong = klines.reduce(function (a, b) { return b.length > a.length ? b : a; }, "");
+      var fs2 = fitPx ? Math.min(13, (fitPx - 5) / (klong.length * 0.55), (fitPx - 4) / (klines.length * 1.25)) : 13;
+      d.textContent = kt;                                      // white-space:pre keeps \n AND leading-space indentation — layout engines strip both by default
+      d.style.cssText += "width:auto;height:auto;flex:0 0 auto;white-space:pre;text-align:center;line-height:1.2;font-size:" + (Math.round(fs2 * 10) / 10) + "px;background:rgba(20,14,8,0.32);border-radius:6px;padding:1px 4px;";
       return d;
     }
     if (pv.kind === "sheet") {

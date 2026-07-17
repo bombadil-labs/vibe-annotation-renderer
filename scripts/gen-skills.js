@@ -231,7 +231,7 @@ reference face-pack. Cheerful, compact, eight moods.`,
       strip: ["1f60a","1f604","1f914","1f970","1f928","1f60c","1f609","1f60d"] },
     twemoji: { kind: "url", tmpl: "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/{item}.png",
       strip: ["1f60a","1f604","1f914","1f970","1f928","1f60c","1f609","1f60d"] },
-    kaomoji: { kind: "text", strip: ["( ˶ˆ ꒳ ˆ˵ )","( ・_・)","( ˃ ᯅ ˂ )","( ˘ ᵕ ˘ )","( ⊙ ᵕ ⊙ )","( ˶˃ ᵕ ˂˶ )"] }
+    kaomoji: { kind: "text", strip: ["( ˶ˆ ꒳ ˆ˵ )","( ・_・)","( ˃ ᯅ ˂ )","( ˘ ᵕ ˘ )","( ⊙ ᵕ ⊙ )","( ˶˃ ᵕ ˂˶ )","  ∧,,∧\n( ̳• · • ̳)\n/    づ♡"] }
   }
 };
 

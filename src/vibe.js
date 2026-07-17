@@ -403,10 +403,13 @@
       var plX = kaoX - 6, plY = faceCy - kaoHE / 2 - 4, plW = wAfter + 12, plH = kaoHE + 8;
       textPivot = [plX + plW / 2, faceCy];
       var plateSVG = '<rect class="vkp" x="' + g(plX) + '" y="' + g(plY) + '" width="' + g(plW) + '" height="' + g(plH) + '" rx="8"/>';
+      // spaces become NBSP: SVG text collapses leading spaces and internal runs, which
+      // would destroy the indentation multi-line kaomoji art depends on
+      var nb = function (s) { return esc(s).replace(/ /g, "\u00A0"); };
       kaoSVG = plateSVG + (multiline
         ? '<text x="' + g(kaoX) + '" y="' + g(kaoAbs[0]) + '" class="txt fkt vk"' + fsAttr + '>' +
-        kaoLines.map(function (l, i) { return '<tspan x="' + g(kaoX) + '"' + (i === 0 ? "" : ' dy="' + g(klhE) + '"') + '>' + esc(l) + '</tspan>'; }).join("") + '</text>'
-        : '<text x="' + g(kaoX) + '" y="' + g(kaoAbs[0]) + '" class="txt fk vk"' + fsAttr + '>' + esc(kaoText) + '</text>');
+        kaoLines.map(function (l, i) { return '<tspan x="' + g(kaoX) + '"' + (i === 0 ? "" : ' dy="' + g(klhE) + '"') + '>' + nb(l) + '</tspan>'; }).join("") + '</text>'
+        : '<text x="' + g(kaoX) + '" y="' + g(kaoAbs[0]) + '" class="txt fk vk"' + fsAttr + '>' + nb(kaoText) + '</text>');
     }
     // every readout row carries a <title> tooltip with its full text — excited reporters
     // overrun the word caps despite guidance, and a clipped line should at least be readable on hover

@@ -25,6 +25,11 @@ ok(/<rect class="vkp"[^>]*rx="8"/.test(plt), "kaomoji face → rounded .vkp plat
 ok(plt.indexOf('class="vkp"') < plt.indexOf('class="txt fk vk"'), "plate renders under the text");
 ok(!/class="vkp"/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "content" } }))), "sprite face → no plate (it has its own body)");
 
+console.log("kaomoji whitespace survives: leading-space indentation becomes NBSP");
+let indented = buildSVG(Object.assign({}, base, { kaomoji: "  ∧,,∧\n( ̳• · • ̳)\n/    づ♡" }));
+ok(/<tspan[^>]*>  ∧/.test(indented), "leading spaces preserved as NBSP (SVG would strip them)");
+ok(/\/    づ/.test(indented), "internal space runs preserved too");
+
 console.log("oversized kaomoji SCALE DOWN to fit the window (shape preserved, never crushed)");
 ok(!/style="font-size:/.test(buildSVG(Object.assign({}, base, { kaomoji: "( ˘ ᵕ ˘ )" }))) , "compact face → natural size, no scaling");
 let wide = buildSVG(Object.assign({}, base, { kaomoji: "( ﾟ∀ﾟ)ｱﾊﾊ\\/\\/\\/\\/\\/\\/\\/\\/" }));
@@ -41,7 +46,7 @@ ok((long.match(/<text /g) || []).length === 5, "long goal wraps → extra row");
 
 console.log("face is one union: kaomoji string | url | sprite slice | known set");
 let fk = buildSVG({ face: "( ˘ ᵕ ˘ )", seems: "a", feel: "b", trying: "c", palette: ["#7d8fb8"] });
-ok(/class="txt fk vk"/.test(fk) && /˘ ᵕ ˘/.test(fk), "face: non-URL string → kaomoji text (no kaomoji key needed)");
+ok(/class="txt fk vk"/.test(fk) && /˘.ᵕ.˘/.test(fk), "face: non-URL string → kaomoji text (no kaomoji key needed; spaces are NBSP)");
 let fp1 = buildSVG(Object.assign({}, base, { face: "https://cdn.jsdelivr.net/gh/u/r@abc/moogle.png" }));
 ok(/<image class="vk"[^>]*href="https:\/\/cdn\.jsdelivr\.net\/gh\/u\/r@abc\/moogle\.png"/.test(fp1), "face URL string → <image> face");
 ok(!/class="txt fk vk"/.test(fp1), "image face replaces the kaomoji glyphs");
@@ -174,7 +179,7 @@ ok(/<rect [^>]*fill="#2a2622"/.test(sol) && /#ffbf72/.test(sol), "solemn dims on
 ok(/<line /.test(buildSVG(Object.assign({}, base, { resolute: true }))), "resolute draws concentration lines");
 ok(/>\?<\/text>/.test(buildSVG(Object.assign({}, base, { puzzled: true }))), "puzzled hangs a ?");
 let rh = buildSVG(Object.assign({}, base, { rhyme: true }));
-ok((rh.match(/˶ˆ ꒳ ˆ˵/g) || []).length === 2, "rhyme echoes the face (kaomoji appears twice)");
+ok((rh.match(/꒳/g) || []).length === 2, "rhyme echoes the face (kaomoji appears twice)");
 
 console.log("every flag yields a valid static fallback (string API + legacy boolean)");
 ["surprised", "tender", "melancholy", "anxious", "mirth", "laugh", "groan", "oops", "dramatic", "frustrated", "angry", "excited", "spark",
