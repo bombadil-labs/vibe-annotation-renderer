@@ -402,8 +402,10 @@
       });
       langSVG = '<text x="' + (W - 12) + '" y="' + g(H - 7) + '" text-anchor="end" class="txt fl">' + parts + '</text>';
     }
-    var flagSVG = activeFlag                                   // caption sits left of the readout region (clear of the portrait window)
-      ? '<text x="' + (portrait ? portrait.x + portrait.s + 8 : 12) + '" y="' + g(H - 7) + '" class="txt fl">[' + esc(activeFlag.replace("_", " ")) + ']</text>'
+    var flagSVG = activeFlag                                   // caption: inside the window's bottom-left corner when there is one, else banner bottom-left
+      ? (portrait
+        ? '<text x="' + (portrait.x + 7) + '" y="' + g(portrait.y + portrait.s - 7) + '" class="txt fl">[' + esc(activeFlag.replace("_", " ")) + ']</text>'
+        : '<text x="12" y="' + g(H - 7) + '" class="txt fl">[' + esc(activeFlag.replace("_", " ")) + ']</text>')
       : "";
     var sceneSVG = "";
     if (scene) {                                               // the window itself: clipped image + a quiet frame
@@ -416,7 +418,7 @@
     var L = {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
       restSVG: readSVG + langSVG + flagSVG, sceneSVG: sceneSVG, portrait: portrait,
-      mountSVG: kaoSVG + langSVG + flagSVG, oItems: oItems, caption: !!activeFlag,
+      mountSVG: kaoSVG + langSVG, oItems: oItems, caption: !!activeFlag, flagName: activeFlag,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, scene: scene, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
       stance: stance, conson: conson, prevFills: prevFills
@@ -531,7 +533,7 @@
     var ov = document.createElement("div");
     ov.style.cssText = "position:absolute;z-index:2;display:flex;flex-direction:column;justify-content:center;pointer-events:none;" +
       "left:" + g(TEXT_X / W * 100) + "%;right:1.2%;top:2%;bottom:" +
-      ((L.hasLangs || L.caption) ? g(14 / L.H * 100) + "%" : "2%") + ";";
+      ((L.hasLangs || (L.caption && !L.portrait)) ? g(14 / L.H * 100) + "%" : "2%") + ";";   // clearance for the bottom traces; a windowed flag pill needs none
     var pn = document.createElement("div");
     pn.className = "vo vo-panel";
     L.oItems.forEach(function (it) {
@@ -542,6 +544,16 @@
       pn.appendChild(row);
     });
     ov.appendChild(pn); wrap.appendChild(ov);
+    var fpill = null;
+    if (L.flagName) {                                          // the flag caption as a pill, tucked into the window's bottom-left corner
+      fpill = document.createElement("div");
+      fpill.className = "vo";
+      fpill.style.cssText = "position:absolute;z-index:2;pointer-events:none;" + (L.portrait
+        ? "left:" + g((L.portrait.x + 6) / W * 100) + "%;top:" + g((L.portrait.y + L.portrait.s - 21) / L.H * 100) + "%;"
+        : "left:1.8%;bottom:3.5%;");
+      fpill.innerHTML = '<span class="pill">' + esc(L.flagName.replace("_", " ")) + '</span>';
+      wrap.appendChild(fpill);
+    }
     if (L.vertigo) {                                           // Droste: the banner inside its own banner, depth hard-capped at one (flags omitted inside)
       var mini = document.createElement("div");
       mini.style.cssText = "position:absolute;right:8px;bottom:" + (L.hasLangs ? 20 : 6) + "px;width:22%;z-index:2;pointer-events:none;opacity:0.92;" +
@@ -652,6 +664,7 @@
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       sx = cv.width / W; sy = cv.height / H;
       ov.style.fontSize = g(w / W * 13.2) + "px";               // overlay text tracks the banner's rendered scale, like the SVG text used to
+      if (fpill) fpill.style.fontSize = ov.style.fontSize;
     }
     fit();
     var ro = root.ResizeObserver ? new ResizeObserver(fit) : null; if (ro) ro.observe(wrap);
