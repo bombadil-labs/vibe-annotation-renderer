@@ -87,6 +87,8 @@
       return ((t ^ t >>> 14) >>> 0) / 4294967296;
     };
   }
+  var SCENE_IDS = 0;                                           // unique clipPath ids across multiple banners on one page
+
   function seedOf(p) {
     var f = p.face ? (typeof p.face === "string" ? p.face : (p.face.set ? p.face.set + ":" + p.face.item : String(p.face.url || ""))) : "";
     var s = String(p.kaomoji || "") + f + String(p.feel) + String(p.trying), n = 0;
@@ -257,13 +259,14 @@
     };
     if (kaoText == null) kaoText = p.kaomoji != null ? String(p.kaomoji) : "( ˘ ᵕ ˘ )";
 
-    // scene: an optional environment behind everything — the banner's habitat.
-    // scene: "https://…" or { url, opacity } (opacity clamped soft; the scene is
-    // atmosphere, never competition for the readout). Allowlisted CDNs, like faces.
+    // scene: the banner's habitat — a framed, rounded PORTRAIT WINDOW on the left with
+    // the face centred inside it; readout and field keep the right side. A window you
+    // look into, not a wash, so it can run richer: default opacity 0.5.
+    // scene: "https://…" or { url, opacity }. Allowlisted CDNs, like faces.
     var scene = null;
     if (p.scene) {
       scene = typeof p.scene === "string" ? { url: p.scene } : p.scene;
-      scene = scene.url ? { url: String(scene.url), op: Math.max(0.08, Math.min(0.85, scene.opacity || 0.3)) } : null;
+      scene = scene.url ? { url: String(scene.url), op: Math.max(0.15, Math.min(0.95, scene.opacity || 0.5)) } : null;
     }
 
     var kaoLines = kaoText.split("\n");
@@ -293,14 +296,23 @@
     var langPad = (langs.length || activeFlag) ? 12 : 0;       // breathing room for the bottom traces ([flag] left, [Reasoned in] right)
     var H = Math.round(PAD + topExtent + bottomExtent + PAD) + langPad;
     var coreCy = PAD + topExtent, dyField = coreCy - DEFAULT_MID;
-    var kaoAbs = kaoLines.map(function (_, i) { return coreCy - kaoH / 2 + kaoAscent + i * kaoLh; });
+    var portrait = null;                                       // the scene's window: a square on the left, face centred within
+    if (scene) {
+      var pside = Math.min(H - 12, 140);
+      portrait = { x: 8, y: (H - pside) / 2, s: pside };
+    }
+    var faceCy = portrait ? portrait.y + portrait.s / 2 : coreCy;   // faces centre in the window when there is one
+    var kaoAbs = kaoLines.map(function (_, i) { return faceCy - kaoH / 2 + kaoAscent + i * kaoLh; });
     var rightAbs = lines.map(function (_, i) { return coreCy - rightH / 2 + 11 + i * ROW_GAP; });
 
-    // blobs carry base geometry + seeded vertical params; the time-varying part happens in mount/buildSVG
+    // blobs carry base geometry + seeded vertical params; the time-varying part happens in mount/buildSVG.
+    // With a portrait window, the field cedes the left side: columns squeeze rightward.
+    var PORTRAIT_COLX = [265, 397, 530];
     var blobs = (usesCols ? cols : p.field).map(function (c, i) {
       var v = vcol[i] || vcol[i % 3];
       return {
-        cx: c.cx, cyBase: (c.cy == null ? DEFAULT_MID : c.cy) + dyField,
+        cx: (portrait && usesCols) ? PORTRAIT_COLX[i] : c.cx,
+        cyBase: (c.cy == null ? DEFAULT_MID : c.cy) + dyField,
         rx: (c.rx == null ? COL_RX : c.rx) * mult, ry: (c.ry == null ? COL_RY : c.ry) * mult,
         op: c.op == null ? COL_OP : c.op, fill: c.fill, pool: c.pool || null,
         bias: usesCols ? v.bias : 0, phase: v.phase
@@ -313,9 +325,14 @@
     var kaoMaxW = TEXT_X - FACE_X - 10;
     function fit(line, size) { return estW(line, size) > kaoMaxW ? ' textLength="' + kaoMaxW + '" lengthAdjust="spacingAndGlyphs"' : ''; }
     var kaoSVG, faceBox = null;
+    var kaoX = portrait
+      ? portrait.x + Math.max(5, (portrait.s - Math.min(estW(kaoLines[0] || "", multiline ? 15 : 19), kaoMaxW)) / 2)
+      : FACE_X;                                                          // text faces centre in the window; otherwise hug the left as always
     if (faceImg) {
-      var iy = coreCy - faceImg.h / 2;
-      var ix = FACE_X + Math.max(0, (kaoMaxW - faceImg.w) / 2);          // centre the image in the face column (text hugs left; images float)
+      var iy = faceCy - faceImg.h / 2;
+      var ix = portrait
+        ? portrait.x + (portrait.s - faceImg.w) / 2
+        : FACE_X + Math.max(0, (kaoMaxW - faceImg.w) / 2);               // centre the image in the window, else in the face column
       faceBox = { x: ix, y: iy, w: faceImg.w, h: faceImg.h };            // authoritative banner-space box — getBBox on a nested sprite svg reports sheet coords, never use it
       if (faceImg.cellW && faceImg.cellH) {                    // spritesheet: crop one cell via a nested viewport
         var col = faceImg.index % faceImg.cols, rowI = Math.floor(faceImg.index / faceImg.cols);
@@ -328,9 +345,9 @@
           '" preserveAspectRatio="xMidYMid meet" href="' + esc(faceImg.url) + '"/>';
       }
     } else kaoSVG = multiline
-      ? '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fkt vk">' +
-      kaoLines.map(function (l, i) { return '<tspan x="' + FACE_X + '"' + (i === 0 ? "" : ' dy="20"') + fit(l, 15) + '>' + esc(l) + '</tspan>'; }).join("") + '</text>'
-      : '<text x="' + FACE_X + '" y="' + g(kaoAbs[0]) + '" class="txt fk vk"' + fit(kaoText, 19) + '>' + esc(kaoText) + '</text>';
+      ? '<text x="' + g(kaoX) + '" y="' + g(kaoAbs[0]) + '" class="txt fkt vk">' +
+      kaoLines.map(function (l, i) { return '<tspan x="' + g(kaoX) + '"' + (i === 0 ? "" : ' dy="20"') + fit(l, 15) + '>' + esc(l) + '</tspan>'; }).join("") + '</text>'
+      : '<text x="' + g(kaoX) + '" y="' + g(kaoAbs[0]) + '" class="txt fk vk"' + fit(kaoText, 19) + '>' + esc(kaoText) + '</text>';
     // every readout row carries a <title> tooltip with its full text — excited reporters
     // overrun the word caps despite guidance, and a clipped line should at least be readable on hover
     var readSVG = lines.map(function (ln, i) { return '<text x="' + ln.x + '" y="' + g(rightAbs[i]) + '" class="txt' + (ln.key ? ' vr-' + ln.key : '') + '"><title>' + esc(ln.title) + '</title>' + ln.inner + '</text>'; }).join("");
@@ -344,13 +361,20 @@
       });
       langSVG = '<text x="' + (W - 12) + '" y="' + g(H - 7) + '" text-anchor="end" class="txt fl">' + parts + '</text>';
     }
-    var flagSVG = activeFlag                                   // pinned bottom-left: with twenty registers, the gesture gets a caption — just [awe]
-      ? '<text x="12" y="' + g(H - 7) + '" class="txt fl">[' + esc(activeFlag.replace("_", " ")) + ']</text>'
+    var flagSVG = activeFlag                                   // caption sits left of the readout region (clear of the portrait window)
+      ? '<text x="' + (portrait ? portrait.x + portrait.s + 8 : 12) + '" y="' + g(H - 7) + '" class="txt fl">[' + esc(activeFlag.replace("_", " ")) + ']</text>'
       : "";
+    var sceneSVG = "";
+    if (scene) {                                               // the window itself: clipped image + a quiet frame
+      var cid = "vscn" + (++SCENE_IDS);
+      sceneSVG = '<defs><clipPath id="' + cid + '"><rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10"/></clipPath></defs>' +
+        '<g clip-path="url(#' + cid + ')" opacity="' + g(scene.op) + '"><image href="' + esc(scene.url) + '" x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" preserveAspectRatio="xMidYMid slice"/></g>' +
+        '<rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10" fill="none" stroke="#8a7a86" stroke-opacity="0.45" stroke-width="1.5"/>';
+    }
 
     var L = {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
-      restSVG: readSVG + langSVG + flagSVG,
+      restSVG: readSVG + langSVG + flagSVG, sceneSVG: sceneSVG, portrait: portrait,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, scene: scene, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
       stance: stance, conson: conson, prevFills: prevFills
@@ -365,8 +389,7 @@
     out.push('<svg width="100%"' + (L.dramatic ? ' class="drama"' : '') + ' viewBox="0 0 ' + W + ' ' + L.H + '" role="img" xmlns="http://www.w3.org/2000/svg">');
     out.push('<title>Mood annotation</title><desc>Ambient mood field with a user read and a first-person feel/intent readout</desc>');
     out.push('<style>' + STYLE + '</style>');
-    if (L.scene) out.push('<image href="' + esc(L.scene.url) + '" x="0" y="0" width="' + W + '" height="' + L.H +
-      '" preserveAspectRatio="xMidYMid slice" opacity="' + g(L.scene.op) + '"/>');
+    if (L.scene) out.push(L.sceneSVG);
     var soft = 1 - L.conson;                                  // consonance: split → diffuse washes (bigger, thinner)
     var sizeMul = (1 + 0.22 * soft) * (L.awe ? 1.18 : 1);     // awe: the field swells while the face shrinks
     out.push('<g opacity="0.5">');
@@ -419,7 +442,8 @@
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
     if (L.rhyme) out.push('<g opacity="0.12" transform="translate(14,6)">' + L.kaoSVG + '</g>');   // the echo of the face, behind-ish and offset
     var kao = L.kaoSVG;                                        // constant-pose flags transform the face in the still frame too
-    var pvx = L.faceBox ? L.faceBox.x + L.faceBox.w / 2 : 46;  // pivot on the face's real centre (image faces sit centred, not at the text anchor)
+    var pvx = L.faceBox ? L.faceBox.x + L.faceBox.w / 2
+      : L.portrait ? L.portrait.x + L.portrait.s / 2 : 46;     // pivot on the face's real centre (window centre for portrait text faces)
     if (L.awe) kao = '<g transform="translate(' + g(pvx) + ' ' + g(L.coreCy + 5) + ') scale(0.62) rotate(-3) translate(' + g(-pvx) + ' ' + g(-L.coreCy) + ')">' + kao + '</g>';
     else if (L.solemn) kao = '<g transform="translate(' + g(pvx) + ' ' + g(L.coreCy + 3) + ') rotate(4) translate(' + g(-pvx) + ' ' + g(-L.coreCy) + ')">' + kao + '</g>';
     out.push(kao + L.restSVG + '</svg>');
@@ -435,7 +459,7 @@
     var L = layout(p), H = L.H;
     el.innerHTML =
       '<div style="position:relative;width:100%">' +
-      (L.scene ? '<img src="' + esc(L.scene.url) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:' + L.scene.op + ';pointer-events:none" alt="">' : '') +
+      (L.scene ? '<svg viewBox="0 0 ' + W + ' ' + L.H + '" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none" xmlns="http://www.w3.org/2000/svg">' + L.sceneSVG + '</svg>' : '') +
       '<canvas style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none"></canvas>' +
       '<svg width="100%"' + (L.dramatic ? ' class="drama"' : '') + ' viewBox="0 0 ' + W + ' ' + H + '" role="img" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:1;display:block">' +
       '<title>Mood annotation</title><desc>Living mood field with a user read and a first-person feel/intent readout</desc>' +

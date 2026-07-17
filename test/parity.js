@@ -50,12 +50,15 @@ ok(buildSVG(Object.assign({}, base, { face: { nope: true } })).indexOf("vk") > 0
 let ctr = +/(?:<image class="vk" x=")([0-9.]+)/.exec(fp1)[1];
 ok(ctr > 40, "image faces centre in the face column (x=" + ctr + ", not hugging the left edge)");
 
-console.log("scene: an optional habitat behind everything");
+console.log("scene: a framed portrait window on the left");
 let sc = buildSVG(Object.assign({}, base, { scene: "https://cdn.jsdelivr.net/gh/u/r@abc/pool.png" }));
-ok(/preserveAspectRatio="xMidYMid slice" opacity="0.3"/.test(sc), "scene string → cover image at default 0.3 opacity");
-ok(sc.indexOf("slice") < sc.indexOf("<ellipse"), "scene renders BEHIND the field");
-ok(/opacity="0.85"/.test(buildSVG(Object.assign({}, base, { scene: { url: "https://x.co/a.png", opacity: 3 } }))), "opacity clamps to 0.85");
-ok(!/slice/.test(buildSVG(base)), "no scene → no habitat image");
+ok(/<clipPath id="vscn\d+"><rect x="8"[^>]*rx="10"/.test(sc), "scene → rounded clipped window at the left");
+ok(/opacity="0.5"><image/.test(sc), "window default opacity 0.5");
+ok(sc.indexOf("clipPath") < sc.indexOf("<ellipse"), "window renders BEHIND the field");
+ok(/stroke="#8a7a86"/.test(sc), "the window has its quiet frame");
+ok(/cx="265"/.test(sc) && /cx="397"/.test(sc) && /cx="530"/.test(sc), "field columns cede the left side to the window");
+ok(/cx="150"/.test(buildSVG(base)) && !/clipPath/.test(buildSVG(base)), "no scene → classic layout, no window");
+ok(/opacity="0.95"><image/.test(buildSVG(Object.assign({}, base, { scene: { url: "https://x.co/a.png", opacity: 3 } }))), "opacity clamps to 0.95");
 
 console.log("readout rows carry full-text tooltips");
 let tt = buildSVG(Object.assign({}, base, { seems: "an overlong read that will clip", noticing: "the full subtext" }));

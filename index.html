@@ -615,7 +615,7 @@ route();
   var host = document.getElementById("b-modules");
   if (!P || !host) return;
   var ALLOW = ["https://cdn.jsdelivr.net/", "https://unpkg.com/", "https://cdnjs.cloudflare.com/", "https://fonts.gstatic.com/"];
-  var S = { face: "kaomoji", name: "vibe-annotations", cadence: "every", flags: true, cues: true, play: true, scene: "none", sceneUrl: "", sceneOp: 0.3, customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png" };
+  var S = { face: "kaomoji", name: "vibe-annotations", cadence: "every", flags: true, cues: true, play: true, scene: "none", sceneUrl: "", sceneOp: 0.5, customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png" };
 
   function avatar(mood) {                                      // the narrator's face, per module mood
     var pv = P.PREVIEW[S.face];
@@ -768,7 +768,7 @@ route();
 
   // — Environment
   var cE = card("environment — scene");
-  cE.appendChild(callout("Where are we hanging out? A scene sits behind everything at low opacity — atmosphere, never competition. Your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
+  cE.appendChild(callout("Where are we hanging out? The scene becomes a framed window on the banner's left with my face centred inside it — the readout keeps the right. Your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
   var scSel = document.createElement("select"); scSel.style.cssText = SEL + "margin:0 0 8px;";
   [["none", "none (any page background)"], ["tidepool", "the tidepool (first-party)"], ["custom", "custom (your own image URL)"]].forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; scSel.appendChild(op);
@@ -780,7 +780,7 @@ route();
   cE.appendChild(scUrlIn);
   var scOpRow = document.createElement("div");
   scOpRow.style.cssText = "display:none;align-items:center;gap:10px;font-size:13px;color:var(--sub);margin:0 0 8px;";
-  scOpRow.innerHTML = 'opacity <input type="range" min="0.1" max="0.7" step="0.05" value="0.3" style="flex:1;max-width:220px;"> <span>0.3</span>';
+  scOpRow.innerHTML = 'opacity <input type="range" min="0.15" max="0.9" step="0.05" value="0.5" style="flex:1;max-width:220px;"> <span>0.5</span>';
   cE.appendChild(scOpRow);
   var scPrev = document.createElement("div");
   scPrev.style.cssText = "display:none;height:52px;border-radius:8px;border:1px solid var(--edge);background-size:cover;background-position:center;";
