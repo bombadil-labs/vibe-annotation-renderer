@@ -200,6 +200,11 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   register guidance ("a glance, not a paragraph"), no longer as data-loss warnings.
   buildSVG keeps the classic SVG rows — it is the reduced-motion/no-canvas fallback and
   the parity target; the overlay is mount-only (`layout(p, {overlay:true})`).
+  Follow-ups from the maintainer's screenshots (v0.15.0): the type runs a full step
+  quieter than SVG did (the legibility halo must stay a whisper — a glow strong enough
+  to read as bold is a bug), and the readout **collapses to bare pills** via the ▾
+  toggle (values surface on hover; preference persists in localStorage where allowed) —
+  the field is the point, the words are captions.
 
 ## The bench
 

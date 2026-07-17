@@ -514,22 +514,27 @@
     // (no more clipped lines), a barely-there frosted panel for legibility — the ovals
     // stay visible through it — and a scroll only past the height cap.
     var OV_CSS =
-      ".vo{line-height:1.35;color:#5c4320;text-shadow:0 0 3px rgba(255,248,236,0.95),0 0 7px rgba(255,248,236,0.65)}" +
-      ".vo .row{margin:0.14em 0}" +
-      ".vo .pill{display:inline-block;font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.7em;padding:0.1em 0.62em 0.14em;border-radius:1em;background:rgba(69,49,24,0.62);color:#f6ead0;margin-right:0.5em;letter-spacing:0.04em;vertical-align:0.12em;text-shadow:none}" +
-      ".vo .fr{font-family:var(--font-voice,Georgia,serif);font-style:italic;font-size:0.93em}" +
-      ".vo .fw{font-family:var(--font-voice,Georgia,serif);font-style:italic;font-size:1.06em}" +
-      ".vo .fg{font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:0.98em}" +
-      ".vo-panel{pointer-events:auto;max-height:100%;overflow-y:auto;padding:0.35em 0.75em 0.4em;border-radius:10px;" +
-      "background:rgba(255,250,240,0.30);backdrop-filter:blur(2.5px);-webkit-backdrop-filter:blur(2.5px);box-shadow:inset 0 0 0 1px rgba(90,70,50,0.10)}" +
-      "@media (prefers-color-scheme:dark){.vo{color:#f6ead0;text-shadow:0 0 3px rgba(36,26,6,0.95),0 0 7px rgba(36,26,6,0.7)}" +
-      ".vo .pill{background:rgba(216,197,160,0.26);color:#f6ead0}" +
-      ".vo-panel{background:rgba(30,24,16,0.30);box-shadow:inset 0 0 0 1px rgba(246,234,208,0.10)}}" +
+      ".vo{line-height:1.3;color:#5c4320;text-shadow:0 1px 2px rgba(255,248,236,0.55)}" +      // a whisper of halo, not a stroke — the old glow read as bold
+      ".vo .row{margin:0.12em 0}" +
+      ".vo .pill{display:inline-block;font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.68em;padding:0.1em 0.6em 0.14em;border-radius:1em;background:rgba(69,49,24,0.58);color:#f6ead0;margin-right:0.5em;letter-spacing:0.04em;vertical-align:0.12em;text-shadow:none}" +
+      ".vo .fr{font-family:var(--font-voice,Georgia,serif);font-style:italic;font-size:0.85em;opacity:0.92}" +
+      ".vo .fw{font-family:var(--font-voice,Georgia,serif);font-style:italic;font-size:0.95em}" +
+      ".vo .fg{font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:0.88em;opacity:0.95}" +
+      ".vo-panel{pointer-events:auto;max-height:100%;overflow-y:auto;padding:0.32em 0.7em 0.36em;border-radius:10px;" +
+      "background:rgba(255,250,240,0.22);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);box-shadow:inset 0 0 0 1px rgba(90,70,50,0.08)}" +
+      ".vo-tg{position:absolute;top:0;right:0;pointer-events:auto;background:none;border:none;cursor:pointer;font-size:0.85em;line-height:1;padding:2px 4px;color:inherit;opacity:0.4;transition:opacity .2s}" +
+      ".vo-tg:hover{opacity:0.85}" +
+      ".vcollapsed .vo-panel{display:flex;flex-wrap:wrap;gap:0.28em;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;overflow:visible}" +
+      ".vcollapsed .vo-panel .row{margin:0}" +
+      ".vcollapsed .vo-panel .row span:not(.pill){display:none}" +                              // collapsed: bare pills, values on hover via the row tooltip
+      "@media (prefers-color-scheme:dark){.vo{color:#f6ead0;text-shadow:0 1px 2px rgba(36,26,6,0.6)}" +
+      ".vo .pill{background:rgba(216,197,160,0.24);color:#f6ead0}" +
+      ".vo-panel{background:rgba(30,24,16,0.22);box-shadow:inset 0 0 0 1px rgba(246,234,208,0.08)}}" +
       ".vdrama .vo{font-family:var(--font-voice,Georgia,serif)}" +
       ".vdrama .vo .fr,.vdrama .vo .fw,.vdrama .vo .fg{font-weight:600;letter-spacing:0.04em}" +
       ".vdrama .vo .pill{text-transform:uppercase;letter-spacing:0.18em}";
     var ovStyle = document.createElement("style"); ovStyle.textContent = OV_CSS; wrap.appendChild(ovStyle);
-    if (L.dramatic) wrap.className = "vdrama";
+    if (L.dramatic) wrap.classList.add("vdrama");
     var ov = document.createElement("div");
     ov.style.cssText = "position:absolute;z-index:2;display:flex;flex-direction:column;justify-content:center;pointer-events:none;" +
       "left:" + g(TEXT_X / W * 100) + "%;right:1.2%;top:2%;bottom:" +
@@ -544,6 +549,22 @@
       pn.appendChild(row);
     });
     ov.appendChild(pn); wrap.appendChild(ov);
+    // The readout collapses to bare pills (values on hover) so the field can be watched
+    // unobstructed. The preference persists where storage allows — set once, kept.
+    var vmin = false;
+    try { vmin = localStorage.getItem("vibeReadout") === "min"; } catch (e) { }
+    if (vmin) wrap.classList.add("vcollapsed");
+    var tg = document.createElement("button");
+    tg.className = "vo-tg"; tg.textContent = vmin ? "▸" : "▾";
+    tg.title = vmin ? "expand readout" : "collapse readout to pills";
+    tg.addEventListener("click", function () {
+      vmin = !vmin;
+      wrap.classList.toggle("vcollapsed", vmin);
+      tg.textContent = vmin ? "▸" : "▾";
+      tg.title = vmin ? "expand readout" : "collapse readout to pills";
+      try { localStorage.setItem("vibeReadout", vmin ? "min" : "full"); } catch (e) { }
+    });
+    ov.appendChild(tg);
     var fpill = null;
     if (L.flagName) {                                          // the flag caption as a pill, tucked into the window's bottom-left corner
       fpill = document.createElement("div");
