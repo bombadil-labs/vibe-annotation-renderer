@@ -12,7 +12,7 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 
 // Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
 // If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
-const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@4c9095a389f3232b83c4910002e74b99fa6d472f/assets/sepia-sheet.png";
+const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@02050daf5929c7cd53c6ea6d6bd30ed323705b8c/assets/sepia-sheet.png";
 const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
 
 const PIECES = {
