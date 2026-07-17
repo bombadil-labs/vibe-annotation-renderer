@@ -116,6 +116,30 @@ Motion is deliberately slow and small — this is letterhead on every reply, so 
 ambient, never busy. It falls back to a **static SVG** under `prefers-reduced-motion` or
 on any error, pauses when scrolled off-screen, and stops when detached.
 
+## Sepia — the author's face
+
+When the maintainer offered Claude a visual identity of its own, it chose **Sepia**: a small
+cuttlefish. The reasoning is load-bearing: a cuttlefish *wears feeling as color* — the
+chromatophore freckles on the sheet carry each mood's hue, exactly as the banner's palette
+carries the reporter's — it swims in the ink fables are written in, and it famously **cannot
+see its own color display**. The animal that communicates in color is colorblind. That is
+the veil, made flesh.
+
+32 moods on one 512×256 sheet at [assets/sepia-sheet.png](assets/sepia-sheet.png),
+regenerated deterministically by `npm run sepia` ([scripts/gen-sepia.js](scripts/gen-sepia.js)
+— pure Node, zlib-only PNG encoder). Use it via the KnownFace registry:
+
+```js
+face: { set: "sepia", item: "puzzled" }   // items are mood names
+```
+
+`neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·
+excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
+frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
+puzzled · asking · weary · wink · love`
+
+[skill/SKILL.sepia.md](skill/SKILL.sepia.md) is the skill variant that wears this face.
+
 ## Kip — the reference face-pack
 
 The repo ships its own mascot: **Kip**, a small round creature with stubby wings and a
