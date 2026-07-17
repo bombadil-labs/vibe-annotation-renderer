@@ -211,11 +211,11 @@ MOODS.forEach((mood, i) => {
           if ((x - bx) * (x - bx) + (y - by) * (y - by) <= e * e && ok(x, y)) fpx(x, y, c);
         }
     };
-    const ring = (bx, by, rad, c) => {                                          // eye-spot ring
-      for (let y = by - rad - 1; y <= by + rad + 1; y++)
-        for (let x = bx - rad - 1; x <= bx + rad + 1; x++) {
+    const ring = (bx, by, rad, c) => {                                          // eye-spot ring, thick enough to read
+      for (let y = by - rad - 2; y <= by + rad + 2; y++)
+        for (let x = bx - rad - 2; x <= bx + rad + 2; x++) {
           const d = Math.sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
-          if (Math.abs(d - rad) < 0.75 && ok(x, y)) fpx(x, y, c);
+          if (Math.abs(d - rad) < 1.15 && ok(x, y)) fpx(x, y, c);
         }
     };
     const band = (y0, amp, th, c, ph) => {                                      // wavy stripe across the mantle
@@ -226,16 +226,16 @@ MOODS.forEach((mood, i) => {
     };
     const P = {
       blanch:  () => {},                                                        // fear-pale: the pattern is its absence
-      blanch1: () => blob(31, 48, 2.2, hue),
-      calm:    () => { blob(26, 12, 2.8, hue); blob(16, 46, 2.4, hue); },
-      saddle:  () => { blob(31, 11, 4, hue); blob(15, 41, 2.8, hue); blob(48, 41, 2.8, hue); },
-      lively:  () => { blob(31, 11, 4, hue); blob(15, 41, 2.6, hue); ring(47, 42, 3.2, hue); },
-      bloom:   () => { blob(17, 40, 3.4, hue); blob(46, 40, 3.4, hue); blob(31, 11, 2.6, hue); },
-      bloom2:  () => { blob(17, 40, 4.2, hue); blob(46, 40, 4.2, hue); blob(31, 10, 3, hue); },
-      rings:   () => { ring(20, 12, 3.4, hue); ring(42, 12, 3.4, hue); ring(31, 48, 3.8, hue); blob(31, 11, 2, hue); },
-      bands:   () => { band(10, 1.6, 2, hue, r() * 6); band(46, 1.8, 2, hue, r() * 6); },
-      storm:   () => { band(9, 1.4, 3, dark, r() * 6); band(15, 1.6, 2, hue, r() * 6); band(45, 1.6, 3, dark, r() * 6); band(51, 1.4, 2, hue, r() * 6); },
-      camo:    () => { for (let k = 0; k < 7; k++) blob(12 + r() * 40, 8 + r() * 48, 2 + r() * 1.6, k % 2 ? dark : hue); }
+      blanch1: () => blob(31, 48, 3, hue),
+      calm:    () => { blob(26, 12, 4.4, hue); blob(16, 46, 3.6, hue); },
+      saddle:  () => { blob(31, 11, 6, hue); blob(14, 42, 4.2, hue); blob(49, 42, 4.2, hue); },
+      lively:  () => { blob(31, 11, 6, hue); blob(14, 42, 4, hue); ring(47, 42, 4.6, hue); },
+      bloom:   () => { blob(17, 40, 5, hue); blob(46, 40, 5, hue); blob(31, 11, 3.6, hue); },
+      bloom2:  () => { blob(17, 40, 6, hue); blob(46, 40, 6, hue); blob(31, 10, 4.2, hue); },
+      rings:   () => { ring(20, 12, 5, hue); ring(42, 12, 5, hue); ring(31, 47, 5, hue); blob(31, 11, 2.6, hue); },
+      bands:   () => { band(8, 2, 4, hue, r() * 6); band(45, 2, 4, hue, r() * 6); },
+      storm:   () => { band(7, 1.8, 6, dark, r() * 6); band(14, 1.4, 1, hue, r() * 6); band(43, 1.8, 6, dark, r() * 6); band(50, 1.4, 1, hue, r() * 6); },
+      camo:    () => { for (let k = 0; k < 6; k++) blob(12 + r() * 40, 8 + r() * 48, 3.5 + r() * 2, k % 2 ? dark : hue); }
     };
     const PTYPE = {
       awe: "blanch", surprised: "blanch1",
