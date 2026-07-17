@@ -159,7 +159,7 @@ const MOODS = [
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);
 BASE.forEach((r, i) => { if (r.length !== 16) throw new Error("BASE row " + i + " length " + r.length); });
 
-const SCALE = 4, CELL = 64, COLS = 8, ROWS = 12, FRAME_ROWS = 4;
+const SCALE = 4, CELL = 64, COLS = 8, ROWS = 13, FRAME_ROWS = 4;   // rows 0-11: 3 frames × 32 moods; row 12: the mantle mask cell
 const W = CELL * COLS, H = CELL * ROWS;
 const px = Buffer.alloc(W * H * 4);   // RGBA, transparent
 const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
@@ -204,15 +204,15 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 3; frame++) {
   const softenEye = (x) => {                    // patch is 12x12 real px at (x, 20)
     fpx(x, 20, COLORS.b); fpx(x + 11, 20, COLORS.b);      // clip the white patch's corners back to skin —
     fpx(x, 31, COLORS.b); fpx(x + 11, 31, COLORS.b);      // the eye itself rounds; no frame needed
-    frect(x + 1, 19, 10, 1, RING);              // top lash, inset — never touches the silhouette
-    frect(x + 1, 32, 10, 1, RING_SOFT);         // soft under-line
+    frect(x + 1, 18, 10, 2, RING);              // top lash, 2px (1px read too thin) — inset, never touches the silhouette
+    frect(x + 1, 32, 10, 2, RING_SOFT);         // soft under-line, 2px
   };
   if (!blink) {
     softenEye(12);                              // left eye (logical cols 3-5, rows 5-7)
     softenEye(40);                              // right eye (cols 10-12)
   } else {
-    frect(13, 23, 10, 1, RING);                 // blink: a single lash-line over each lid
-    frect(41, 23, 10, 1, RING);
+    frect(13, 22, 10, 2, RING);                 // blink: a lash-line over each lid, 2px
+    frect(41, 22, 10, 2, RING);
   }
 
   // chromatophores: sub-pixel FIDELITY, macro-scale SHAPES. Dots were texture; patterns
@@ -236,7 +236,7 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 3; frame++) {
     const okRaw = (x, y) => {
       if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
       if (BASE[y >> 2][x >> 2] !== "b") return false;                          // mantle only
-      if (y >= 19 && y <= 33 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;  // eyes + lashes
+      if (y >= 17 && y <= 34 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;  // eyes + 2px lashes
       if (x >= 22 && x <= 41 && y >= 34 && y <= 44) return false;              // mouth zone
       return true;
     };
@@ -308,6 +308,23 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 3; frame++) {
     }
   }
 } });
+
+// ---- the mantle mask cell (row 12, col 0): white where smooth chromatophores may
+// glide. The renderer reads this at runtime for its continuous "sub-pixel time" layer
+// (block-frame body, smooth-drifting coloration). MUST stay in sync with okRaw above.
+{
+  const my0 = 12 * CELL;
+  const okM = (x, y) => {
+    if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
+    if (BASE[y >> 2][x >> 2] !== "b") return false;
+    if (y >= 17 && y <= 34 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;
+    if (x >= 22 && x <= 41 && y >= 34 && y <= 44) return false;
+    return true;
+  };
+  const okE = (x, y) => okM(x, y) && okM(x - 1, y) && okM(x + 1, y) && okM(x, y - 1) && okM(x, y + 1);
+  for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++)
+    if (okE(x, y)) put(x, my0 + y, "#ffffff");
+}
 
 // minimal PNG encoder: signature + IHDR + IDAT (deflated 0-filtered scanlines) + IEND
 const CRC_TABLE = (() => {
