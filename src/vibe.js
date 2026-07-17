@@ -910,9 +910,14 @@
             var cctx = chromo.getContext("2d");
             cctx.clearRect(0, 0, ccw, cch);
             var hueC = (p.palette && p.palette[0]) || "#b89ab0";
+            // drift speed IS a signal: engagement scales the current. Checked-out barely
+            // creeps (~0.3x); fully lit streams (1x = the high-energy rate). The fluid
+            // layer's tempo now reports the same thing the field's size does.
+            var cEng = Math.max(0, Math.min(1, p.engagement == null ? 0.7 : +p.engagement || 0));
+            var cSpd = 0.3 + 0.7 * cEng;
             for (var ci = 0; ci < 4; ci++) {
               var crr = mulberry32(L.seed + ci * 7717 + 5);
-              var sw1 = 0.11 + crr() * 0.11, sw2 = 0.09 + crr() * 0.1;   // fast enough to SEE: a body-crossing takes seconds, not half a minute
+              var sw1 = (0.11 + crr() * 0.11) * cSpd, sw2 = (0.09 + crr() * 0.1) * cSpd;   // fast enough to SEE at full energy: a body-crossing in seconds
               var cp1 = crr() * 6.28, cp2 = crr() * 6.28, cp3 = crr() * 6.28, cp4 = crr() * 6.28;
               // free roam: no zones — quasi-periodic wander (incommensurate golden-ratio
               // frequencies, never repeats) spanning the WHOLE body; the mask is the only
