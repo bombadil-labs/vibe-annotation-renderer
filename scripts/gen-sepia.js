@@ -12,22 +12,26 @@ const COLORS = {
   o: "#4a3a44", b: "#e8dcd0", n: "#d8bcc8", W: "#f8f4ec", p: "#2a2230",
   s: "#ffd76a", F: "#e88aa0", d: "#9ec7e8", R: "#c04a48", G: "#cfc2d6", m: "#8f8698"
 };
+// The body must say "cuttlefish" without a caption: a mantle taller than it is wide,
+// fin frills running the full flanks, and a skirt of arms where a chin would be.
+// (v1 had a chin taper and feet — it read as a bald man with tattoos. The maintainer's
+// flicker at the whole body; redrawn 2026-07-17.)
 const BASE = [
   "................",
   ".....oooooo.....",
-  "...oonnnnnnoo...",
+  "...oobbbbbboo...",
   "..obbbbbbbbbbo..",
-  "..obbbbbbbbbbo..",
-  "..oWWWbbbbWWWo..",
+  ".nobbbbbbbbbbon.",
+  ".noWWWbbbbWWWon.",
   ".noWWWbbbbWWWon.",
   ".noWWWbbbbWWWon.",
   ".nobbbbbbbbbbon.",
+  ".nobbbbbbbbbbon.",
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
-  "...obbbbbbbbo...",
-  "....obbbbbbo....",
-  ".....o.oo.o.....",
-  "................",
+  "...obb.bb.bbo...",
+  "...obb.bb.bbo...",
+  "....oo.oo.oo....",
   "................"
 ];
 // left-eye pupil presets (whites: cols 3-5 / 10-12, rows 5-7); right eye mirrors x -> 15-x
