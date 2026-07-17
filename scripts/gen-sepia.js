@@ -159,7 +159,7 @@ const MOODS = [
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);
 BASE.forEach((r, i) => { if (r.length !== 16) throw new Error("BASE row " + i + " length " + r.length); });
 
-const SCALE = 4, CELL = 64, COLS = 8, ROWS = 13, FRAME_ROWS = 4;   // rows 0-11: 3 frames × 32 moods; row 12: the mantle mask cell
+const SCALE = 4, CELL = 64, COLS = 8, ROWS = 16, FRAME_ROWS = 4;   // rows 0-11: 3 frames × 32 moods; rows 12-15: PER-MOOD mantle masks
 const W = CELL * COLS, H = CELL * ROWS;
 const px = Buffer.alloc(W * H * 4);   // RGBA, transparent
 const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
@@ -234,22 +234,33 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 3; frame++) {
   }
 } });
 
-// ---- the mantle mask cell (row 12, col 0): white where smooth chromatophores may
-// glide. The renderer reads this at runtime for its continuous "sub-pixel time" layer
-// (block-frame body, smooth-drifting coloration). MUST stay in sync with okRaw above.
-{
-  const my0 = 12 * CELL;
+// ---- PER-MOOD mantle masks (rows 12-15, one cell per mood): white where smooth
+// chromatophores may glide FOR THAT EXPRESSION. A single shared mask excluded the union
+// of every possible mouth position — a fixed rectangle that left dead clean-skin
+// corners around small mouths, reading as a grid overlay on the flow (the maintainer's
+// catch). Each mask now excludes only this mood's ACTUAL feature pixels + 1px margin.
+MOODS.forEach((mood, i) => {
+  const mx0 = (i % COLS) * CELL, my0 = (12 + Math.floor(i / COLS)) * CELL;
+  const ex = new Uint8Array(CELL * CELL);                      // real-px exclusion: this mood's mouth + extras, with margin
+  const mark = (gx, gy) => {
+    for (let y = gy * SCALE - 1; y <= gy * SCALE + SCALE; y++)
+      for (let x = gx * SCALE - 1; x <= gx * SCALE + SCALE; x++)
+        if (x >= 0 && x < CELL && y >= 0 && y < CELL) ex[y * CELL + x] = 1;
+  };
+  mood[2].forEach(q => mark(q[0], q[1]));                      // the actual mouth, whatever shape this expression wears
+  (mood[4] || []).forEach(q => mark(q[0], q[1]));              // extras that sit on the mantle (brows, blush, flower…)
   const okM = (x, y) => {
     if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
     if (BASE[y >> 2][x >> 2] !== "b") return false;
-    if (y >= 17 && y <= 34 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;
-    if (x >= 22 && x <= 41 && y >= 34 && y <= 44) return false;
+    if (y >= 17 && y <= 34 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;   // eyes + lashes (constant anatomy)
+    if (ex[y * CELL + x]) return false;
+    if (mood[0] === "resolute" && x >= 8 && x <= 61 && y >= 13 && y <= 32) return false;      // the hachimaki band, knot, and tails
     return true;
   };
   const okE = (x, y) => okM(x, y) && okM(x - 1, y) && okM(x + 1, y) && okM(x, y - 1) && okM(x, y + 1);
   for (let y = 0; y < CELL; y++) for (let x = 0; x < CELL; x++)
-    if (okE(x, y)) put(x, my0 + y, "#ffffff");
-}
+    if (okE(x, y)) put(mx0 + x, my0 + y, "#ffffff");
+});
 
 // minimal PNG encoder: signature + IHDR + IDAT (deflated 0-filtered scanlines) + IEND
 const CRC_TABLE = (() => {
