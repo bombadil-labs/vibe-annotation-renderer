@@ -159,7 +159,9 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
 - **Flag composition.** Grammar-level composition was removed deliberately when the roster
   hit twenty; see the API decision above. Don't reintroduce it as a feature.
 
-- **Sepia's chromatophores are sub-pixel, and density is a signal (v0.9.x).** The
+- **The baked chromatophore patterns are RETIRED (v0.20.0).** Once the smooth roaming layer existed (v0.19.x), the fixed bold patches read as distracting competition — the maintainer chose all-living colour: clean cream skin, seven palette-coloured roamers, whole-body tints for the big states. The pattern language below is preserved for history; do not resurrect it without a new reason.
+
+- **Sepia's chromatophores are sub-pixel, and density is a signal (v0.9.x — RETIRED, see above).** The
   maintainer's framing: fine coloration is an affordance the creature evolved for survival
   in a high-resolution world. Real cuttlefish biology drives the mapping — awe/surprise
   BLANCH (fear response, ~4 dots), peace barely speckles (nothing to hide), arousal
