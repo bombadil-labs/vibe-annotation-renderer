@@ -129,7 +129,7 @@ const MOODS = [
   ["rhyme",      eyes("w"),                m("sm"),    "#9a8fae", X.ghost],
   ["awe",        eyes("uptiny"),           m("open"),  "#5a6a8a"],
   ["vertigo",    eyes("spiral"),           m("wavy"),  "#b79ad0"],
-  ["resolute",   eyes("dot"),              m("sm"),    "#e0994e", X.headband],
+  ["resolute",   eyes("dot"),              m("sm"),    "#e0994e"],   // headband drawn in the fine pass — a high-res object on a low-res body
   ["puzzled",    eyesAsym("dot","uptiny"), m("tiny"),  "#c0b08a"],
   ["asking",     eyes("uptiny"),           m("sm"),    "#9ac0b0"],
   ["weary",      eyes("down"),             m("flat"),  "#8b93a0"],
@@ -161,6 +161,32 @@ MOODS.forEach((mood, i) => {
   frill.concat(mirror(frill)).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS.n));
   mood[1].concat(mood[2], mood[4] || []).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
   FRECK.forEach(q => cellPut(cx, cy, q[0], q[1], mood[3]));
+
+  // ---- the fine pass: sub-pixel ink. Doctrine: the BODY lives on the 4px grid (the
+  // chunkiness is the body); body *definition* may use 2px half-resolution ink; objects
+  // from the high-resolution world (headband, future props) render at true 1px detail —
+  // a low-resolution entity interfacing with a higher-resolution reality.
+  const fpx = (x, y, c) => { if (x >= 0 && x < CELL && y >= 0 && y < CELL) put(cx + x, cy + y, c); };
+  const frect = (x, y, w, h, c) => { for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) fpx(xx, yy, c); };
+  const ring1 = (x, y, w, h, c) => {           // 1px definition line around a real-pixel rect — lash-line, not eyewear
+    frect(x - 1, y - 1, w + 2, 1, c); frect(x - 1, y + h, w + 2, 1, c);
+    frect(x - 1, y, 1, h, c); frect(x + w, y, 1, h, c);
+  };
+  const RING = "#a08a9a";                       // whisper of plum: just enough to lift white from cream
+  ring1(12, 20, 12, 12, RING);                  // left eye patch (logical cols 3-5, rows 5-7)
+  ring1(40, 20, 12, 12, RING);                  // right eye patch (cols 10-12)
+
+  if (mood[0] === "resolute") {                 // the hachimaki: crisp cloth from the high-res world
+    const R = "#c04a48", Rd = "#8a3230", Rh = "#e07a70";
+    frect(10, 15, 44, 7, R);                    // band across the brow, wrapping past the body edge
+    frect(10, 15, 44, 1, Rh);                   // 1px catch-light along the top
+    frect(10, 21, 44, 1, Rd);                   // 1px shadow along the bottom
+    frect(52, 14, 5, 9, R); frect(52, 14, 5, 1, Rh); frect(52, 22, 5, 1, Rd);   // the knot
+    for (let t = 0; t < 8; t++) {               // two tails, stepping down 1px at a time
+      frect(57 + Math.floor(t / 2), 17 + t, 3, 1, R);
+      frect(55 + Math.floor(t / 3), 23 + t, 2, 1, t % 3 === 2 ? Rd : R);
+    }
+  }
 });
 
 // minimal PNG encoder: signature + IHDR + IDAT (deflated 0-filtered scanlines) + IEND
