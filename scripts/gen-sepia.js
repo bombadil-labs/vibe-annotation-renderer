@@ -81,14 +81,6 @@ const MOUTH = {
 // Density is arousal, camouflage is a state: awe/surprise BLANCH (real cuttlefish fear
 // response), peace barely speckles (nothing to hide), anxiety mottles hardest (trying to
 // disappear), anger storms dark. Seeded per mood → deterministic sheets.
-const DENSITY = {
-  awe: 4, surprised: 5, at_peace: 7, solemn: 7, sleepy: 8, weary: 8,
-  melancholy: 11, focused: 12, groan: 12, neutral: 13, thinking: 13, asking: 13,
-  sheepish: 13, puzzled: 13, content: 14, rhyme: 14, oops: 14, wink: 15,
-  mirth: 19, delighted: 20, spark: 20, booped: 20, tender: 22, resolute: 22,
-  vertigo: 24, love: 24, excited: 26, laugh: 26, dramatic: 26,
-  frustrated: 32, angry: 34, anxious: 38
-};
 function rng(seed) {
   let a = seed >>> 0;
   return function () {
@@ -197,23 +189,67 @@ MOODS.forEach((mood, i) => {
   softenEye(12);                                // left eye (logical cols 3-5, rows 5-7)
   softenEye(40);                                // right eye (cols 10-12)
 
-  // chromatophores: seeded fine speckle over the mantle, density per mood
+  // chromatophores: sub-pixel FIDELITY, macro-scale SHAPES. Dots were texture; patterns
+  // are language. Each mood wears a nameable whole — saddle, cheek blooms, rings, zebra
+  // bands (the real cuttlefish agonistic display), dense camo mottle, or a blanch —
+  // with organic 1px edges only this resolution allows.
   {
-    const r = rng(i * 7919 + 13);
+    const r = rng(i * 104729 + 7);
     const hue = mood[3];
-    const dark = "#" + hex(hue).map(v => Math.max(0, Math.round(v * 0.72)).toString(16).padStart(2, "0")).join("");
-    const n = DENSITY[mood[0]] != null ? DENSITY[mood[0]] : 14;
-    let placed = 0, tries = 0;
-    while (placed < n && tries < n * 14) {
-      tries++;
-      const x = 8 + Math.floor(r() * 48), y = 6 + Math.floor(r() * 52);
-      if (BASE[y >> 2][x >> 2] !== "b") continue;                             // mantle only
-      if (y >= 19 && y <= 33 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) continue;   // eyes + lashes
-      if (x >= 22 && x <= 41 && y >= 34 && y <= 44) continue;                 // mouth zone
-      const s = r() < 0.45 ? 2 : 1;
-      frect(x, y, s, s, r() < 0.25 ? dark : hue);
-      placed++;
-    }
+    const dark = "#" + hex(hue).map(v => Math.max(0, Math.round(v * 0.62)).toString(16).padStart(2, "0")).join("");
+    const ok = (x, y) => {
+      if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
+      if (BASE[y >> 2][x >> 2] !== "b") return false;                          // mantle only
+      if (y >= 19 && y <= 33 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;  // eyes + lashes
+      if (x >= 22 && x <= 41 && y >= 34 && y <= 44) return false;              // mouth zone
+      return true;
+    };
+    const blob = (bx, by, rad, c) => {                                          // organic patch: jittered edge
+      for (let y = Math.floor(by - rad - 2); y <= by + rad + 2; y++)
+        for (let x = Math.floor(bx - rad - 2); x <= bx + rad + 2; x++) {
+          const e = rad + (r() - 0.5) * 1.7;
+          if ((x - bx) * (x - bx) + (y - by) * (y - by) <= e * e && ok(x, y)) fpx(x, y, c);
+        }
+    };
+    const ring = (bx, by, rad, c) => {                                          // eye-spot ring
+      for (let y = by - rad - 1; y <= by + rad + 1; y++)
+        for (let x = bx - rad - 1; x <= bx + rad + 1; x++) {
+          const d = Math.sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
+          if (Math.abs(d - rad) < 0.75 && ok(x, y)) fpx(x, y, c);
+        }
+    };
+    const band = (y0, amp, th, c, ph) => {                                      // wavy stripe across the mantle
+      for (let x = 8; x <= 55; x++) {
+        const yy = Math.round(y0 + Math.sin(x / 5.5 + ph) * amp);
+        for (let t = 0; t < th; t++) if (ok(x, yy + t)) fpx(x, yy + t, c);
+      }
+    };
+    const P = {
+      blanch:  () => {},                                                        // fear-pale: the pattern is its absence
+      blanch1: () => blob(31, 48, 2.2, hue),
+      calm:    () => { blob(26, 12, 2.8, hue); blob(16, 46, 2.4, hue); },
+      saddle:  () => { blob(31, 11, 4, hue); blob(15, 41, 2.8, hue); blob(48, 41, 2.8, hue); },
+      lively:  () => { blob(31, 11, 4, hue); blob(15, 41, 2.6, hue); ring(47, 42, 3.2, hue); },
+      bloom:   () => { blob(17, 40, 3.4, hue); blob(46, 40, 3.4, hue); blob(31, 11, 2.6, hue); },
+      bloom2:  () => { blob(17, 40, 4.2, hue); blob(46, 40, 4.2, hue); blob(31, 10, 3, hue); },
+      rings:   () => { ring(20, 12, 3.4, hue); ring(42, 12, 3.4, hue); ring(31, 48, 3.8, hue); blob(31, 11, 2, hue); },
+      bands:   () => { band(10, 1.6, 2, hue, r() * 6); band(46, 1.8, 2, hue, r() * 6); },
+      storm:   () => { band(9, 1.4, 3, dark, r() * 6); band(15, 1.6, 2, hue, r() * 6); band(45, 1.6, 3, dark, r() * 6); band(51, 1.4, 2, hue, r() * 6); },
+      camo:    () => { for (let k = 0; k < 7; k++) blob(12 + r() * 40, 8 + r() * 48, 2 + r() * 1.6, k % 2 ? dark : hue); }
+    };
+    const PTYPE = {
+      awe: "blanch", surprised: "blanch1",
+      at_peace: "calm", solemn: "calm", sleepy: "calm", weary: "calm", melancholy: "calm",
+      neutral: "saddle", content: "saddle", focused: "saddle", thinking: "saddle", asking: "saddle",
+      rhyme: "saddle", puzzled: "saddle", wink: "saddle", sheepish: "saddle", groan: "saddle", oops: "saddle",
+      delighted: "lively", mirth: "lively", spark: "lively", booped: "lively", laugh: "lively",
+      tender: "bloom", love: "bloom2",
+      excited: "rings", vertigo: "rings",
+      dramatic: "bands", resolute: "bands",
+      frustrated: "storm", angry: "storm",
+      anxious: "camo"
+    };
+    P[PTYPE[mood[0]] || "saddle"]();
   }
 
   if (mood[0] === "resolute") {                 // the hachimaki: crisp cloth from the high-res world
