@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@525f3a581865a5adcb6d74037a8aae7856164464/assets/sepia-sheet.png";   // 3 frames per mood: base / shimmer / blink
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@c6bb76da73d1f922f9f7fc0d512cc6bdd24c2ab9/assets/sepia-sheet.png";   // 3 frames per mood: base / shimmer / blink
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -155,7 +155,7 @@
     },
     "sepia": function (item) {
       var i = SEPIA_MOODS.indexOf(item); if (i < 0) i = Math.max(0, Math.min(31, parseInt(item, 10) || 0));
-      return { url: SEPIA_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 12, index: i, anim: { frames: 3, stride: 32 } };   // the renderer cycles shimmer + blink natively
+      return { url: SEPIA_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 13, index: i, anim: { frames: 3, frameRows: 4, stride: 32, maskIndex: 96 } };   // shimmer + blink cycled natively; maskIndex cell gates the smooth chromo layer
     }
   };
 
@@ -658,6 +658,30 @@
       kaoEl.style.pointerEvents = "auto";                      // the face is tappable; the rest of the layer lets water-clicks through
       faceLayer.appendChild(kaoEl); wrap.appendChild(faceLayer);
     }
+    // SUB-PIXEL TIME: the body animates in block frames, but the chromatophore layer
+    // glides smoothly over it — soft spots in the reporter's live palette colour,
+    // drifting continuously, masked to the mantle by the sheet's own mask cell. The
+    // space doctrine's sibling: chunky body, fine ink; chunky frames, fluid colour.
+    var chromo = null, chromoMask = null;
+    if (kaoEl && fm && fm.kind === "sprite" && fm.anim && fm.anim.maskIndex != null) {
+      chromo = document.createElement("canvas");
+      chromo.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
+      kaoEl.style.position = "relative";
+      kaoEl.appendChild(chromo);                               // inside the face element: rides every pose and shake
+      var mimg = new Image(); mimg.crossOrigin = "anonymous";
+      mimg.onload = function () {
+        try {
+          var mc = document.createElement("canvas"); mc.width = fm.cellW || 64; mc.height = fm.cellH || 64;
+          var mcol = fm.anim.maskIndex % fm.cols, mrow = Math.floor(fm.anim.maskIndex / fm.cols);
+          var mx = mc.getContext("2d");
+          mx.drawImage(mimg, mcol * mc.width, mrow * mc.height, mc.width, mc.height, 0, 0, mc.width, mc.height);
+          mx.getImageData(0, 0, 1, 1);                         // taint probe — throws if CORS failed, and we quietly skip the layer
+          chromoMask = mc;
+        } catch (e) { chromo.style.display = "none"; }
+      };
+      mimg.onerror = function () { chromo.style.display = "none"; };
+      mimg.src = fm.url;
+    }
     // Every banner-generated message carries this prefix so it never reads as typed text —
     // the skill tells the reporter to receive these as gestures, not prompts. Each one also
     // ends with a blank line: consecutive taps (a boop then a feeding) land as separate
@@ -864,7 +888,7 @@
         // Chromatophores drift on a slow uneven clock; blinks land on a seeded organic
         // cadence. Native frames, never an animated image — the tidepool's philosophy. ---
         if (kaoEl && fm && fm.kind === "sprite" && fm.anim) {
-          var fRows = fm.rows / fm.anim.frames;
+          var fRows = fm.anim.frameRows || fm.rows / fm.anim.frames;
           var fr = Math.floor(t / 2.3 + (L.seed % 4) * 0.37) % 2;                    // shimmer: base ↔ alt
           var bper = 3.2 + (L.seed % 5) * 0.9;
           if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 2;                      // blink overrides, ~160ms
@@ -873,6 +897,33 @@
             var fcol2 = fm.index % fm.cols, frow2 = Math.floor(fm.index / fm.cols) + fr * fRows;
             kaoEl.style.backgroundPosition =
               g(fm.cols > 1 ? fcol2 / (fm.cols - 1) * 100 : 0) + "% " + g(fm.rows > 1 ? frow2 / (fm.rows - 1) * 100 : 0) + "%";
+          }
+        }
+
+        // --- smooth chromatophores: continuous drift in the live palette's colour ---
+        if (chromo && chromoMask) {
+          var ccw = kaoEl.clientWidth, cch = kaoEl.clientHeight;
+          if (ccw > 4 && cch > 4) {
+            if (chromo.width !== ccw) { chromo.width = ccw; chromo.height = cch; }
+            var cctx = chromo.getContext("2d");
+            cctx.clearRect(0, 0, ccw, cch);
+            var hueC = (p.palette && p.palette[0]) || "#b89ab0";
+            for (var ci = 0; ci < 5; ci++) {
+              var crr = mulberry32(L.seed + ci * 7717 + 5);
+              var pax = 0.2 + crr() * 0.6, pay = 0.08 + crr() * 0.62;   // anchors live where the mantle is: upper-centre of the face box
+              var sw1 = 0.045 + crr() * 0.075, sw2 = 0.04 + crr() * 0.065, cp1 = crr() * 6.28, cp2 = crr() * 6.28;
+              var cxp = (pax + 0.2 * Math.sin(t * sw1 * 6.28 + cp1)) * ccw;
+              var cyp = (pay + 0.2 * Math.sin(t * sw2 * 6.28 + cp2)) * cch;
+              var crad = (0.1 + 0.045 * Math.sin(t * 0.6 + ci * 2.1)) * ccw;
+              var cal = 0.26 + 0.14 * Math.sin(t * 0.8 + ci * 1.7);
+              var cg = cctx.createRadialGradient(cxp, cyp, 0, cxp, cyp, crad);
+              cg.addColorStop(0, rgba(hueC, cal)); cg.addColorStop(1, rgba(hueC, 0));
+              cctx.fillStyle = cg; cctx.beginPath(); cctx.arc(cxp, cyp, crad, 0, 6.2832); cctx.fill();
+            }
+            cctx.globalCompositeOperation = "destination-in";
+            cctx.imageSmoothingEnabled = false;                // the mask keeps its chunky 4px edges — spots glide, the silhouette does not
+            cctx.drawImage(chromoMask, 0, 0, ccw, cch);
+            cctx.globalCompositeOperation = "source-over";
           }
         }
 

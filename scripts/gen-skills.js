@@ -12,7 +12,7 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 
 // Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
 // If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
-const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@525f3a581865a5adcb6d74037a8aae7856164464/assets/sepia-sheet.png";   // 3 frames per mood (base/shimmer/blink)
+const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@c6bb76da73d1f922f9f7fc0d512cc6bdd24c2ab9/assets/sepia-sheet.png";   // 3 frames per mood (base/shimmer/blink)
 const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
 const SCENE_TIDEPOOL = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png";
 // Newer scenes pin via the release sha (npm run pin stamps every consumer uniformly;
@@ -216,7 +216,7 @@ reference face-pack. Cheerful, compact, eight moods.`,
 
   // Builder-only: face previews for the narrator callouts and mood strips.
   PREVIEW: {
-    sepia: { kind: "sheet", url: SEPIA_SHEET, cols: 8, rows: 12, cell: 64,
+    sepia: { kind: "sheet", url: SEPIA_SHEET, cols: 8, rows: 13, cell: 64,
       moods: ["neutral","content","delighted","focused","sleepy","sheepish","booped","thinking",
         "spark","excited","surprised","tender","melancholy","anxious","mirth","laugh",
         "groan","oops","frustrated","angry","dramatic","at_peace","solemn","rhyme",
