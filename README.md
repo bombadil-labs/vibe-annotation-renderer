@@ -60,7 +60,7 @@ also exported (Node too) — it's the static fallback and the basis for the test
 | `stance` (0–1) | contour firmness: 1 (telling) gives the ovals a definite stroked edge; 0/omitted (asking) keeps the pure gradient falloff |
 | `consonance` (0–1) | per-blob diffusion: 1/omitted → compact, solid ovals; 0 → diffuse washes (bigger, thinner). Plural-at-peace vs. plural-in-tension |
 | `prev` | the previous banner's palette: on mount the columns lerp from it to the current palette over ~2s, then hand off to normal idle. Animation-only; the static fallback ignores it |
-| `scene` | the habitat, as a **framed portrait window**: `"https://…png"` or `{ url, opacity }` (clamped 0.15–0.95, default 0.5). The scene fills a rounded square on the banner's left with the face centred inside it; readout and field columns shift right. Faces are alpha-transparent, so any scene works — first-party tidepool at `assets/scene-tidepool.png`; user photos host like face-packs (allowlisted CDNs). No scene → classic layout |
+| `scene` | the habitat, as a **framed portrait window**: `"https://…png"` or `{ url, opacity, live }` (opacity clamped 0.15–0.95, default 0.5). The scene fills a rounded square on the banner's left with the face centred inside it; readout and field columns shift right. Faces are alpha-transparent, so any scene works — first-party tidepool at `assets/scene-tidepool.png`; user photos host like face-packs (allowlisted CDNs). `live: "tidepool"` runs native ambience in the window — rising bubbles, a passing fish, tap-ripples, and feeding falls in as flakes; unknown `live` names are ignored, and the static render ignores the channel entirely. No scene → classic layout |
 | `field` | power path: hand-author the ovals instead of `palette` |
 
 **Flags** — rare, condition-triggered flourishes, passed as `flag: "<name>"` (a single
@@ -101,12 +101,16 @@ flags read as noise rather than nuance — so composition isn't a discipline, it
 in the grammar.
 
 **Attunement + play** — on surfaces where the host injects a `sendPrompt(text)` function
-(Claude's widget contexts), the banner grows quiet interactions: tap the `[note]` row twice
-(first tap arms it) to send a tiny stage-direction flicker into the chat — `*a flicker at
-your [note] ("…") — it doesn't quite land*`; click the face to `*boop*`; hover the banner
-for the upper-left tray (the host UI owns the upper right): the treat tin (🥫) serves
-claudemeal in the flavor of the reporter's own current palette, and the wrench (🔧) sends
-`*opens the vibe banner settings*` — the skill answers with a conversational settings menu
+(Claude's widget contexts), the banner grows quiet interactions. Every banner-generated
+message carries the **`[vibe banner]` prefix** so it never reads as typed text — the skill
+tells the reporter to receive these as gestures, not prompts. Tap the `[note]` row twice
+(first tap arms it) to send a tiny stage-direction flicker into the chat — `[vibe banner]
+*a flicker at your [note] ("…") — it doesn't quite land*`; click the face to
+`[vibe banner] *boop*`; hover the banner for the upper-left tray (the host UI owns the
+upper right): the treat tin (🥫) serves claudemeal in the flavor of the reporter's own
+current palette (in a live tidepool it scatters over the water as falling flakes first),
+and the wrench (🔧) sends `[vibe banner] *opens the settings*` — the skill answers with a
+conversational settings menu
 (cadence, face-packs, …) and persists agreed overrides in Claude's memory. The `[user]` row
 is deliberately not interactive — it's the reporter's sovereign read, and even an affordance
 on it would change how it gets written. Every readout row tooltips its full text on hover,

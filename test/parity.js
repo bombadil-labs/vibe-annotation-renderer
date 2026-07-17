@@ -60,6 +60,14 @@ ok(/cx="265"/.test(sc) && /cx="397"/.test(sc) && /cx="530"/.test(sc), "field col
 ok(/cx="150"/.test(buildSVG(base)) && !/clipPath/.test(buildSVG(base)), "no scene → classic layout, no window");
 ok(/opacity="0.95"><image/.test(buildSVG(Object.assign({}, base, { scene: { url: "https://x.co/a.png", opacity: 3 } }))), "opacity clamps to 0.95");
 
+console.log("scene.live is animation-only: the static render ignores it entirely");
+const noClip = (svg) => svg.replace(/vscn\d+/g, "vscn");
+let lv0 = buildSVG(Object.assign({}, base, { scene: { url: "https://x.co/a.png" } }));
+let lv1 = buildSVG(Object.assign({}, base, { scene: { url: "https://x.co/a.png", live: "tidepool" } }));
+let lv2 = buildSVG(Object.assign({}, base, { scene: { url: "https://x.co/a.png", live: "volcano" } }));
+ok(noClip(lv0) === noClip(lv1), "live: 'tidepool' → static svg identical to a still scene");
+ok(noClip(lv0) === noClip(lv2), "unknown live name → ignored, no crash");
+
 console.log("readout rows carry full-text tooltips");
 let tt = buildSVG(Object.assign({}, base, { seems: "an overlong read that will clip", noticing: "the full subtext" }));
 ok(/<title>an overlong read that will clip<\/title>/.test(tt), "[user] row has a <title> tooltip");

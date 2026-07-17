@@ -682,7 +682,7 @@ route();
   function snippetText() {
     var popts = (S.play ? [] : ["play: false"]).concat(S.cues ? [] : ["cues: false"]);
     var su = sceneUrl();
-    if (su) popts.push('scene: { url: "' + su + '", opacity: ' + S.sceneOp + ' }');
+    if (su) popts.push('scene: { url: "' + su + '", opacity: ' + S.sceneOp + (S.scene === "tidepool" ? ', live: "tidepool"' : '') + ' }');
     return P.SNIPPET
       .replace("{{SNIPPET_URL}}", P.snippetUrl)
       .replace("{{SNIPPET_FACE}}", faceDef().SNIPPET_FACE)
@@ -768,7 +768,7 @@ route();
 
   // — Environment
   var cE = card("environment — scene");
-  cE.appendChild(callout("Where are we hanging out? The scene becomes a framed window on the banner's left with my face centred inside it — the readout keeps the right. Your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
+  cE.appendChild(callout("Where are we hanging out? The scene becomes a framed window on the banner's left with my face centred inside it — the readout keeps the right. The first-party tidepool is alive: bubbles rise, a fish passes, and tapping the water makes ripples. Your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
   var scSel = document.createElement("select"); scSel.style.cssText = SEL + "margin:0 0 8px;";
   [["none", "none (any page background)"], ["tidepool", "the tidepool (first-party)"], ["custom", "custom (your own image URL)"]].forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; scSel.appendChild(op);

@@ -262,11 +262,17 @@
     // scene: the banner's habitat — a framed, rounded PORTRAIT WINDOW on the left with
     // the face centred inside it; readout and field keep the right side. A window you
     // look into, not a wash, so it can run richer: default opacity 0.5.
-    // scene: "https://…" or { url, opacity }. Allowlisted CDNs, like faces.
+    // scene: "https://…" or { url, opacity, live }. Allowlisted CDNs, like faces.
+    // live names a first-party ambience the renderer draws natively in the frame loop
+    // (currently only "tidepool"); unknown names are ignored, static render ignores all.
     var scene = null;
     if (p.scene) {
       scene = typeof p.scene === "string" ? { url: p.scene } : p.scene;
-      scene = scene.url ? { url: String(scene.url), op: Math.max(0.15, Math.min(0.95, scene.opacity || 0.5)) } : null;
+      scene = scene.url ? {
+        url: String(scene.url),
+        op: Math.max(0.15, Math.min(0.95, scene.opacity || 0.5)),
+        live: scene.live === "tidepool" ? "tidepool" : null
+      } : null;
     }
 
     var kaoLines = kaoText.split("\n");
@@ -465,7 +471,7 @@
       '<title>Mood annotation</title><desc>Living mood field with a user read and a first-person feel/intent readout</desc>' +
       '<style>' + STYLE + '</style>' + L.textSVG + '</svg>' +
       '</div>';
-    var wrap = el.firstChild, cv = wrap.firstChild, ctx = cv.getContext("2d");
+    var wrap = el.firstChild, cv = wrap.querySelector("canvas"), ctx = cv.getContext("2d");   // querySelector, not firstChild — with a scene the first child is the scene svg
     if (L.vertigo) {                                           // Droste: the banner inside its own banner, depth hard-capped at one (flags omitted inside)
       var mini = document.createElement("div");
       mini.style.cssText = "position:absolute;right:8px;bottom:" + (L.hasLangs ? 20 : 6) + "px;width:22%;z-index:2;pointer-events:none;opacity:0.92;" +
@@ -485,6 +491,20 @@
     // reporter's sovereign opinion, and even an affordance on it would surface that the read
     // is watched-and-touchable, bending every future read (see DESIGN.md).
     var kaoEl = wrap.querySelector(".vk"), baseFill = [92, 67, 32];
+    // Every banner-generated message carries this prefix so it never reads as typed text —
+    // the skill tells the reporter to receive these as gestures, not prompts.
+    var VP = "[vibe banner] ";
+    // live scene state: drawn natively in the frame loop below (never an animated image —
+    // see DESIGN.md). Ambience runs for everyone; only the click affordances gate on play.
+    var live = (L.scene && L.scene.live && L.portrait) ? { ripples: [], feeds: [] } : null;
+    if (live && p.play !== false) {                            // tap the water, get ripples
+      wrap.addEventListener("click", function (e) {
+        var r = wrap.getBoundingClientRect(); if (!r.width || !r.height) return;
+        var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * L.H;
+        var pt = L.portrait;
+        if (x >= pt.x && x <= pt.x + pt.s && y >= pt.y && y <= pt.y + pt.s) live.ripples.push({ x: x, y: y, t0: null });
+      });
+    }
     if (typeof root.sendPrompt === "function") {
       // native opt-outs (skill-builder surface): cues:false disables the [note] tap,
       // play:false disables the boop and the hover tray. Defaults stay on.
@@ -499,13 +519,13 @@
           } else {
             clearTimeout(tmr); armed = false; row.style.textDecoration = "";
             var q = String(p.noticing); if (q.length > 60) q = q.slice(0, 57) + "…";
-            root.sendPrompt('*a flicker at your [note] ("' + q + '") — it doesn\'t quite land*');
+            root.sendPrompt(VP + '*a flicker at your [note] ("' + q + '") — it doesn\'t quite land*');
           }
         });
       }
       if (kaoEl && p.play !== false) {                         // boop: the face itself is the button
         kaoEl.style.cursor = "pointer";
-        kaoEl.addEventListener("click", function () { root.sendPrompt("*boop*"); });
+        kaoEl.addEventListener("click", function () { root.sendPrompt(VP + "*boop*"); });
       }
       if (p.play !== false) {
       var tray = document.createElement("div");                // hover tray, upper LEFT (Claude's own UI owns the upper right)
@@ -514,12 +534,16 @@
       var fb = document.createElement("button");
       fb.textContent = "🥫"; fb.title = "feed claude"; fb.style.cssText = BTN;
       fb.addEventListener("click", function () {
-        root.sendPrompt("*sets down a fresh tin of claudemeal — " + flavorOf(p.palette) + " flavor*");
+        var flav = flavorOf(p.palette) + " flavor*";
+        if (live) {                                            // in a tidepool the meal arrives as flakes on the water; the message follows the fall
+          live.feeds.push({ t0: null });
+          setTimeout(function () { root.sendPrompt(VP + "*scatters a pinch of claudemeal over the tidepool — " + flav); }, 1400);
+        } else root.sendPrompt(VP + "*sets down a fresh tin of claudemeal — " + flav);
       });
       var sb = document.createElement("button");               // the wrench: asks the reporter to open settings talk
       sb.textContent = "🔧"; sb.title = "vibe settings"; sb.style.cssText = BTN;
       sb.addEventListener("click", function () {
-        root.sendPrompt("*opens the vibe banner settings*");
+        root.sendPrompt(VP + "*opens the settings*");
       });
       tray.appendChild(fb); tray.appendChild(sb); wrap.appendChild(tray);
       wrap.addEventListener("mouseenter", function () { tray.style.opacity = "0.75"; });
@@ -586,6 +610,71 @@
         var faceMidY = fb ? fb.y + fb.h / 2 : cyC;
         ctx.setTransform(sx, 0, 0, sy, 0, 0);
         ctx.clearRect(0, 0, W, H);
+
+        // --- live scene: the tidepool breathes. Everything here stays inside the window's
+        // rounded clip; the face (DOM, above the canvas) swims in front of all of it. ---
+        if (live) {
+          var pt = L.portrait, ps = pt.s;
+          ctx.save();
+          ctx.beginPath();                                     // rounded-rect clip matching the window frame
+          ctx.moveTo(pt.x + 10, pt.y);
+          ctx.arcTo(pt.x + ps, pt.y, pt.x + ps, pt.y + ps, 10);
+          ctx.arcTo(pt.x + ps, pt.y + ps, pt.x, pt.y + ps, 10);
+          ctx.arcTo(pt.x, pt.y + ps, pt.x, pt.y, 10);
+          ctx.arcTo(pt.x, pt.y, pt.x + ps, pt.y, 10);
+          ctx.closePath(); ctx.clip();
+          for (var ui = 0; ui < 7; ui++) {                     // bubbles: seeded columns, rising, wrapping
+            var ur = mulberry32(L.seed + ui * 271 + 11);
+            var uxf = 0.08 + ur() * 0.84, usp = 7 + ur() * 9, urad = 1 + ur() * 1.7, uph = ur() * ps;
+            var uy = pt.y + ps + 5 - ((t * usp + uph) % (ps + 10));
+            var ux = pt.x + uxf * ps + Math.sin(t * 1.3 + ui * 2.1) * 2.2;
+            ctx.globalAlpha = 0.35; ctx.strokeStyle = "#dcecea"; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(ux, uy, urad, 0, 6.2832); ctx.stroke();
+          }
+          var fper = 13, fcu = (t % fper) / fper, fcyc = Math.floor(t / fper);
+          if (fcu < 0.4) {                                     // one small fish crossing, direction alternating pass to pass
+            var fdir = fcyc % 2 ? -1 : 1, fpp = fcu / 0.4;
+            var fx2 = pt.x + (fdir > 0 ? -12 + fpp * (ps + 24) : ps + 12 - fpp * (ps + 24));
+            var ffr = mulberry32(L.seed + fcyc * 53 + 5);
+            var fy2 = pt.y + ps * (0.28 + ffr() * 0.5) + Math.sin(t * 3) * 1.5;
+            var tail = 9 + Math.sin(t * 9) * 1.5;
+            ctx.globalAlpha = 0.55; ctx.fillStyle = "#31504c";
+            ctx.beginPath(); ctx.ellipse(fx2, fy2, 5.5, 2.2, 0, 0, 6.2832); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(fx2 - fdir * 5, fy2);
+            ctx.lineTo(fx2 - fdir * tail, fy2 - 2.6); ctx.lineTo(fx2 - fdir * tail, fy2 + 2.6);
+            ctx.closePath(); ctx.fill();
+            ctx.globalAlpha = 0.9; ctx.fillStyle = "#dcecea";
+            ctx.beginPath(); ctx.arc(fx2 + fdir * 3.4, fy2 - 0.5, 0.7, 0, 6.2832); ctx.fill();
+          }
+          live.ripples = live.ripples.filter(function (rp) {   // tap-ripples: two expanding rings, gone in 1.4s
+            if (rp.t0 == null) rp.t0 = t;
+            var ra = (t - rp.t0) / 1.4; if (ra >= 1) return false;
+            ctx.strokeStyle = "#e8f2f0"; ctx.lineWidth = 1.2;
+            [0, 0.22].forEach(function (off) {
+              var ru = ra - off; if (ru < 0) return;
+              ctx.globalAlpha = 0.5 * (1 - ru);
+              ctx.beginPath(); ctx.ellipse(rp.x, rp.y, 3 + ru * 26, (3 + ru * 26) * 0.45, 0, 0, 6.2832); ctx.stroke();
+            });
+            return true;
+          });
+          live.feeds = live.feeds.filter(function (fd) {       // claudemeal falls in from the top as fish food
+            if (fd.t0 == null) fd.t0 = t;
+            var fa = t - fd.t0; if (fa >= 2.2) return false;
+            for (var ki = 0; ki < 14; ki++) {
+              var kr = mulberry32(L.seed + ki * 389 + 101);
+              var kdel = kr() * 0.6, kxf = kr(), kdep = 0.55 + kr() * 0.4;
+              var ku = (fa - kdel) / 1.5;
+              if (ku < 0 || ku > 1) continue;
+              var kxx = pt.x + 8 + kxf * (ps - 16) + Math.sin((fa + ki) * 4) * 2;
+              var kyy = pt.y + 4 + ku * ps * kdep;
+              ctx.globalAlpha = ku > 0.8 ? (1 - ku) / 0.2 * 0.85 : 0.85;
+              ctx.fillStyle = ki % 3 ? "#d8b46a" : "#c49a52";
+              ctx.fillRect(kxx, kyy, 2, 1.4);
+            }
+            return true;
+          });
+          ctx.globalAlpha = 1; ctx.restore();
+        }
 
         // --- timed envelopes shared by field + face ---
         var laughB = 1, lLt = 0, lCyc = 0, laughKp = 0;

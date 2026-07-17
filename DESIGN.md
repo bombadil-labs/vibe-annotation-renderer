@@ -168,6 +168,24 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   general sub-pixel doctrine: the body lives on the 4px grid; body definition uses fine
   ink sparingly (lash-lines); worldly objects (the hachimaki) render at true 1px.
 
+- **Banner-generated messages carry the `[vibe banner]` prefix (v0.12.0).** Without it, a
+  boop lands in the chat as if the user typed the word "boop" — provenance is invisible.
+  The prefix is the standard: every `sendPrompt` the renderer fires starts with
+  `[vibe banner] `, and the skill's attunement section tells the reporter to receive such
+  messages as gestures (stage directions arriving through the glass), not prompts. New
+  interactions must use it; a bare `sendPrompt` string is a bug.
+
+- **Live scenes are drawn natively in the canvas frame loop, never as animated images
+  (v0.12.0).** The maintainer floated GIF backgrounds; the blocker on animated images
+  inside SVG `<image>` (see the bench) applies to scenes exactly as it does to faces —
+  and the mount already runs a frame loop, so ambience is cheaper and sharper drawn there.
+  `scene.live` is a *name*, not a URL: the renderer owns a small library of first-party
+  ambiences (currently `"tidepool"`: seeded rising bubbles, one fish crossing on a 13s
+  period with alternating direction, tap-ripples, and a feed that falls in as flakes
+  before the chat message sends). Unknown names no-op; the static render ignores the
+  channel; everything clips to the portrait window. Custom user scenes stay still — live
+  behavior only ships first-party, because it's code, and code only enters via this repo.
+
 ## The bench
 
 Entered, not admitted. If you take one up, honor the notes.
