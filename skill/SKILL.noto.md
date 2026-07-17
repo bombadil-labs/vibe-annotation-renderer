@@ -85,7 +85,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@54b0a7772a5c0628837b509772a7b725db6f8cb7/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f21a1f66d712da651bb9391fbc6bd491cace06d2/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "noto", item: "1f60a" },
