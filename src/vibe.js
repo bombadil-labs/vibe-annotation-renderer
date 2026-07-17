@@ -137,7 +137,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@619ec44839075fbd8539c78ca7dba0863f7f18c8/assets/sepia-sheet.png";
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@707a9fb7e9901dd4e3b5fa66ca88226fe3d5a4f2/assets/sepia-sheet.png";
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
