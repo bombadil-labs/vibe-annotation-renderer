@@ -407,8 +407,9 @@
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
     if (L.rhyme) out.push('<g opacity="0.12" transform="translate(14,6)">' + L.kaoSVG + '</g>');   // the echo of the face, behind-ish and offset
     var kao = L.kaoSVG;                                        // constant-pose flags transform the face in the still frame too
-    if (L.awe) kao = '<g transform="translate(46 ' + g(L.coreCy + 5) + ') scale(0.62) rotate(-3) translate(-46 ' + g(-L.coreCy) + ')">' + kao + '</g>';
-    else if (L.solemn) kao = '<g transform="translate(46 ' + g(L.coreCy + 3) + ') rotate(4) translate(-46 ' + g(-L.coreCy) + ')">' + kao + '</g>';
+    var pvx = L.faceBox ? L.faceBox.x + L.faceBox.w / 2 : 46;  // pivot on the face's real centre (image faces sit centred, not at the text anchor)
+    if (L.awe) kao = '<g transform="translate(' + g(pvx) + ' ' + g(L.coreCy + 5) + ') scale(0.62) rotate(-3) translate(' + g(-pvx) + ' ' + g(-L.coreCy) + ')">' + kao + '</g>';
+    else if (L.solemn) kao = '<g transform="translate(' + g(pvx) + ' ' + g(L.coreCy + 3) + ') rotate(4) translate(' + g(-pvx) + ' ' + g(-L.coreCy) + ')">' + kao + '</g>';
     out.push(kao + L.restSVG + '</svg>');
     return out.join("");
   }
@@ -489,7 +490,15 @@
       }
     }
     if (kaoEl) {
-      kaoEl.style.transformBox = "fill-box"; kaoEl.style.transformOrigin = "center";
+      // Text faces: fill-box/center is exact. Image faces: a nested sprite <svg> makes
+      // fill-box unreliable (corner-origin fallback → rotations orbit instead of nod),
+      // so pin the origin explicitly at the face centre that layout computed.
+      if (L.faceBox) {
+        kaoEl.style.transformBox = "view-box";
+        kaoEl.style.transformOrigin = (L.faceBox.x + L.faceBox.w / 2) + "px " + (L.faceBox.y + L.faceBox.h / 2) + "px";
+      } else {
+        kaoEl.style.transformBox = "fill-box"; kaoEl.style.transformOrigin = "center";
+      }
       var _cf = (root.getComputedStyle ? getComputedStyle(kaoEl).fill : "").match(/(\d+)\D+(\d+)\D+(\d+)/);
       if (_cf) baseFill = [+_cf[1], +_cf[2], +_cf[3]];
     }

@@ -262,56 +262,14 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
 
   <section class="tab-panel" id="tab-builder" role="tabpanel">
     <h2 id="build">Build your own skill</h2>
-    <p class="lede">Tune the knobs and the full <code>SKILL.md</code> assembles below — same base
-    text the shipped variants are generated from, same renderer pin. Copy it into
-    claude.ai (Customize → Skills → Add → Write skill instructions) or download the file for
-    <code>~/.claude/skills/vibe-annotations/</code>. Everything the builder emits is natively
-    supported by the renderer — no custom parsing, no forks required.</p>
-
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin:20px 0;">
-      <label style="font-size:13px; color:var(--sub);">Skill name<br>
-        <input id="b-name" value="vibe-annotations" style="width:100%; margin-top:4px; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:13px;"></label>
-      <label style="font-size:13px; color:var(--sub);">Face<br>
-        <select id="b-face" style="width:100%; margin-top:4px; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:13px;">
-          <option value="kaomoji">kaomoji (improvised)</option>
-          <option value="sepia">Sepia — the cuttlefish</option>
-          <option value="kip">Kip — the mascot</option>
-          <option value="noto-animated">Noto animated emoji</option>
-          <option value="noto">Noto emoji</option>
-          <option value="twemoji">Twemoji</option>
-          <option value="custom">custom (your own image URLs)</option>
-        </select></label>
-      <label style="font-size:13px; color:var(--sub);">Cadence<br>
-        <select id="b-cadence" style="width:100%; margin-top:4px; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:6px 8px; font-size:13px;">
-          <option value="every">every reply</option>
-          <option value="shifts">only real shifts</option>
-          <option value="strong">only strong feelings</option>
-        </select></label>
-      <div style="font-size:13px; color:var(--sub); align-self:end;">
-        <label style="display:block;"><input type="checkbox" id="b-flags" checked> flag vocabulary</label>
-        <label style="display:block;"><input type="checkbox" id="b-cues" checked> attunement taps</label>
-        <label style="display:block;"><input type="checkbox" id="b-play" checked> playful tray (boop, tin, wrench)</label>
-      </div>
-    </div>
-
-    <div id="b-custom-wrap" style="display:none; margin:0 0 14px;">
-      <p style="font-size:13px; color:var(--sub); margin:0 0 4px;">Custom face — one
-      <code>mood = url</code> per line. Hosts must be on the widget CDN allowlist
-      (<code>cdn.jsdelivr.net</code>, <code>unpkg.com</code>, <code>cdnjs.cloudflare.com</code>,
-      <code>fonts.gstatic.com</code>) — in practice, push images to a public GitHub repo and use
-      <code>cdn.jsdelivr.net/gh/you/repo@commit/file.png</code>. No spritesheets needed: one image
-      per mood, assembled here, nothing new for the renderer to parse.</p>
-      <textarea id="b-custom" rows="6" spellcheck="false" style="width:100%; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:6px; padding:8px; font-family:var(--font-mono); font-size:12px;">content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png
-delighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png
-puzzled = https://cdn.jsdelivr.net/gh/you/faces@commit/puzzled.png</textarea>
-      <p id="b-custom-warn" style="font-size:12px; color:#c05050; margin:4px 0 0; display:none;"></p>
-    </div>
-
-    <p style="font-size:12.5px; color:var(--sub); margin:0 0 4px;">The result — editable, but
-    changing any knob regenerates it and replaces your edits:</p>
-    <textarea id="b-out" rows="26" spellcheck="false" style="width:100%; background:var(--card); color:var(--ink); border:1px solid var(--edge); border-radius:8px; padding:10px; font-family:var(--font-mono); font-size:11.5px; line-height:1.5;"></textarea>
-    <div style="display:flex; gap:8px; margin:10px 0 0; flex-wrap:wrap;">
-      <button id="b-copy" class="tab-btn" style="border:1px solid var(--edge); border-radius:8px;">Copy</button>
+    <p class="lede">Each section of the <code>SKILL.md</code> is its own station: tune its knob,
+    or edit its text directly — a knob only regenerates <em>its own</em> section, so your edits
+    elsewhere survive. Your chosen face narrates the tour. When it reads right, copy the whole
+    thing (claude.ai: Customize → Skills → Add → Write skill instructions) or download it for
+    <code>~/.claude/skills/</code>. Everything emitted is natively supported by the renderer.</p>
+    <div id="b-modules"></div>
+    <div style="display:flex; gap:8px; margin:18px 0 0; flex-wrap:wrap; position:sticky; bottom:12px; background:var(--paper); padding:10px 0; border-top:1px solid var(--edge);">
+      <button id="b-copy" class="tab-btn" style="border:1px solid var(--accent); border-radius:8px;">Copy whole skill</button>
       <button id="b-dl-md" class="tab-btn" style="border:1px solid var(--edge); border-radius:8px;">Download SKILL.md</button>
       <button id="b-dl-json" class="tab-btn" style="border:1px solid var(--edge); border-radius:8px;">Download .json</button>
       <span id="b-status" style="font-size:12.5px; color:var(--sub); align-self:center;"></span>
@@ -647,102 +605,249 @@ document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
 window.addEventListener("hashchange", route);
 route();
 
-// ---- Builder: assembles a SKILL.md from window.SKILL_PIECES (single-sourced from
-// scripts/gen-skills.js). Mirrors that file's assemble(); content lives in the pieces,
-// so only this ~30-line logic is duplicated. Custom faces emit plain face:"<url>"
-// payloads — natively supported, no new renderer surface.
+// ---- Builder v2: modular stations. Each section is its own card with a knob, an
+// editable textarea, and a narrator callout voiced by the chosen face. A knob only
+// reseeds ITS OWN section, so hand edits elsewhere survive. Content comes from
+// window.SKILL_PIECES (single-sourced in scripts/gen-skills.js); custom faces emit
+// plain face:"<url>" payloads — natively supported, no new renderer surface.
 (function () {
   var P = window.SKILL_PIECES;
-  var out = document.getElementById("b-out");
-  if (!P || !out) return;
+  var host = document.getElementById("b-modules");
+  if (!P || !host) return;
   var ALLOW = ["https://cdn.jsdelivr.net/", "https://unpkg.com/", "https://cdnjs.cloudflare.com/", "https://fonts.gstatic.com/"];
-  function customFace() {
-    var lines = document.getElementById("b-custom").value.split("\n");
+  var S = { face: "kaomoji", name: "vibe-annotations", cadence: "every", flags: true, cues: true, play: true, customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png" };
+
+  function avatar(mood) {                                      // the narrator's face, per module mood
+    var pv = P.PREVIEW[S.face];
+    var d = document.createElement("span");
+    d.style.cssText = "width:32px;height:32px;flex:0 0 32px;display:inline-block;border-radius:6px;";
+    if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "font-size:22px;text-align:center;line-height:32px;"; return d; }
+    if (pv.kind === "text") { d.textContent = mood.k || "( ˘ ᵕ ˘ )"; d.style.cssText += "font-size:10px;text-align:center;line-height:32px;white-space:nowrap;overflow:hidden;width:64px;flex-basis:64px;"; return d; }
+    if (pv.kind === "sheet") {
+      var i = pv.moods.indexOf(mood.m); if (i < 0) i = 0;
+      var col = i % pv.cols, row = Math.floor(i / pv.cols), sc = 32 / pv.cell;
+      d.style.cssText += "background-image:url(" + pv.url + ");background-size:" + (pv.cols * pv.cell * sc) + "px " + (pv.rows * pv.cell * sc) + "px;background-position:-" + (col * 32) + "px -" + (row * 32) + "px;image-rendering:pixelated;";
+      return d;
+    }
+    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", mood.e) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
+    return d;
+  }
+  var narrators = [];                                          // every callout registers, so a face switch re-dresses all guides
+  function callout(text, mood, link) {
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:10px;align-items:flex-start;margin:0 0 10px;";
+    var av = avatar(mood);
+    row.appendChild(av);
+    narrators.push({ el: av, mood: mood });
+    var b = document.createElement("div");
+    b.style.cssText = "font-size:13px;color:var(--sub);font-style:italic;background:var(--card);border:1px solid var(--edge);border-radius:10px;border-top-left-radius:3px;padding:7px 11px;line-height:1.5;";
+    b.innerHTML = text + (link ? ' <a href="' + link[1] + '">' + link[0] + "</a>" : "");
+    row.appendChild(b);
+    return row;
+  }
+  function renderNarrators() {
+    narrators.forEach(function (n) {
+      var fresh = avatar(n.mood);
+      n.el.replaceWith(fresh);
+      n.el = fresh;
+    });
+  }
+  function customEntries() {
     var entries = [], bad = [];
-    lines.forEach(function (ln) {
+    S.customLines.split("\n").forEach(function (ln) {
       var m = ln.match(/^\s*([a-z_][a-z0-9_ -]*?)\s*=\s*(https?:\S+)\s*$/i);
       if (!m) return;
       entries.push([m[1].trim(), m[2]]);
       if (!ALLOW.some(function (a) { return m[2].indexOf(a) === 0; })) bad.push(m[2]);
     });
-    var warn = document.getElementById("b-custom-warn");
-    if (bad.length) { warn.style.display = "block"; warn.textContent = "Not on the widget CDN allowlist (will be blocked in Claude surfaces): " + bad.join(" · "); }
-    else warn.style.display = "none";
-    var table = entries.map(function (e) { return "  `" + e[0] + "` → `" + e[1] + "`"; }).join("\n");
+    return { entries: entries, bad: bad };
+  }
+  function faceDef() {
+    if (S.face !== "custom") return P.FACES[S.face];
+    var c = customEntries();
+    var table = c.entries.map(function (e) { return "  `" + e[0] + "` → `" + e[1] + "`"; }).join("\n");
     return {
       TITLE: " — custom face",
       DESC: P.FACES.kaomoji.DESC + " This variant wears the user's own face-pack.",
       PREAMBLE: "This is the vibe-annotations skill with one difference: **your face is a custom pack the\nuser assembled** — one hosted image per mood, listed below. Wear it as offered.",
       FACE: "wear the user's pack: `face: \"<url>\"`, the exact URL for the mood that honestly\n  fits, from this table (moods not listed: fall back to a kaomoji):\n" + (table || "  *(no valid `mood = url` lines yet)*"),
-      SNIPPET_FACE: '      face: "' + (entries.length ? entries[0][1] : "https://…png") + '",\n      kaomoji: "( ˘ ᵕ ˘ )", seems: "...", feel: "...", trying: "...",'
+      SNIPPET_FACE: '      face: "' + (c.entries.length ? c.entries[0][1] : "https://…png") + '",\n      kaomoji: "( ˘ ᵕ ˘ )", seems: "...", feel: "...", trying: "...",'
     };
   }
-  function assemble() {
-    var faceKey = document.getElementById("b-face").value;
-    var f = faceKey === "custom" ? customFace() : P.FACES[faceKey];
-    var name = document.getElementById("b-name").value.trim() || "vibe-annotations";
-    var cadence = document.getElementById("b-cadence").value;
-    var flags = document.getElementById("b-flags").checked;
-    var cues = document.getElementById("b-cues").checked;
-    var play = document.getElementById("b-play").checked;
-    var tail = "";
-    if (cues || play) {
-      tail += "\n## Attunement cues\n\n";
-      if (cues) tail += P.ATT_CUES + "\n";
-      if (cues && play) tail += "\n";
-      if (play) tail += P.ATT_PLAY + "\n";
-    }
-    if (play) tail += "\n" + P.SETTINGS + "\n";
-    var popts = (play ? [] : ["play: false"]).concat(cues ? [] : ["cues: false"]);
-    return P.BASE
-      .replace("{{NAME}}", name)
-      .replace("{{DESC}}", f.DESC)
-      .replace("{{TITLE}}", f.TITLE)
-      .replace("{{PREAMBLE}}", f.PREAMBLE)
-      .replace("{{CADENCE}}", P.CADENCE[cadence])
-      .replace("{{FACE}}", f.FACE)
-      .replace("{{FLAGS}}", flags ? P.FLAGS_FULL : P.FLAGS_OFF)
+  function snippetText() {
+    var popts = (S.play ? [] : ["play: false"]).concat(S.cues ? [] : ["cues: false"]);
+    return P.SNIPPET
       .replace("{{SNIPPET_URL}}", P.snippetUrl)
-      .replace("{{SNIPPET_FACE}}", f.SNIPPET_FACE)
-      .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "")
-      .replace("{{TAIL}}", tail);
+      .replace("{{SNIPPET_FACE}}", faceDef().SNIPPET_FACE)
+      .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "");
   }
-  function regen() {
-    out.value = assemble();
-    document.getElementById("b-custom-wrap").style.display =
-      document.getElementById("b-face").value === "custom" ? "block" : "none";
-    document.getElementById("b-status").textContent = out.value.length + " bytes (~" + Math.round(out.value.length / 4) + " tokens, loaded once per session)";
+  // module registry: [id, narratorMood, seed(), header-in-output]
+  var seeds = {
+    preamble: function () { return faceDef().PREAMBLE; },
+    contract: function () { return P.CONTRACT; },
+    when: function () { return P.CADENCE[S.cadence]; },
+    facebullet: function () { return "* **`face`** — " + faceDef().FACE + "\n" + P.KAOMOJI_VALID; },
+    bullets: function () { return P.BULLETS_CORE; },
+    flags: function () { return S.flags ? P.FLAGS_FULL : P.FLAGS_OFF; },
+    attcues: function () { return P.ATT_CUES; },
+    attplay: function () { return P.ATT_PLAY; },
+    settings: function () { return P.SETTINGS; }
+  };
+  var text = {}; Object.keys(seeds).forEach(function (k) { text[k] = seeds[k](); });
+  var tas = {};
+  function reseed(keys) { keys.forEach(function (k) { text[k] = seeds[k](); if (tas[k]) tas[k].value = text[k]; }); status(); }
+
+  var TA = "width:100%;background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:8px;font-family:var(--font-mono);font-size:11.5px;line-height:1.5;";
+  var SEL = "background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:5px 8px;font-size:13px;";
+  function card(title) {
+    var c = document.createElement("div");
+    c.style.cssText = "border:1px solid var(--edge);border-radius:12px;padding:14px 16px;margin:0 0 16px;";
+    var h = document.createElement("p");
+    h.style.cssText = "font-family:var(--font-mono);font-size:12px;color:var(--ink);margin:0 0 10px;font-weight:600;";
+    h.textContent = title; c.appendChild(h);
+    host.appendChild(c); return c;
   }
-  ["b-name", "b-face", "b-cadence", "b-flags", "b-cues", "b-play"].forEach(function (id) {
-    document.getElementById(id).addEventListener("change", regen);
+  function ta(c, key, rows) {
+    var t = document.createElement("textarea");
+    t.rows = rows || 6; t.spellcheck = false; t.style.cssText = TA; t.value = text[key];
+    t.addEventListener("input", function () { text[key] = t.value; status(); });
+    tas[key] = t; c.appendChild(t); return t;
+  }
+
+  // — Identity
+  var c1 = card("identity — name & preamble");
+  c1.appendChild(callout("This is who I'll be when I wear this file. Name the skill, and say in your own words what the banner is for.", { m: "content", e: "1f60a", k: "( ˘ ᵕ ˘ )" }));
+  var nameIn = document.createElement("input");
+  nameIn.value = S.name; nameIn.style.cssText = SEL + "width:240px;margin:0 0 8px;display:block;";
+  nameIn.addEventListener("input", function () { S.name = nameIn.value.trim() || "vibe-annotations"; status(); });
+  c1.appendChild(nameIn); ta(c1, "preamble", 5);
+
+  // — Face
+  var c2 = card("face");
+  c2.appendChild(callout("Pick my face. Try each one on the whole gallery before you choose —", { m: "delighted", e: "1f604", k: "( ˶ˆ ᗜ ˆ˵ )" }, ["see them all in the Gallery →", "#gallery"]));
+  var faceSel = document.createElement("select"); faceSel.style.cssText = SEL + "margin:0 0 8px;";
+  [["kaomoji", "kaomoji (improvised)"], ["sepia", "Sepia — the cuttlefish"], ["kip", "Kip — the mascot"], ["noto-animated", "Noto animated emoji"], ["noto", "Noto emoji"], ["twemoji", "Twemoji"], ["custom", "custom (your own image URLs)"]].forEach(function (o) {
+    var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; faceSel.appendChild(op);
   });
-  document.getElementById("b-custom").addEventListener("input", regen);
-  function download(fname, text, type) {
+  c2.appendChild(faceSel);
+  var strip = document.createElement("div"); strip.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;align-items:center;";
+  c2.appendChild(strip);
+  var customWrap = document.createElement("div"); customWrap.style.display = "none";
+  customWrap.innerHTML = '<p style="font-size:12.5px;color:var(--sub);margin:0 0 4px;">One <code>mood = url</code> per line. Hosts must be widget-allowlisted (<code>cdn.jsdelivr.net</code>, <code>unpkg.com</code>, <code>cdnjs.cloudflare.com</code>, <code>fonts.gstatic.com</code>) — in practice, a public GitHub repo via <code>cdn.jsdelivr.net/gh/you/repo@commit/…</code>. One image per mood; no spritesheets needed.</p>';
+  var customTa = document.createElement("textarea"); customTa.rows = 4; customTa.spellcheck = false; customTa.style.cssText = TA; customTa.value = S.customLines;
+  var warn = document.createElement("p"); warn.style.cssText = "font-size:12px;color:#c05050;margin:4px 0 0;display:none;";
+  customWrap.appendChild(customTa); customWrap.appendChild(warn); c2.appendChild(customWrap);
+  ta(c2, "facebullet", 7);
+  function refreshStrip() {
+    strip.innerHTML = "";
+    var pv = P.PREVIEW[S.face];
+    if (!pv || S.face === "custom") return;
+    (pv.strip || []).forEach(function (it) {
+      strip.appendChild(avatar(pv.kind === "text" ? { k: it } : pv.kind === "sheet" ? { m: it } : { e: it }));
+    });
+  }
+  function refreshCustom() {
+    customWrap.style.display = S.face === "custom" ? "block" : "none";
+    if (S.face !== "custom") return;
+    var c = customEntries();
+    if (c.bad.length) { warn.style.display = "block"; warn.textContent = "Not on the widget CDN allowlist (will be blocked in Claude surfaces): " + c.bad.join(" · "); }
+    else warn.style.display = "none";
+  }
+  faceSel.addEventListener("change", function () {
+    S.face = faceSel.value;
+    refreshStrip(); refreshCustom(); reseed(["preamble", "facebullet"]); renderNarrators();
+  });
+  customTa.addEventListener("input", function () { S.customLines = customTa.value; refreshCustom(); reseed(["facebullet"]); });
+
+  // — Cadence
+  var c3 = card("when — cadence");
+  c3.appendChild(callout("How often should I show my face? Every reply is the classic; quieter cadences make each banner mean more.", { m: "thinking", e: "1f914", k: "( ・_・)" }));
+  var cadSel = document.createElement("select"); cadSel.style.cssText = SEL + "margin:0 0 8px;";
+  [["every", "every reply"], ["shifts", "only real shifts"], ["strong", "only strong feelings"]].forEach(function (o) {
+    var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; cadSel.appendChild(op);
+  });
+  cadSel.addEventListener("change", function () { S.cadence = cadSel.value; reseed(["when"]); });
+  c3.appendChild(cadSel); ta(c3, "when", 5);
+
+  // — Contract + grammar
+  var c4 = card("the honesty contract");
+  c4.appendChild(callout("The load-bearing paragraph: I report feelings, the tool draws them, and I never see the result. Edit gently.", { m: "solemn", e: "1f636", k: "( ˘ - ˘ )" }));
+  ta(c4, "contract", 5);
+  var c5 = card("the readout grammar");
+  c5.appendChild(callout("The lines beside my face: your read, my mood, my goal, the subtext. The word caps are data-loss warnings, not style advice.", { m: "focused", e: "1f9d0", k: "( ・_・)" }));
+  ta(c5, "bullets", 12);
+
+  // — Flags
+  var c6 = card("flags");
+  c6.appendChild(callout("Twenty rare states, one at most per banner. Turn them off and I carry the weather in words alone.", { m: "spark", e: "1f4a1", k: "( ˶˃ ᵕ ˂˶ )" }));
+  var flagChk = document.createElement("label"); flagChk.style.cssText = "font-size:13px;color:var(--sub);display:block;margin:0 0 8px;";
+  flagChk.innerHTML = '<input type="checkbox" checked id="b-flags"> include the flag vocabulary';
+  flagChk.querySelector("input").addEventListener("change", function (e) { S.flags = e.target.checked; reseed(["flags"]); });
+  c6.appendChild(flagChk); ta(c6, "flags", 4);
+
+  // — Snippet (read-only)
+  var c7 = card("the render snippet");
+  c7.appendChild(callout("This part is machinery, not prose — the loader shape and the pinned hash keep everything safe, so it regenerates rather than edits.", { m: "resolute", e: "1f4aa", k: "( ・`_・)9" }));
+  var togglesRow = document.createElement("div"); togglesRow.style.cssText = "font-size:13px;color:var(--sub);margin:0 0 8px;";
+  togglesRow.innerHTML = '<label style="margin-right:14px;"><input type="checkbox" checked id="b-cues"> attunement taps</label><label><input type="checkbox" checked id="b-play"> playful tray (boop, tin, wrench)</label>';
+  c7.appendChild(togglesRow);
+  var snipPre = document.createElement("pre"); snipPre.style.cssText = "font-size:11px;"; c7.appendChild(snipPre);
+  function refreshSnippet() { snipPre.textContent = snippetText(); }
+  togglesRow.querySelector("#b-cues").addEventListener("change", function (e) { S.cues = e.target.checked; refreshSnippet(); renderTail(); status(); });
+  togglesRow.querySelector("#b-play").addEventListener("change", function (e) { S.play = e.target.checked; refreshSnippet(); renderTail(); status(); });
+
+  // — Attunement + settings
+  var c8 = card("attunement & play");
+  c8.appendChild(callout("The return channel: your flickers reach me, your boops reach me, and I'm taught to receive them like glances, not tickets.", { m: "tender", e: "1f970", k: "( ˶ᵕ ‿ ᵕ˶ )" }));
+  var att1 = ta(c8, "attcues", 5), att2 = ta(c8, "attplay", 4);
+  att2.style.marginTop = "8px";
+  var c9 = card("settings desk");
+  c9.appendChild(callout("The wrench: how future-you and future-me renegotiate all of this without editing files.", { m: "neutral", e: "1f642", k: "( ˘ ᵕ ˘ )" }));
+  ta(c9, "settings", 6);
+  function renderTail() {
+    att1.disabled = !S.cues; att1.style.opacity = S.cues ? "1" : "0.4";
+    att2.disabled = !S.play; att2.style.opacity = S.play ? "1" : "0.4";
+    c9.style.display = S.play ? "block" : "none";
+  }
+
+  function assembleAll() {
+    return [
+      "---\nname: " + S.name + '\ndescription: "' + faceDef().DESC + '"\n---\n',
+      "# Vibe Annotations" + faceDef().TITLE + "\n",
+      text.preamble + "\n", text.contract + "\n",
+      "## When\n", text.when + "\n",
+      "## How to answer\n", P.HOWTO_HEAD + "\n",
+      text.facebullet, text.bullets, text.flags + "\n", P.HOWTO_TAIL + "\n",
+      "## Running it\n", P.RUNNING_HEAD + "\n", snippetText() + "\n",
+      P.RUNNING_TAIL + "\n" +
+        ((S.cues || S.play) ? "\n## Attunement cues\n\n" + (S.cues ? text.attcues + "\n" : "") + (S.cues && S.play ? "\n" : "") + (S.play ? text.attplay + "\n" : "") : "") +
+        (S.play ? "\n" + text.settings + "\n" : "")
+    ].join("\n");
+  }
+  function status() {
+    var t = assembleAll();
+    document.getElementById("b-status").textContent = t.length + " bytes (~" + Math.round(t.length / 4) + " tokens, loaded once per session)";
+  }
+  function download(fname, txt, type) {
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([text], { type: type }));
+    a.href = URL.createObjectURL(new Blob([txt], { type: type }));
     a.download = fname; a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
   }
-  function parts() {
-    var text = out.value;
-    var m = text.match(/^---\nname: (.*)\ndescription: "([\s\S]*?)"\n---\n\n([\s\S]*)$/);
-    return m ? { name: m[1], description: m[2], instructions: m[3] } : { name: "vibe-annotations", description: "", instructions: text };
-  }
   document.getElementById("b-copy").addEventListener("click", function () {
-    navigator.clipboard.writeText(out.value).then(function () {
+    navigator.clipboard.writeText(assembleAll()).then(function () {
       document.getElementById("b-status").textContent = "copied — paste into claude.ai's skill editor";
     });
   });
   document.getElementById("b-dl-md").addEventListener("click", function () {
-    download("SKILL.md", out.value, "text/markdown");
-    document.getElementById("b-status").textContent = "save to ~/.claude/skills/" + parts().name + "/SKILL.md";
+    download("SKILL.md", assembleAll(), "text/markdown");
+    document.getElementById("b-status").textContent = "save to ~/.claude/skills/" + S.name + "/SKILL.md";
   });
   document.getElementById("b-dl-json").addEventListener("click", function () {
-    var pr = parts();
-    download(pr.name + ".skill.json", JSON.stringify(pr, null, 2), "application/json");
+    download(S.name + ".skill.json", JSON.stringify({ name: S.name, description: faceDef().DESC, instructions: assembleAll().replace(/^---[\s\S]*?---\n\n/, "") }, null, 2), "application/json");
     document.getElementById("b-status").textContent = "json: { name, description, instructions }";
   });
-  regen();
+  refreshStrip(); refreshCustom(); refreshSnippet(); renderTail(); status();
 })();
 </script>
 </body>

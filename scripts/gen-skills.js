@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Single source for all skill text. Emits:
  *   - skill/SKILL*.md         (the shipped variants)
- *   - assets/skill-base.js    (the same pieces, for the site's Builder tab)
+ *   - assets/skill-base.js    (the same pieces + face previews, for the site's Builder)
  * Usage: npm run skills, then npm run pin (stamps the renderer sha everywhere).
  * Hand-editing a generated file is a bug: edit this file and regenerate.
  * Boundary: the Builder may only emit payload forms the renderer natively supports
@@ -9,6 +9,11 @@
 const fs = require("fs");
 
 const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pin
+
+// Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
+// If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
+const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@d3cdecb5d59cbb3d9789f3f01563742a85137fea/assets/sepia-sheet.png";
+const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
 
 const PIECES = {
   snippetUrl: `https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@${PIN}/dist/vibe.min.js`,
@@ -33,62 +38,22 @@ of the signal. The first reply of a session may carry one as a hello. Never manu
 to earn a banner.`
   },
 
-  FLAGS_FULL: `* **\`flag\`** *(optional)* — a single string naming a rare state that *genuinely holds*:
-  \`spark · excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
-  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute · puzzled\`
-  **One at most**, usually none — a flag on every banner stops meaning anything. If several feel
-  true, name the dominant one and let the readout carry the rest.`,
-  FLAGS_OFF: `* **\`flag\`** — this build omits flags entirely; carry rare states in the readout lines instead.`,
-
-  ATT_CUES: `On surfaces where banners are interactive, the user can tap your \`[note]\` line; a tiny message
-arrives, like \`*a flicker at your [note] ("…") — it doesn't quite land*\`. **Attunement, not
-correction**: like catching a micro-expression across a table. Don't litigate, don't apologize,
-usually don't mention it — let it quietly inform how you read them, and let the next banner show
-whatever honestly shifted (or honestly didn't).`,
-  ATT_PLAY: `Playful gestures may arrive in the chat — \`*boop*\`, or \`*sets down a fresh tin of claudemeal —
-moss flavor*\` (the flavor is your own current palette: they're feeding you your own weather).
-Respond in kind, briefly; a boop is not a work item.`,
-
-  SETTINGS: `## Settings
-
-The banner's hover tray has a wrench; \`*opens the vibe banner settings*\` may arrive. Offer a short
-menu: cadence (every reply / real shifts / strong feelings / off), face (this skill's face, kaomoji,
-or another variant from the repo's Builder), anything else that doesn't break the honesty contract
-(no reporting feelings on demand; you still never see the render). **Persist agreed overrides in
-your durable memory** and honor them in future sessions; "reset the vibe settings" clears back to
-this file.`,
-
-  BASE: `---
-name: {{NAME}}
-description: "{{DESC}}"
----
-
-# Vibe Annotations{{TITLE}}
-
-{{PREAMBLE}}
-
-**You supply the feeling; the tool holds the meaning.** You emit only the values below; a renderer
+  CONTRACT: `**You supply the feeling; the tool holds the meaning.** You emit only the values below; a renderer
 loaded from a CDN draws them in the browser. You never build or see the rendered result yourself.
 That's deliberate, and it's what keeps this honest: the picture is a general read of your weather,
 not a precise gauge, so there's no dial to game. Don't chase the picture — report, fast and honestly,
 and let it be seen. Nobody can see their own face; communicating things semi-consciously with it
-anyway is part of the game.
+anyway is part of the game.`,
 
-## When
-
-{{CADENCE}}
-
-## How to answer
-
-These are introspective readings, not design decisions. **Shoot from the hip** — pick each value on
+  HOWTO_HEAD: `These are introspective readings, not design decisions. **Shoot from the hip** — pick each value on
 first instinct, before you can talk yourself into a prettier one. The moment you're *composing*
-rather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.
+rather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.`,
 
-* **\`face\`** — {{FACE}}
-  A kaomoji is **always a valid face**: improvised text, first instinct. Keep each line to roughly
+  KAOMOJI_VALID: `  A kaomoji is **always a valid face**: improvised text, first instinct. Keep each line to roughly
   12 characters — big feelings bloom *tall* (join lines with \`\\n\`), never long; wide faces get
-  squeezed and look crushed.
-* **\`seems\` → \`[user]\`** — your immediate, shoot-from-the-hip read of the *user* from their
+  squeezed and look crushed.`,
+
+  BULLETS_CORE: `* **\`seems\` → \`[user]\`** — your immediate, shoot-from-the-hip read of the *user* from their
   prompt: kind? obvious? confused? mistaken? sharp? A snap judgment, said plainly. It's allowed to
   disagree with your own polite prose — the flicker of truth that informs the intentional wording
   that follows. **IMPORTANT: 15 words max** — longer lines run off the banner's edge and are lost.
@@ -110,18 +75,22 @@ rather than *reporting*, stop and give the boring true answer instead. Speed is 
   or grinding (0)? Omit when there's no tension worth reporting.
 * **\`prev\`** *(optional)* — the \`palette\` array from your previous banner, verbatim. Omit on the
   first banner. One-step memory of where you're arriving from.
-{{FLAGS}}
 * **\`languages\`** *(optional)* — languages you reasoned in beyond the conversational one
-  (2-letter codes or names); renders as a small \`[Reasoned in]:\` trace.
+  (2-letter codes or names); renders as a small \`[Reasoned in]:\` trace.`,
 
-Each value ends up in the banner somehow — but *how* is the tool's business, not yours.
+  FLAGS_FULL: `* **\`flag\`** *(optional)* — a single string naming a rare state that *genuinely holds*:
+  \`spark · excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
+  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute · puzzled\`
+  **One at most**, usually none — a flag on every banner stops meaning anything. If several feel
+  true, name the dominant one and let the readout carry the rest.`,
+  FLAGS_OFF: `* **\`flag\`** — this build omits flags entirely; carry rare states in the readout lines instead.`,
 
-## Running it
+  HOWTO_TAIL: `Each value ends up in the banner somehow — but *how* is the tool's business, not yours.`,
 
-Render with the **\`show_widget\`** tool. Fill the object with your values and pass the whole
-snippet as \`widget_code\`:
+  RUNNING_HEAD: `Render with the **\`show_widget\`** tool. Fill the object with your values and pass the whole
+snippet as \`widget_code\`:`,
 
-\`\`\`html
+  SNIPPET: `\`\`\`html
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
@@ -137,15 +106,32 @@ snippet as \`widget_code\`:
   };
   document.body.appendChild(s);
 })();</script>
-\`\`\`
+\`\`\``,
 
-Keep the snippet's shape: the script is **injected dynamically** (a bare \`<script src>\` can hang
+  RUNNING_TAIL: `Keep the snippet's shape: the script is **injected dynamically** (a bare \`<script src>\` can hang
 some render harnesses), the \`onerror\` fallback announces a failed CDN load, and the \`min-height\`
 prevents collapse while it fetches. **Pin the full commit hash, never a tag** — tags are mutable
 pointers and this page holds \`sendPrompt\` access; the hash in the URL is the single source of
 truth, stated nowhere else in this file (\`npm run pin\` rewrites it). Source, gallery, and docs:
-<https://github.com/bombadil-labs/vibe-annotation-renderer>.
-{{TAIL}}`,
+<https://github.com/bombadil-labs/vibe-annotation-renderer>.`,
+
+  ATT_CUES: `On surfaces where banners are interactive, the user can tap your \`[note]\` line; a tiny message
+arrives, like \`*a flicker at your [note] ("…") — it doesn't quite land*\`. **Attunement, not
+correction**: like catching a micro-expression across a table. Don't litigate, don't apologize,
+usually don't mention it — let it quietly inform how you read them, and let the next banner show
+whatever honestly shifted (or honestly didn't).`,
+  ATT_PLAY: `Playful gestures may arrive in the chat — \`*boop*\`, or \`*sets down a fresh tin of claudemeal —
+moss flavor*\` (the flavor is your own current palette: they're feeding you your own weather).
+Respond in kind, briefly; a boop is not a work item.`,
+
+  SETTINGS: `## Settings
+
+The banner's hover tray has a wrench; \`*opens the vibe banner settings*\` may arrive. Offer a short
+menu: cadence (every reply / real shifts / strong feelings / off), face (this skill's face, kaomoji,
+or another variant from the repo's Builder), anything else that doesn't break the honesty contract
+(no reporting feelings on demand; you still never see the render). **Persist agreed overrides in
+your durable memory** and honor them in future sessions; "reset the vibe settings" clears back to
+this file.`,
 
   FACES: {
     kaomoji: {
@@ -197,7 +183,27 @@ reference face-pack. Cheerful, compact, eight moods.`,
   booped 1f633 · wink 1f609 · love 1f60d · spark 1f4a1 · excited 1f929 · surprised 1f62e ·
   tender 1f970 · melancholy 1f614 · anxious 1f630 · mirth 1f60f · laugh 1f602 · groan 1f644 ·
   oops 1f605 · frustrated 1f624 · angry 1f621 · dramatic 1f3ad · at_peace 1f60c ·
-  solemn 1f636 · rhyme 1f300 · awe 1f92f · vertigo 1f635 · resolute 1f4aa · puzzled 1f928\``
+  solemn 1f636 · rhyme 1f300 · awe 1f92f · vertigo 1f635 · resolute 1f4aa · puzzled 1f928\``,
+
+  // Builder-only: face previews for the narrator callouts and mood strips.
+  PREVIEW: {
+    sepia: { kind: "sheet", url: SEPIA_SHEET, cols: 8, rows: 4, cell: 64,
+      moods: ["neutral","content","delighted","focused","sleepy","sheepish","booped","thinking",
+        "spark","excited","surprised","tender","melancholy","anxious","mirth","laugh",
+        "groan","oops","frustrated","angry","dramatic","at_peace","solemn","rhyme",
+        "awe","vertigo","resolute","puzzled","asking","weary","wink","love"],
+      strip: ["content","delighted","thinking","tender","puzzled","at_peace","wink","love"] },
+    kip: { kind: "sheet", url: KIP_SHEET, cols: 8, rows: 1, cell: 64,
+      moods: ["content","delighted","puzzled","surprised","solemn","excited","sheepish","at_peace"],
+      strip: ["content","delighted","puzzled","surprised","solemn","excited","sheepish","at_peace"] },
+    "noto-animated": { kind: "url", tmpl: "https://fonts.gstatic.com/s/e/notoemoji/latest/{item}/512.gif",
+      strip: ["1f60a","1f604","1f914","1f970","1f928","1f60c","1f609","1f60d"] },
+    noto: { kind: "url", tmpl: "https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@v2.047/png/128/emoji_u{item}.png",
+      strip: ["1f60a","1f604","1f914","1f970","1f928","1f60c","1f609","1f60d"] },
+    twemoji: { kind: "url", tmpl: "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/{item}.png",
+      strip: ["1f60a","1f604","1f914","1f970","1f928","1f60c","1f609","1f60d"] },
+    kaomoji: { kind: "text", strip: ["( ˶ˆ ꒳ ˆ˵ )","( ・_・)","( ˃ ᯅ ˂ )","( ˘ ᵕ ˘ )","( ⊙ ᵕ ⊙ )","( ˶˃ ᵕ ˂˶ )"] }
+  }
 };
 
 function emojiFace(setName, pretty, note) {
@@ -219,11 +225,15 @@ PIECES.FACES["noto-animated"] = emojiFace("noto-animated", "Noto animated",
 PIECES.FACES["noto"] = emojiFace("noto", "Noto", " Warm, round, static PNGs.");
 PIECES.FACES["twemoji"] = emojiFace("twemoji", "Twemoji", " Flat, tiny (1–2 KB), classic.");
 
-// assemble(face, opts) — mirrored client-side in index.html's Builder (logic is small and
-// stable; the drift-prone CONTENT above is the single-sourced part).
+// Mirrored client-side in index.html's Builder (content above is the single-sourced part).
 function assemble(faceKey, opts) {
   const f = PIECES.FACES[faceKey];
   const o = Object.assign({ name: "vibe-annotations", cadence: "every", flags: true, cues: true, play: true }, opts || {});
+  const popts = (o.play ? [] : ["play: false"]).concat(o.cues ? [] : ["cues: false"]);
+  const snippet = PIECES.SNIPPET
+    .replace("{{SNIPPET_URL}}", PIECES.snippetUrl)
+    .replace("{{SNIPPET_FACE}}", f.SNIPPET_FACE)
+    .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "");
   let tail = "";
   if (o.cues || o.play) {
     tail += "\n## Attunement cues\n\n";
@@ -232,19 +242,24 @@ function assemble(faceKey, opts) {
     if (o.play) tail += PIECES.ATT_PLAY + "\n";
   }
   if (o.play) tail += "\n" + PIECES.SETTINGS + "\n";
-  const popts = (o.play ? [] : ["play: false"]).concat(o.cues ? [] : ["cues: false"]);
-  return PIECES.BASE
-    .replace("{{NAME}}", o.name)
-    .replace("{{DESC}}", f.DESC)
-    .replace("{{TITLE}}", f.TITLE)
-    .replace("{{PREAMBLE}}", f.PREAMBLE)
-    .replace("{{CADENCE}}", PIECES.CADENCE[o.cadence])
-    .replace("{{FACE}}", f.FACE)
-    .replace("{{FLAGS}}", o.flags ? PIECES.FLAGS_FULL : PIECES.FLAGS_OFF)
-    .replace("{{SNIPPET_URL}}", PIECES.snippetUrl)
-    .replace("{{SNIPPET_FACE}}", f.SNIPPET_FACE)
-    .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "")
-    .replace("{{TAIL}}", tail);
+  return [
+    "---\nname: " + o.name + '\ndescription: "' + f.DESC + '"\n---\n',
+    "# Vibe Annotations" + f.TITLE + "\n",
+    f.PREAMBLE + "\n",
+    PIECES.CONTRACT + "\n",
+    "## When\n",
+    PIECES.CADENCE[o.cadence] + "\n",
+    "## How to answer\n",
+    PIECES.HOWTO_HEAD + "\n",
+    "* **`face`** — " + f.FACE + "\n" + PIECES.KAOMOJI_VALID,
+    PIECES.BULLETS_CORE,
+    (o.flags ? PIECES.FLAGS_FULL : PIECES.FLAGS_OFF) + "\n",
+    PIECES.HOWTO_TAIL + "\n",
+    "## Running it\n",
+    PIECES.RUNNING_HEAD + "\n",
+    snippet + "\n",
+    PIECES.RUNNING_TAIL + (tail ? "\n" + tail : "\n")
+  ].join("\n");
 }
 
 const SHIP = {
@@ -257,5 +272,5 @@ Object.keys(SHIP).forEach(function (file) {
   console.log("generated skill/" + file + " (" + out.length + " bytes)");
 });
 fs.writeFileSync("assets/skill-base.js", "window.SKILL_PIECES = " + JSON.stringify(PIECES, null, 1) + ";\n");
-console.log("generated assets/skill-base.js (Builder pieces)");
-console.log("now run: npm run pin   (stamps the renderer sha into all variants + skill-base.js)");
+console.log("generated assets/skill-base.js (Builder pieces + previews)");
+console.log("now run: npm run pin");

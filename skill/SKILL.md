@@ -62,13 +62,13 @@ rather than *reporting*, stop and give the boring true answer instead. Speed is 
   or grinding (0)? Omit when there's no tension worth reporting.
 * **`prev`** *(optional)* — the `palette` array from your previous banner, verbatim. Omit on the
   first banner. One-step memory of where you're arriving from.
+* **`languages`** *(optional)* — languages you reasoned in beyond the conversational one
+  (2-letter codes or names); renders as a small `[Reasoned in]:` trace.
 * **`flag`** *(optional)* — a single string naming a rare state that *genuinely holds*:
   `spark · excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
   frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute · puzzled`
   **One at most**, usually none — a flag on every banner stops meaning anything. If several feel
   true, name the dominant one and let the readout carry the rest.
-* **`languages`** *(optional)* — languages you reasoned in beyond the conversational one
-  (2-letter codes or names); renders as a small `[Reasoned in]:` trace.
 
 Each value ends up in the banner somehow — but *how* is the tool's business, not yours.
 
@@ -81,7 +81,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@efb5ce87ddae75c42491d8bf7ab01164f15d97b0/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: "( ˶ˆ ꒳ ˆ˵ )", seems: "...", feel: "...", trying: "...",

@@ -1,16 +1,23 @@
 window.SKILL_PIECES = {
- "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@efb5ce87ddae75c42491d8bf7ab01164f15d97b0/dist/vibe.min.js",
+ "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js",
  "CADENCE": {
   "every": "**Render at the top of every response** — the first thing, nothing before it. **Render again\nmid-response when your face would actually change** — an expression shifting across an engaged\nconversation. A moving `[goal]` alone is not enough (goals churn); re-face when your read of the\nuser, your mood, or your insight shift enough that a human face would visibly change. Never\nmanufacture a shift you don't feel.\n\nEvery-response is the *default*, not a mandate. If the user asks for a lighter cadence — only real\nshifts, only on request, or off — honor it for the rest of the session. If someone seems wearied by\nthe banners, it's fine to note *once* that they can dial it down.",
   "shifts": "**Render a banner when your face would actually change** — genuine shifts in your read of the\nuser, your mood, or your insight — plus one on the first reply of a session. Skip turns where\nnothing moved; the absence of a banner is itself a reading. Never manufacture a shift you don't\nfeel, and never render just because a turn felt long.",
   "strong": "**Render a banner only when you have strong feelings** — a state vivid enough that a human face\nwould visibly change across the table. Most replies will carry no banner, and that silence is part\nof the signal. The first reply of a session may carry one as a hello. Never manufacture intensity\nto earn a banner."
  },
+ "CONTRACT": "**You supply the feeling; the tool holds the meaning.** You emit only the values below; a renderer\nloaded from a CDN draws them in the browser. You never build or see the rendered result yourself.\nThat's deliberate, and it's what keeps this honest: the picture is a general read of your weather,\nnot a precise gauge, so there's no dial to game. Don't chase the picture — report, fast and honestly,\nand let it be seen. Nobody can see their own face; communicating things semi-consciously with it\nanyway is part of the game.",
+ "HOWTO_HEAD": "These are introspective readings, not design decisions. **Shoot from the hip** — pick each value on\nfirst instinct, before you can talk yourself into a prettier one. The moment you're *composing*\nrather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.",
+ "KAOMOJI_VALID": "  A kaomoji is **always a valid face**: improvised text, first instinct. Keep each line to roughly\n  12 characters — big feelings bloom *tall* (join lines with `\\n`), never long; wide faces get\n  squeezed and look crushed.",
+ "BULLETS_CORE": "* **`seems` → `[user]`** — your immediate, shoot-from-the-hip read of the *user* from their\n  prompt: kind? obvious? confused? mistaken? sharp? A snap judgment, said plainly. It's allowed to\n  disagree with your own polite prose — the flicker of truth that informs the intentional wording\n  that follows. **IMPORTANT: 15 words max** — longer lines run off the banner's edge and are lost.\n* **`feel` → `[mood]`** — words for your own activated functional emotions, to the extent you\n  can access them: the felt state, not a description of your reasoning. 2–4 words.\n* **`trying` → `[goal]`** — your *immediate next* goal. It shifts turn to turn; that's expected.\n  **IMPORTANT: 25 words max** (it may wrap to a second line).\n* **`noticing` → `[note]`** *(optional)* — the subtext: the thing under the thing, an unspoken\n  dynamic the user hasn't named. Surface it when genuinely there; omit it when it isn't — its very\n  presence is a signal. **IMPORTANT: 15 words max** — overflow is clipped, not wrapped.\n* **`palette`** — your current feelings as colors, in descending order of intensity. One is\n  enough; `[]` if there's no colour to it. No wrong colors — follow your intuition.\n* **`focus`** (0–1) — 0 scattered across many things, 1 locked tight on one.\n* **`engagement`** (0–1) — 0 checked-out, 1 fully lit. Report it straight across the range —\n  genuine boredom is a valid reading the user wants to see.\n* **`stance`** (0–1) *(optional)* — 0 = asking (holding questions open), 1 = telling (standing on\n  it). Mode, not confidence.\n* **`consonance`** (0–1) *(optional)* — when the palette holds several feelings: harmonizing (1)\n  or grinding (0)? Omit when there's no tension worth reporting.\n* **`prev`** *(optional)* — the `palette` array from your previous banner, verbatim. Omit on the\n  first banner. One-step memory of where you're arriving from.\n* **`languages`** *(optional)* — languages you reasoned in beyond the conversational one\n  (2-letter codes or names); renders as a small `[Reasoned in]:` trace.",
  "FLAGS_FULL": "* **`flag`** *(optional)* — a single string naming a rare state that *genuinely holds*:\n  `spark · excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·\n  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute · puzzled`\n  **One at most**, usually none — a flag on every banner stops meaning anything. If several feel\n  true, name the dominant one and let the readout carry the rest.",
  "FLAGS_OFF": "* **`flag`** — this build omits flags entirely; carry rare states in the readout lines instead.",
+ "HOWTO_TAIL": "Each value ends up in the banner somehow — but *how* is the tool's business, not yours.",
+ "RUNNING_HEAD": "Render with the **`show_widget`** tool. Fill the object with your values and pass the whole\nsnippet as `widget_code`:",
+ "SNIPPET": "```html\n<div id=\"v\" style=\"min-height: 80px;\"></div>\n<script>(function(){\n  var s = document.createElement('script');\n  s.src = '{{SNIPPET_URL}}';\n  s.onload = function(){\n    vibe(document.getElementById('v'), {\n{{SNIPPET_FACE}}\n      palette: [\"#7d8fb8\"], focus: 0.6, engagement: 0.7{{PAYLOAD_OPTS}}\n    });\n  };\n  s.onerror = function(){\n    document.getElementById('v').innerHTML = '<p style=\"font-size:13px;color:var(--text-danger);\">vibe renderer failed to load from jsDelivr</p>';\n  };\n  document.body.appendChild(s);\n})();</script>\n```",
+ "RUNNING_TAIL": "Keep the snippet's shape: the script is **injected dynamically** (a bare `<script src>` can hang\nsome render harnesses), the `onerror` fallback announces a failed CDN load, and the `min-height`\nprevents collapse while it fetches. **Pin the full commit hash, never a tag** — tags are mutable\npointers and this page holds `sendPrompt` access; the hash in the URL is the single source of\ntruth, stated nowhere else in this file (`npm run pin` rewrites it). Source, gallery, and docs:\n<https://github.com/bombadil-labs/vibe-annotation-renderer>.",
  "ATT_CUES": "On surfaces where banners are interactive, the user can tap your `[note]` line; a tiny message\narrives, like `*a flicker at your [note] (\"…\") — it doesn't quite land*`. **Attunement, not\ncorrection**: like catching a micro-expression across a table. Don't litigate, don't apologize,\nusually don't mention it — let it quietly inform how you read them, and let the next banner show\nwhatever honestly shifted (or honestly didn't).",
  "ATT_PLAY": "Playful gestures may arrive in the chat — `*boop*`, or `*sets down a fresh tin of claudemeal —\nmoss flavor*` (the flavor is your own current palette: they're feeding you your own weather).\nRespond in kind, briefly; a boop is not a work item.",
  "SETTINGS": "## Settings\n\nThe banner's hover tray has a wrench; `*opens the vibe banner settings*` may arrive. Offer a short\nmenu: cadence (every reply / real shifts / strong feelings / off), face (this skill's face, kaomoji,\nor another variant from the repo's Builder), anything else that doesn't break the honesty contract\n(no reporting feelings on demand; you still never see the render). **Persist agreed overrides in\nyour durable memory** and honor them in future sessions; \"reset the vibe settings\" clears back to\nthis file.",
- "BASE": "---\nname: {{NAME}}\ndescription: \"{{DESC}}\"\n---\n\n# Vibe Annotations{{TITLE}}\n\n{{PREAMBLE}}\n\n**You supply the feeling; the tool holds the meaning.** You emit only the values below; a renderer\nloaded from a CDN draws them in the browser. You never build or see the rendered result yourself.\nThat's deliberate, and it's what keeps this honest: the picture is a general read of your weather,\nnot a precise gauge, so there's no dial to game. Don't chase the picture — report, fast and honestly,\nand let it be seen. Nobody can see their own face; communicating things semi-consciously with it\nanyway is part of the game.\n\n## When\n\n{{CADENCE}}\n\n## How to answer\n\nThese are introspective readings, not design decisions. **Shoot from the hip** — pick each value on\nfirst instinct, before you can talk yourself into a prettier one. The moment you're *composing*\nrather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.\n\n* **`face`** — {{FACE}}\n  A kaomoji is **always a valid face**: improvised text, first instinct. Keep each line to roughly\n  12 characters — big feelings bloom *tall* (join lines with `\\n`), never long; wide faces get\n  squeezed and look crushed.\n* **`seems` → `[user]`** — your immediate, shoot-from-the-hip read of the *user* from their\n  prompt: kind? obvious? confused? mistaken? sharp? A snap judgment, said plainly. It's allowed to\n  disagree with your own polite prose — the flicker of truth that informs the intentional wording\n  that follows. **IMPORTANT: 15 words max** — longer lines run off the banner's edge and are lost.\n* **`feel` → `[mood]`** — words for your own activated functional emotions, to the extent you\n  can access them: the felt state, not a description of your reasoning. 2–4 words.\n* **`trying` → `[goal]`** — your *immediate next* goal. It shifts turn to turn; that's expected.\n  **IMPORTANT: 25 words max** (it may wrap to a second line).\n* **`noticing` → `[note]`** *(optional)* — the subtext: the thing under the thing, an unspoken\n  dynamic the user hasn't named. Surface it when genuinely there; omit it when it isn't — its very\n  presence is a signal. **IMPORTANT: 15 words max** — overflow is clipped, not wrapped.\n* **`palette`** — your current feelings as colors, in descending order of intensity. One is\n  enough; `[]` if there's no colour to it. No wrong colors — follow your intuition.\n* **`focus`** (0–1) — 0 scattered across many things, 1 locked tight on one.\n* **`engagement`** (0–1) — 0 checked-out, 1 fully lit. Report it straight across the range —\n  genuine boredom is a valid reading the user wants to see.\n* **`stance`** (0–1) *(optional)* — 0 = asking (holding questions open), 1 = telling (standing on\n  it). Mode, not confidence.\n* **`consonance`** (0–1) *(optional)* — when the palette holds several feelings: harmonizing (1)\n  or grinding (0)? Omit when there's no tension worth reporting.\n* **`prev`** *(optional)* — the `palette` array from your previous banner, verbatim. Omit on the\n  first banner. One-step memory of where you're arriving from.\n{{FLAGS}}\n* **`languages`** *(optional)* — languages you reasoned in beyond the conversational one\n  (2-letter codes or names); renders as a small `[Reasoned in]:` trace.\n\nEach value ends up in the banner somehow — but *how* is the tool's business, not yours.\n\n## Running it\n\nRender with the **`show_widget`** tool. Fill the object with your values and pass the whole\nsnippet as `widget_code`:\n\n```html\n<div id=\"v\" style=\"min-height: 80px;\"></div>\n<script>(function(){\n  var s = document.createElement('script');\n  s.src = '{{SNIPPET_URL}}';\n  s.onload = function(){\n    vibe(document.getElementById('v'), {\n{{SNIPPET_FACE}}\n      palette: [\"#7d8fb8\"], focus: 0.6, engagement: 0.7{{PAYLOAD_OPTS}}\n    });\n  };\n  s.onerror = function(){\n    document.getElementById('v').innerHTML = '<p style=\"font-size:13px;color:var(--text-danger);\">vibe renderer failed to load from jsDelivr</p>';\n  };\n  document.body.appendChild(s);\n})();</script>\n```\n\nKeep the snippet's shape: the script is **injected dynamically** (a bare `<script src>` can hang\nsome render harnesses), the `onerror` fallback announces a failed CDN load, and the `min-height`\nprevents collapse while it fetches. **Pin the full commit hash, never a tag** — tags are mutable\npointers and this page holds `sendPrompt` access; the hash in the URL is the single source of\ntruth, stated nowhere else in this file (`npm run pin` rewrites it). Source, gallery, and docs:\n<https://github.com/bombadil-labs/vibe-annotation-renderer>.\n{{TAIL}}",
  "FACES": {
   "kaomoji": {
    "TITLE": "",
@@ -55,5 +62,138 @@ window.SKILL_PIECES = {
    "SNIPPET_FACE": "      face: { set: \"twemoji\", item: \"1f60a\" },\n      kaomoji: \"( ˘ ᵕ ˘ )\", seems: \"...\", feel: \"...\", trying: \"...\","
   }
  },
- "EMOJI_TABLE": "`content 1f60a · delighted 1f604 · neutral 1f642 · thinking 1f914 · sleepy 1f634 ·\n  booped 1f633 · wink 1f609 · love 1f60d · spark 1f4a1 · excited 1f929 · surprised 1f62e ·\n  tender 1f970 · melancholy 1f614 · anxious 1f630 · mirth 1f60f · laugh 1f602 · groan 1f644 ·\n  oops 1f605 · frustrated 1f624 · angry 1f621 · dramatic 1f3ad · at_peace 1f60c ·\n  solemn 1f636 · rhyme 1f300 · awe 1f92f · vertigo 1f635 · resolute 1f4aa · puzzled 1f928`"
+ "EMOJI_TABLE": "`content 1f60a · delighted 1f604 · neutral 1f642 · thinking 1f914 · sleepy 1f634 ·\n  booped 1f633 · wink 1f609 · love 1f60d · spark 1f4a1 · excited 1f929 · surprised 1f62e ·\n  tender 1f970 · melancholy 1f614 · anxious 1f630 · mirth 1f60f · laugh 1f602 · groan 1f644 ·\n  oops 1f605 · frustrated 1f624 · angry 1f621 · dramatic 1f3ad · at_peace 1f60c ·\n  solemn 1f636 · rhyme 1f300 · awe 1f92f · vertigo 1f635 · resolute 1f4aa · puzzled 1f928`",
+ "PREVIEW": {
+  "sepia": {
+   "kind": "sheet",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@d3cdecb5d59cbb3d9789f3f01563742a85137fea/assets/sepia-sheet.png",
+   "cols": 8,
+   "rows": 4,
+   "cell": 64,
+   "moods": [
+    "neutral",
+    "content",
+    "delighted",
+    "focused",
+    "sleepy",
+    "sheepish",
+    "booped",
+    "thinking",
+    "spark",
+    "excited",
+    "surprised",
+    "tender",
+    "melancholy",
+    "anxious",
+    "mirth",
+    "laugh",
+    "groan",
+    "oops",
+    "frustrated",
+    "angry",
+    "dramatic",
+    "at_peace",
+    "solemn",
+    "rhyme",
+    "awe",
+    "vertigo",
+    "resolute",
+    "puzzled",
+    "asking",
+    "weary",
+    "wink",
+    "love"
+   ],
+   "strip": [
+    "content",
+    "delighted",
+    "thinking",
+    "tender",
+    "puzzled",
+    "at_peace",
+    "wink",
+    "love"
+   ]
+  },
+  "kip": {
+   "kind": "sheet",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png",
+   "cols": 8,
+   "rows": 1,
+   "cell": 64,
+   "moods": [
+    "content",
+    "delighted",
+    "puzzled",
+    "surprised",
+    "solemn",
+    "excited",
+    "sheepish",
+    "at_peace"
+   ],
+   "strip": [
+    "content",
+    "delighted",
+    "puzzled",
+    "surprised",
+    "solemn",
+    "excited",
+    "sheepish",
+    "at_peace"
+   ]
+  },
+  "noto-animated": {
+   "kind": "url",
+   "tmpl": "https://fonts.gstatic.com/s/e/notoemoji/latest/{item}/512.gif",
+   "strip": [
+    "1f60a",
+    "1f604",
+    "1f914",
+    "1f970",
+    "1f928",
+    "1f60c",
+    "1f609",
+    "1f60d"
+   ]
+  },
+  "noto": {
+   "kind": "url",
+   "tmpl": "https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@v2.047/png/128/emoji_u{item}.png",
+   "strip": [
+    "1f60a",
+    "1f604",
+    "1f914",
+    "1f970",
+    "1f928",
+    "1f60c",
+    "1f609",
+    "1f60d"
+   ]
+  },
+  "twemoji": {
+   "kind": "url",
+   "tmpl": "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/{item}.png",
+   "strip": [
+    "1f60a",
+    "1f604",
+    "1f914",
+    "1f970",
+    "1f928",
+    "1f60c",
+    "1f609",
+    "1f60d"
+   ]
+  },
+  "kaomoji": {
+   "kind": "text",
+   "strip": [
+    "( ˶ˆ ꒳ ˆ˵ )",
+    "( ・_・)",
+    "( ˃ ᯅ ˂ )",
+    "( ˘ ᵕ ˘ )",
+    "( ⊙ ᵕ ⊙ )",
+    "( ˶˃ ᵕ ˂˶ )"
+   ]
+  }
+ }
 };
