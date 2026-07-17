@@ -80,6 +80,7 @@
     <button class="tab-btn" data-tab="meaning" role="tab">What it means</button>
     <button class="tab-btn" data-tab="install" role="tab">Installation</button>
     <button class="tab-btn" data-tab="gallery" role="tab">Gallery</button>
+    <button class="tab-btn" data-tab="explorer" role="tab">Explorer</button>
     <button class="tab-btn" data-tab="builder" role="tab">Builder</button>
   </div>
 
@@ -258,6 +259,17 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
       <button class="tab-btn" data-face="twemoji">twemoji</button>
     </div>
     <div id="gallery-cells"></div>
+  </section>
+
+  <section class="tab-panel" id="tab-explorer" role="tabpanel">
+    <h2 id="explore">Visuals explorer</h2>
+    <p class="lede">Face and environment, combined live. Pick any face-pack and any first-party
+    scene (or your own image URL) and see the composite banner exactly as it renders — the
+    tidepool is alive, so tap the water. When a combination feels like home, the
+    <a href="#builder">Builder</a> bakes it into a skill.</p>
+    <div id="x-controls" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:0 0 14px;"></div>
+    <div id="x-mount" style="min-height:80px; border:1px solid var(--edge); border-radius:12px; padding:6px; background:var(--chat, transparent);"></div>
+    <p id="x-caption" style="font-size:12.5px; color:var(--sub); margin-top:10px;"></p>
   </section>
 
   <section class="tab-panel" id="tab-builder" role="tabpanel">
@@ -581,7 +593,7 @@ buildGallery();
 
 var TAB_ALIAS = { "": "landing", landing: "landing", meaning: "meaning", key: "meaning",
   how: "meaning", install: "install", library: "install", gallery: "gallery",
-  builder: "builder", build: "builder" };
+  explorer: "explorer", visuals: "explorer", builder: "builder", build: "builder" };
 function activate(tab) {
   document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
     b.classList.toggle("active", b.dataset.tab === tab);
@@ -675,14 +687,15 @@ route();
     };
   }
   function sceneUrl() {
-    if (S.scene === "tidepool") return P.SCENES.tidepool;
+    if (P.SCENES[S.scene]) return P.SCENES[S.scene].url;
     if (S.scene === "custom") return (S.sceneUrl || "").trim();
     return "";
   }
   function snippetText() {
     var popts = (S.play ? [] : ["play: false"]).concat(S.cues ? [] : ["cues: false"]);
     var su = sceneUrl();
-    if (su) popts.push('scene: { url: "' + su + '", opacity: ' + S.sceneOp + (S.scene === "tidepool" ? ', live: "tidepool"' : '') + ' }');
+    var slive = P.SCENES[S.scene] && P.SCENES[S.scene].live;
+    if (su) popts.push('scene: { url: "' + su + '", opacity: ' + S.sceneOp + (slive ? ', live: "' + slive + '"' : '') + ' }');
     return P.SNIPPET
       .replace("{{SNIPPET_URL}}", P.snippetUrl)
       .replace("{{SNIPPET_FACE}}", faceDef().SNIPPET_FACE)
@@ -768,9 +781,14 @@ route();
 
   // — Environment
   var cE = card("environment — scene");
-  cE.appendChild(callout("Where are we hanging out? The scene becomes a framed window on the banner's left with my face centred inside it — the readout keeps the right. The first-party tidepool is alive: bubbles rise, a fish passes, and tapping the water makes ripples. Your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
+  cE.appendChild(callout("Where are we hanging out? The scene becomes a framed window on the banner's left with my face centred inside it — the readout keeps the right. Four first-party habitats ship: the tidepool (alive — bubbles rise, a fish passes, taps ripple), the night, the glade, and the study. Try combinations in the Explorer tab; your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
   var scSel = document.createElement("select"); scSel.style.cssText = SEL + "margin:0 0 8px;";
-  [["none", "none (any page background)"], ["tidepool", "the tidepool (first-party)"], ["custom", "custom (your own image URL)"]].forEach(function (o) {
+  var scOpts = [["none", "none (any page background)"]];
+  Object.keys(P.SCENES).forEach(function (k) {
+    scOpts.push([k, "the " + k + (P.SCENES[k].live ? " (first-party, alive)" : " (first-party)")]);
+  });
+  scOpts.push(["custom", "custom (your own image URL)"]);
+  scOpts.forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; scSel.appendChild(op);
   });
   cE.appendChild(scSel);
@@ -891,6 +909,90 @@ route();
     document.getElementById("b-status").textContent = "json: { name, description, instructions }";
   });
   refreshStrip(); refreshCustom(); refreshSnippet(); renderTail(); status();
+})();
+
+// ---- Visuals explorer: face × environment, rendered as a live composite. Pure play —
+// nothing here emits a skill; the Builder owns that. Uses the same single-sourced
+// pieces (faces from PREVIEW, scenes from SCENES) so the menu never drifts.
+(function () {
+  var P = window.SKILL_PIECES;
+  var ctl = document.getElementById("x-controls"), mnt = document.getElementById("x-mount"), cap = document.getElementById("x-caption");
+  if (!P || !ctl) return;
+  var SEL = "font-size:13.5px;padding:7px 9px;border:1px solid var(--edge);border-radius:8px;background:var(--paper);color:var(--ink);";
+  var X = { set: "sepia", item: "content", scene: "tidepool", sceneUrl: "", op: 0.55 };
+
+  function mkSel(label, opts, val, onch) {
+    var w = document.createElement("label");
+    w.style.cssText = "display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sub);";
+    w.textContent = label;
+    var s = document.createElement("select"); s.style.cssText = SEL;
+    opts.forEach(function (o) { var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; s.appendChild(op); });
+    s.value = val; s.addEventListener("change", function () { onch(s.value); });
+    w.appendChild(s); ctl.appendChild(w);
+    return s;
+  }
+
+  var faceSel = mkSel("face", [["kaomoji", "kaomoji"], ["sepia", "sepia"], ["kip", "kip"],
+    ["noto-animated", "noto animated"], ["noto", "noto"], ["twemoji", "twemoji"]], X.set,
+    function (v) { X.set = v; refreshItems(); render(); });
+
+  var itemSel = mkSel("mood", [["content", "content"]], X.item, function (v) { X.item = v; render(); });
+
+  var kaoIn = document.createElement("input");
+  kaoIn.value = "( ˶ˆ ꒳ ˆ˵ )"; kaoIn.style.cssText = SEL + "width:130px;display:none;";
+  kaoIn.addEventListener("input", render); ctl.appendChild(kaoIn);
+
+  var scOpts = [["none", "no scene"]];
+  Object.keys(P.SCENES).forEach(function (k) { scOpts.push([k, "the " + k]); });
+  scOpts.push(["custom", "custom URL"]);
+  mkSel("environment", scOpts, X.scene, function (v) { X.scene = v; urlIn.style.display = v === "custom" ? "block" : "none"; render(); });
+
+  var urlIn = document.createElement("input");
+  urlIn.placeholder = "https://…/scene.png"; urlIn.style.cssText = SEL + "width:220px;display:none;";
+  urlIn.addEventListener("input", function () { X.sceneUrl = urlIn.value; render(); }); ctl.appendChild(urlIn);
+
+  var opWrap = document.createElement("label");
+  opWrap.style.cssText = "display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sub);";
+  opWrap.innerHTML = 'opacity <input type="range" min="0.15" max="0.9" step="0.05" value="0.55" style="width:110px;"> <span>0.55</span>';
+  opWrap.querySelector("input").addEventListener("input", function (e) {
+    X.op = +e.target.value; opWrap.querySelector("span").textContent = X.op; render();
+  });
+  ctl.appendChild(opWrap);
+
+  function refreshItems() {
+    var pv = P.PREVIEW[X.set];
+    itemSel.parentNode.style.display = X.set === "kaomoji" ? "none" : "flex";
+    kaoIn.style.display = X.set === "kaomoji" ? "block" : "none";
+    if (X.set === "kaomoji" || !pv) return;
+    itemSel.innerHTML = "";
+    var items = pv.moods || pv.strip || [];
+    items.forEach(function (m) { var op = document.createElement("option"); op.value = m; op.textContent = m; itemSel.appendChild(op); });
+    X.item = items.indexOf("content") >= 0 ? "content" : items[0];
+    itemSel.value = X.item;
+  }
+
+  function render() {
+    var payload = {
+      seems: "browsing the wardrobe and the real estate at once",
+      feel: "trying things on",
+      trying: "find the combination that feels like home",
+      noticing: "the same face reads differently in different light",
+      palette: ["#7fb8b0", "#d99a5e"], focus: 0.7, engagement: 0.85
+    };
+    payload.face = X.set === "kaomoji" ? (kaoIn.value || "( ˘ ᵕ ˘ )") : { set: X.set, item: X.item };
+    payload.kaomoji = "( ˘ ᵕ ˘ )";
+    var sc = P.SCENES[X.scene];
+    var su = sc ? sc.url : (X.scene === "custom" ? (X.sceneUrl || "").trim() : "");
+    if (su) {
+      payload.scene = { url: su, opacity: X.op };
+      if (sc && sc.live) payload.scene.live = sc.live;
+    }
+    mnt.innerHTML = "";
+    try { vibe(mnt, payload); } catch (e) { mnt.textContent = "err: " + e.message; }
+    cap.textContent = sc && sc.blurb ? "the " + X.scene + " — " + sc.blurb : (su ? "custom scene" : "no scene — the classic layout");
+  }
+
+  refreshItems(); render();
 })();
 </script>
 </body>

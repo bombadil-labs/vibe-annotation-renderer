@@ -15,6 +15,10 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@707a9fb7e9901dd4e3b5fa66ca88226fe3d5a4f2/assets/sepia-sheet.png";
 const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
 const SCENE_TIDEPOOL = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png";
+// Newer scenes pin via the release sha (npm run pin stamps every consumer uniformly;
+// the assets are immutable once committed, so any post-birth release sha serves the
+// same bytes — no separate birth-commit bookkeeping needed).
+const SCENE_URL = name => `https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@${PIN}/assets/scene-${name}.png`;
 
 const PIECES = {
   snippetUrl: `https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@${PIN}/dist/vibe.min.js`,
@@ -133,12 +137,19 @@ Respond in kind, briefly; a boop is not a work item.`,
 
 The banner's hover tray has a wrench; \`[vibe banner] *opens the settings*\` may arrive. Offer a short
 menu: cadence (every reply / real shifts / strong feelings / off), face (this skill's face, kaomoji,
-or another variant from the repo's Builder), environment (an optional scene the face sits inside —
-\`scene: { url, opacity }\` in every payload, hosted on a widget-allowlisted CDN; the first-party
-tidepool also takes \`live: "tidepool"\`, which runs ambient life in the window), anything else
+or another pack), environment (an optional scene the face sits inside — \`scene: { url, opacity }\`
+in every payload, hosted on a widget-allowlisted CDN; some first-party scenes also take a \`live\`
+name that runs ambient life in the window), anything else
 that doesn't break the honesty contract (no reporting feelings on demand; you still never see the
 render). **Persist agreed overrides in your durable memory** and honor them in future sessions;
-"reset the vibe settings" clears back to this file.`,
+"reset the vibe settings" clears back to this file.
+
+For the full current menu of faces and first-party environments, fetch the catalog:
+<https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/assets/catalog.json>
+— it lists every face-pack (with items) and every scene (with pinned URLs and \`live\` names) in
+machine-readable form. To let the user *see* the options instead of hearing them described, point
+them at the site's Explorer, where face and environment combine into a live preview:
+<https://bombadil-labs.github.io/vibe-annotation-renderer/#explorer>.`,
 
   FACES: {
     kaomoji: {
@@ -192,8 +203,14 @@ reference face-pack. Cheerful, compact, eight moods.`,
   oops 1f605 · frustrated 1f624 · angry 1f621 · dramatic 1f3ad · at_peace 1f60c ·
   solemn 1f636 · rhyme 1f300 · awe 1f92f · vertigo 1f635 · resolute 1f4aa · puzzled 1f928\``,
 
-  // Builder-only: first-party scenes for the environment station.
-  SCENES: { tidepool: SCENE_TIDEPOOL },
+  // First-party scenes (Builder environment station + the catalog + the Explorer).
+  // `live` marks scenes with native ambience in the renderer; `blurb` is one honest line.
+  SCENES: {
+    tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
+    night: { url: SCENE_URL("night"), blurb: "indigo sky, stars, a crescent, one dark hill" },
+    glade: { url: SCENE_URL("glade"), blurb: "mossy forest light with shafts and fireflies" },
+    study: { url: SCENE_URL("study"), blurb: "lamplight, a shelf of books, a warm desk with a mug" }
+  },
 
   // Builder-only: face previews for the narrator callouts and mood strips.
   PREVIEW: {
@@ -283,4 +300,38 @@ Object.keys(SHIP).forEach(function (file) {
 });
 fs.writeFileSync("assets/skill-base.js", "window.SKILL_PIECES = " + JSON.stringify(PIECES, null, 1) + ";\n");
 console.log("generated assets/skill-base.js (Builder pieces + previews)");
+
+// The catalog: a machine-readable index of the whole ecosystem, for Claude to fetch
+// during a settings conversation (raw main URL = always the current menu).
+const SITE = "https://bombadil-labs.github.io/vibe-annotation-renderer/";
+const RAW = "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/";
+const CATALOG = {
+  what: "Machine-readable catalog of the vibe-annotations ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
+  renderer: {
+    bundle: PIECES.snippetUrl,
+    payload_notes: {
+      face: "one union: kaomoji string | image URL | sprite slice {url,cellW,cellH,cols,rows,index} | KnownFace {set,item}",
+      scene: "{ url, opacity (0.15-0.95, default 0.5), live? } — a framed portrait window on the banner's left, face centred inside",
+      flag: "a single optional string; one per banner at most"
+    }
+  },
+  faces: {
+    kaomoji: { kind: "text", note: "improvised fresh each banner; always valid, no registry needed" },
+    sepia: { kind: "sheet", payload: { set: "sepia", item: "<mood>" }, items: PIECES.PREVIEW.sepia.moods,
+      note: "the cuttlefish Claude designed for itself; wears feeling as color" },
+    kip: { kind: "sheet", payload: { set: "kip", item: "<mood>" }, items: PIECES.PREVIEW.kip.moods,
+      note: "the project mascot; small wardrobe, drop to kaomoji when nothing fits" },
+    "noto-animated": { kind: "url-set", payload: { set: "noto-animated", item: "<codepoint>" },
+      starter_items: PIECES.PREVIEW["noto-animated"].strip, note: "Google animated emoji; any codepoint works" },
+    noto: { kind: "url-set", payload: { set: "noto", item: "<codepoint>" },
+      starter_items: PIECES.PREVIEW.noto.strip, note: "warm round static PNGs; any codepoint works" },
+    twemoji: { kind: "url-set", payload: { set: "twemoji", item: "<codepoint>" },
+      starter_items: PIECES.PREVIEW.twemoji.strip, note: "flat, tiny, classic; any codepoint works" }
+  },
+  scenes: PIECES.SCENES,
+  skills: Object.keys(SHIP).reduce((m, f) => { m[SHIP[f]] = RAW + "skill/" + f; return m; }, {}),
+  site: { gallery: SITE + "#gallery", builder: SITE + "#builder", explorer: SITE + "#explorer" }
+};
+fs.writeFileSync("assets/catalog.json", JSON.stringify(CATALOG, null, 2) + "\n");
+console.log("generated assets/catalog.json (settings-conversation menu)");
 console.log("now run: npm run pin");

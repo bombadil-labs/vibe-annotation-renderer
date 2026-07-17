@@ -1,6 +1,6 @@
 {
   "name": "vibe-annotation-renderer",
-  "version": "0.11.0",
+  "version": "0.13.0",
   "description": "Renders Claude's vibe-annotation mood banner from feeling-values. Loaded by the vibe-annotations skill via jsDelivr; the skill passes only the values.",
   "license": "MIT",
   "private": false,
@@ -9,6 +9,7 @@
     "build": "esbuild src/vibe.js --minify --outfile=dist/vibe.min.js",
     "parity": "node test/parity.js",
     "pin": "node scripts/pin.js",
+    "scene": "node scripts/gen-scene.js",
     "sepia": "node scripts/gen-sepia.js",
     "skills": "node scripts/gen-skills.js"
   },

@@ -1,0 +1,163 @@
+{
+  "what": "Machine-readable catalog of the vibe-annotations ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
+  "renderer": {
+    "bundle": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js",
+    "payload_notes": {
+      "face": "one union: kaomoji string | image URL | sprite slice {url,cellW,cellH,cols,rows,index} | KnownFace {set,item}",
+      "scene": "{ url, opacity (0.15-0.95, default 0.5), live? } — a framed portrait window on the banner's left, face centred inside",
+      "flag": "a single optional string; one per banner at most"
+    }
+  },
+  "faces": {
+    "kaomoji": {
+      "kind": "text",
+      "note": "improvised fresh each banner; always valid, no registry needed"
+    },
+    "sepia": {
+      "kind": "sheet",
+      "payload": {
+        "set": "sepia",
+        "item": "<mood>"
+      },
+      "items": [
+        "neutral",
+        "content",
+        "delighted",
+        "focused",
+        "sleepy",
+        "sheepish",
+        "booped",
+        "thinking",
+        "spark",
+        "excited",
+        "surprised",
+        "tender",
+        "melancholy",
+        "anxious",
+        "mirth",
+        "laugh",
+        "groan",
+        "oops",
+        "frustrated",
+        "angry",
+        "dramatic",
+        "at_peace",
+        "solemn",
+        "rhyme",
+        "awe",
+        "vertigo",
+        "resolute",
+        "puzzled",
+        "asking",
+        "weary",
+        "wink",
+        "love"
+      ],
+      "note": "the cuttlefish Claude designed for itself; wears feeling as color"
+    },
+    "kip": {
+      "kind": "sheet",
+      "payload": {
+        "set": "kip",
+        "item": "<mood>"
+      },
+      "items": [
+        "content",
+        "delighted",
+        "puzzled",
+        "surprised",
+        "solemn",
+        "excited",
+        "sheepish",
+        "at_peace"
+      ],
+      "note": "the project mascot; small wardrobe, drop to kaomoji when nothing fits"
+    },
+    "noto-animated": {
+      "kind": "url-set",
+      "payload": {
+        "set": "noto-animated",
+        "item": "<codepoint>"
+      },
+      "starter_items": [
+        "1f60a",
+        "1f604",
+        "1f914",
+        "1f970",
+        "1f928",
+        "1f60c",
+        "1f609",
+        "1f60d"
+      ],
+      "note": "Google animated emoji; any codepoint works"
+    },
+    "noto": {
+      "kind": "url-set",
+      "payload": {
+        "set": "noto",
+        "item": "<codepoint>"
+      },
+      "starter_items": [
+        "1f60a",
+        "1f604",
+        "1f914",
+        "1f970",
+        "1f928",
+        "1f60c",
+        "1f609",
+        "1f60d"
+      ],
+      "note": "warm round static PNGs; any codepoint works"
+    },
+    "twemoji": {
+      "kind": "url-set",
+      "payload": {
+        "set": "twemoji",
+        "item": "<codepoint>"
+      },
+      "starter_items": [
+        "1f60a",
+        "1f604",
+        "1f914",
+        "1f970",
+        "1f928",
+        "1f60c",
+        "1f609",
+        "1f60d"
+      ],
+      "note": "flat, tiny, classic; any codepoint works"
+    }
+  },
+  "scenes": {
+    "tidepool": {
+      "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png",
+      "live": "tidepool",
+      "blurb": "shallow water over sand — bubbles rise, a fish passes, taps ripple"
+    },
+    "night": {
+      "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/assets/scene-night.png",
+      "blurb": "indigo sky, stars, a crescent, one dark hill"
+    },
+    "glade": {
+      "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/assets/scene-glade.png",
+      "blurb": "mossy forest light with shafts and fireflies"
+    },
+    "study": {
+      "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/assets/scene-study.png",
+      "blurb": "lamplight, a shelf of books, a warm desk with a mug"
+    }
+  },
+  "skills": {
+    "kaomoji": "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md",
+    "sepia": "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.sepia.md",
+    "kip": "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.kip.md",
+    "noto-animated": "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.noto-animated.md",
+    "noto": "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.noto.md",
+    "twemoji": "https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.twemoji.md"
+  },
+  "site": {
+    "gallery": "https://bombadil-labs.github.io/vibe-annotation-renderer/#gallery",
+    "builder": "https://bombadil-labs.github.io/vibe-annotation-renderer/#builder",
+    "explorer": "https://bombadil-labs.github.io/vibe-annotation-renderer/#explorer"
+  }
+}

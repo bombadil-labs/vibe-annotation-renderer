@@ -1,23 +1,17 @@
 #!/usr/bin/env node
-/* First-party scene: a tidepool for Sepia. 680x132 (170x33 logical @4px), gentle bands
- * of shallow water over sand, rocks low, light glints high — drawn to sit at ~30%
- * opacity BEHIND a banner, so it stays atmosphere, never competition.
- * Regenerate: node scripts/gen-scene.js → assets/scene-tidepool.png */
+/* First-party scenes — the banner's habitats. Each is a deterministic pixel painting
+ * (same minimal PNG encoder as gen-sepia), drawn to sit at ~0.5 opacity inside the
+ * portrait window: atmosphere, never competition.
+ *   tidepool — 680x132 (170x33 logical @4px): shallow water, sand, rocks, glints.
+ *              KEEP BYTE-IDENTICAL: its birth commit is pinned in consumers.
+ *   night    — 160x160 (40x40 @4px): indigo sky, stars, a crescent, a dark hill.
+ *   glade    — 160x160: mossy forest light, canopy, light shafts, fireflies.
+ *   study    — 160x160: lamplight interior, shelf of books, warm desk.
+ * Regenerate: node scripts/gen-scene.js → assets/scene-*.png */
 const fs = require("fs");
 const zlib = require("zlib");
 
-const LW = 170, LH = 33, SCALE = 4;
-const W = LW * SCALE, H = LH * SCALE;
-const px = Buffer.alloc(W * H * 4);
 const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
-function put(x, y, c) {
-  if (x < 0 || x >= W || y < 0 || y >= H) return;
-  const [r, g, b] = hex(c), i = (y * W + x) * 4;
-  px[i] = r; px[i + 1] = g; px[i + 2] = b; px[i + 3] = 255;
-}
-function lput(gx, gy, c) {
-  for (let dy = 0; dy < SCALE; dy++) for (let dx = 0; dx < SCALE; dx++) put(gx * SCALE + dx, gy * SCALE + dy, c);
-}
 function rng(seed) {
   let a = seed >>> 0;
   return () => {
@@ -27,43 +21,6 @@ function rng(seed) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-const r = rng(20260717);
-
-// water: light shallows to deeper teal, wavy band edges
-const WATER = ["#cfe8e2", "#b2ddd4", "#93cec4", "#79bfb4", "#66b0a6"];
-for (let y = 0; y < 26; y++) {
-  for (let x = 0; x < LW; x++) {
-    const wob = Math.sin(x / 9 + y * 0.7) * 1.4;
-    const band = Math.max(0, Math.min(WATER.length - 1, Math.floor((y + wob) / 5.4)));
-    lput(x, y, WATER[band]);
-  }
-}
-// sand
-for (let y = 26; y < LH; y++) for (let x = 0; x < LW; x++)
-  lput(x, y, y === 26 ? "#dbc9a4" : ((x * 7 + y * 13) % 17 === 0 ? "#cbb894" : "#d6c49e"));
-// rocks: low dark blobs
-const ROCK = "#7a7268", ROCK_D = "#645c53";
-for (let k = 0; k < 9; k++) {
-  const bx = 6 + r() * (LW - 12), by = 24 + r() * 7, rad = 1.6 + r() * 2.6;
-  for (let y = Math.floor(by - rad - 1); y <= by + rad + 1; y++)
-    for (let x = Math.floor(bx - rad - 1); x <= bx + rad + 1; x++) {
-      const e = rad + (r() - 0.5) * 1.2;
-      if ((x - bx) ** 2 + (y - by) ** 2 * 2.2 <= e * e && y < LH && y > 20) lput(x, y, r() < 0.25 ? ROCK_D : ROCK);
-    }
-}
-// seagrass wisps
-for (let k = 0; k < 7; k++) {
-  const gx = 4 + Math.floor(r() * (LW - 8)); const h = 3 + Math.floor(r() * 4);
-  for (let d = 0; d < h; d++) lput(gx + Math.round(Math.sin(d * 1.3 + k) * 0.8), 26 - d, "#5f9a7a");
-}
-// glints on the water
-for (let k = 0; k < 26; k++) {
-  const gx = Math.floor(r() * LW), gy = Math.floor(r() * 14);
-  lput(gx, gy, "#eef8f4");
-  if (r() < 0.5) lput(gx + 1, gy, "#def0ea");
-}
-// a few drifting bubbles
-for (let k = 0; k < 6; k++) lput(Math.floor(r() * LW), 6 + Math.floor(r() * 16), "#e6f4f0");
 
 // PNG encode (same minimal encoder as gen-sepia)
 const CRC_TABLE = (() => {
@@ -78,14 +35,169 @@ function chunk(type, data) {
   const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(body));
   return Buffer.concat([len, body, crc]);
 }
-const ihdr = Buffer.alloc(13);
-ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4);
-ihdr[8] = 8; ihdr[9] = 6;
-const raw = Buffer.alloc((W * 4 + 1) * H);
-for (let y = 0; y < H; y++) { raw[y * (W * 4 + 1)] = 0; px.copy(raw, y * (W * 4 + 1) + 1, y * W * 4, (y + 1) * W * 4); }
-const png = Buffer.concat([
-  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-  chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(raw, { level: 9 })), chunk("IEND", Buffer.alloc(0))
-]);
-fs.writeFileSync("assets/scene-tidepool.png", png);
-console.log("scene-tidepool.png: " + W + "x" + H + ", " + png.length + " bytes");
+function savePNG(name, W, H, px) {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4);
+  ihdr[8] = 8; ihdr[9] = 6;
+  const raw = Buffer.alloc((W * 4 + 1) * H);
+  for (let y = 0; y < H; y++) { raw[y * (W * 4 + 1)] = 0; px.copy(raw, y * (W * 4 + 1) + 1, y * W * 4, (y + 1) * W * 4); }
+  const png = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(raw, { level: 9 })), chunk("IEND", Buffer.alloc(0))
+  ]);
+  fs.writeFileSync("assets/" + name, png);
+  console.log(name + ": " + W + "x" + H + ", " + png.length + " bytes");
+}
+
+// per-scene canvas: logical grid, SCALE-up pixels
+function canvas(LW, LH, SCALE) {
+  const W = LW * SCALE, H = LH * SCALE;
+  const px = Buffer.alloc(W * H * 4);
+  function put(x, y, c) {
+    if (x < 0 || x >= W || y < 0 || y >= H) return;
+    const [r, g, b] = hex(c), i = (y * W + x) * 4;
+    px[i] = r; px[i + 1] = g; px[i + 2] = b; px[i + 3] = 255;
+  }
+  function lput(gx, gy, c) {
+    for (let dy = 0; dy < SCALE; dy++) for (let dx = 0; dx < SCALE; dx++) put(gx * SCALE + dx, gy * SCALE + dy, c);
+  }
+  return { W, H, LW, LH, px, lput, save: name => savePNG(name, W, H, px) };
+}
+
+/* ---- tidepool (byte-identical to the original single-scene script) ---- */
+{
+  const { LW, LH, lput, save } = canvas(170, 33, 4);
+  const r = rng(20260717);
+  const WATER = ["#cfe8e2", "#b2ddd4", "#93cec4", "#79bfb4", "#66b0a6"];
+  for (let y = 0; y < 26; y++) {
+    for (let x = 0; x < LW; x++) {
+      const wob = Math.sin(x / 9 + y * 0.7) * 1.4;
+      const band = Math.max(0, Math.min(WATER.length - 1, Math.floor((y + wob) / 5.4)));
+      lput(x, y, WATER[band]);
+    }
+  }
+  for (let y = 26; y < LH; y++) for (let x = 0; x < LW; x++)
+    lput(x, y, y === 26 ? "#dbc9a4" : ((x * 7 + y * 13) % 17 === 0 ? "#cbb894" : "#d6c49e"));
+  const ROCK = "#7a7268", ROCK_D = "#645c53";
+  for (let k = 0; k < 9; k++) {
+    const bx = 6 + r() * (LW - 12), by = 24 + r() * 7, rad = 1.6 + r() * 2.6;
+    for (let y = Math.floor(by - rad - 1); y <= by + rad + 1; y++)
+      for (let x = Math.floor(bx - rad - 1); x <= bx + rad + 1; x++) {
+        const e = rad + (r() - 0.5) * 1.2;
+        if ((x - bx) ** 2 + (y - by) ** 2 * 2.2 <= e * e && y < LH && y > 20) lput(x, y, r() < 0.25 ? ROCK_D : ROCK);
+      }
+  }
+  for (let k = 0; k < 7; k++) {
+    const gx = 4 + Math.floor(r() * (LW - 8)); const h = 3 + Math.floor(r() * 4);
+    for (let d = 0; d < h; d++) lput(gx + Math.round(Math.sin(d * 1.3 + k) * 0.8), 26 - d, "#5f9a7a");
+  }
+  for (let k = 0; k < 26; k++) {
+    const gx = Math.floor(r() * LW), gy = Math.floor(r() * 14);
+    lput(gx, gy, "#eef8f4");
+    if (r() < 0.5) lput(gx + 1, gy, "#def0ea");
+  }
+  for (let k = 0; k < 6; k++) lput(Math.floor(r() * LW), 6 + Math.floor(r() * 16), "#e6f4f0");
+  save("scene-tidepool.png");
+}
+
+/* ---- night: indigo sky, stars, a crescent, one dark hill ---- */
+{
+  const { LW, LH, lput, save } = canvas(40, 40, 4);
+  const r = rng(20260718);
+  const SKY = ["#0e1226", "#131a33", "#1a2340", "#232e4e"];
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
+    const band = Math.min(SKY.length - 1, Math.floor(y / 11 + Math.sin(x / 7) * 0.4 + 0.4));
+    lput(x, y, SKY[Math.max(0, band)]);
+  }
+  // stars: mostly faint, a few bright with cross glints
+  for (let k = 0; k < 34; k++) {
+    const sx = Math.floor(r() * LW), sy = Math.floor(r() * 30);
+    const bright = r() < 0.2;
+    lput(sx, sy, bright ? "#f2f0e0" : (r() < 0.5 ? "#9aa4c8" : "#c8cde2"));
+    if (bright) { lput(sx - 1, sy, "#5a6390"); lput(sx + 1, sy, "#5a6390"); lput(sx, sy - 1, "#5a6390"); lput(sx, sy + 1, "#5a6390"); }
+  }
+  // crescent moon, upper right
+  const mx = 30, my = 8;
+  for (let y = -4; y <= 4; y++) for (let x = -4; x <= 4; x++) {
+    const inMoon = x * x + y * y <= 17, inBite = (x - 2) * (x - 2) + (y - 1) * (y - 1) <= 13;
+    if (inMoon && !inBite) lput(mx + x, my + y, (x * x + y * y > 12) ? "#d8d2ba" : "#efe9cf");
+  }
+  // dark hill silhouette with two tiny warm windows far off
+  for (let x = 0; x < LW; x++) {
+    const top = 33 - Math.round(3.4 * Math.sin(x / 8 + 1.2) + 1.6 * Math.sin(x / 3.1));
+    for (let y = top; y < LH; y++) lput(x, y, y === top ? "#141826" : "#0b0e1a");
+  }
+  lput(9, 36, "#e8b86a"); lput(27, 37, "#d89a52");
+  save("scene-night.png");
+}
+
+/* ---- glade: mossy forest light, canopy, light shafts, fireflies ---- */
+{
+  const { LW, LH, lput, save } = canvas(40, 40, 4);
+  const r = rng(20260719);
+  const AIR = ["#2e4432", "#39523a", "#455f42", "#526c4a"];
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
+    const band = Math.min(AIR.length - 1, Math.floor((y + Math.sin(x / 5) * 1.8) / 10));
+    lput(x, y, AIR[Math.max(0, band)]);
+  }
+  // canopy: dark leaf clumps along the top
+  for (let k = 0; k < 26; k++) {
+    const cx = Math.floor(r() * LW), cy = Math.floor(r() * 7), rad = 1 + Math.floor(r() * 2);
+    for (let y = cy - rad; y <= cy + rad; y++) for (let x = cx - rad; x <= cx + rad; x++)
+      if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= rad * rad + 1) lput(x, y, r() < 0.3 ? "#1c2e20" : "#24382a");
+  }
+  // light shafts: two soft diagonals
+  for (const [sx0, w] of [[8, 3], [24, 4]]) {
+    for (let y = 2; y < 34; y++) for (let dx = 0; dx < w; dx++) {
+      const x = sx0 + Math.floor(y / 3) + dx;
+      if ((x + y) % 2 === 0) lput(x, y, "#7c9468");
+    }
+  }
+  // undergrowth: ferns + moss floor
+  for (let y = 34; y < LH; y++) for (let x = 0; x < LW; x++)
+    lput(x, y, (x * 5 + y * 11) % 13 === 0 ? "#3a5230" : "#44603a");
+  for (let k = 0; k < 9; k++) {
+    const fx = 2 + Math.floor(r() * (LW - 4)), h = 3 + Math.floor(r() * 3);
+    for (let d = 0; d < h; d++) { lput(fx + Math.round(Math.sin(d + k) * 1.2), 34 - d, "#5f7e4c"); }
+  }
+  // fireflies
+  for (let k = 0; k < 7; k++) lput(Math.floor(r() * LW), 12 + Math.floor(r() * 20), r() < 0.5 ? "#e8d87a" : "#f4ea9c");
+  save("scene-glade.png");
+}
+
+/* ---- study: lamplight interior, shelf of books, warm desk ---- */
+{
+  const { LW, LH, lput, save } = canvas(40, 40, 4);
+  const r = rng(20260720);
+  // wall: warm dusk gradient, brightest near the lamp (upper left)
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
+    const d = Math.sqrt((x - 8) * (x - 8) + (y - 9) * (y - 9));
+    const c = d < 7 ? "#6b5240" : d < 13 ? "#57432f" : d < 20 ? "#463628" : "#382c22";
+    lput(x, y, c);
+  }
+  // the lamp: shade, stem, glow core
+  for (let x = 5; x <= 11; x++) lput(x, 6, "#8a5f3a");
+  for (let x = 6; x <= 10; x++) { lput(x, 5, "#8a5f3a"); lput(x, 7, "#a06e42"); }
+  lput(8, 8, "#f4d89a"); lput(7, 8, "#e8c07a"); lput(9, 8, "#e8c07a");
+  for (let y = 9; y <= 12; y++) lput(8, y, "#5a4632");
+  // shelf on the right with book spines
+  for (let x = 22; x < 39; x++) lput(x, 16, "#2c2018");
+  const SPINES = ["#8a4a3a", "#4a6a5a", "#b0885a", "#5a5a7a", "#7a4a5a", "#4a5a3a", "#a05a42", "#6a7a8a"];
+  let bx = 23;
+  while (bx < 38) {
+    const w = 1 + Math.floor(r() * 2), h = 4 + Math.floor(r() * 3), c = SPINES[Math.floor(r() * SPINES.length)];
+    for (let x = bx; x < Math.min(bx + w, 38); x++) for (let y = 16 - h; y < 16; y++) lput(x, y, c);
+    if (r() < 0.3) lput(bx, 16 - h, "#d8c49a");
+    bx += w;
+  }
+  // desk: wood grain band across the bottom
+  for (let y = 30; y < LH; y++) for (let x = 0; x < LW; x++)
+    lput(x, y, y === 30 ? "#6a4a30" : ((x * 3 + y * 7) % 11 === 0 ? "#4a3422" : "#573d28"));
+  // a small steaming mug on the desk
+  for (let x = 29; x <= 32; x++) for (let y = 27; y <= 29; y++) lput(x, y, "#7a8a94");
+  lput(33, 28, "#7a8a94");
+  lput(30, 25, "#c8c2b8"); lput(31, 24, "#b8b2a8");
+  // dust motes in the lamplight
+  for (let k = 0; k < 6; k++) lput(4 + Math.floor(r() * 12), 4 + Math.floor(r() * 14), "#8a6f52");
+  save("scene-study.png");
+}

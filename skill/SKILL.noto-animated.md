@@ -85,7 +85,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@e68e2ecfbf0fb131348d3c48bac3f0ea72eeaa8c/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "noto-animated", item: "1f60a" },
@@ -128,9 +128,16 @@ Respond in kind, briefly; a boop is not a work item.
 
 The banner's hover tray has a wrench; `[vibe banner] *opens the settings*` may arrive. Offer a short
 menu: cadence (every reply / real shifts / strong feelings / off), face (this skill's face, kaomoji,
-or another variant from the repo's Builder), environment (an optional scene the face sits inside —
-`scene: { url, opacity }` in every payload, hosted on a widget-allowlisted CDN; the first-party
-tidepool also takes `live: "tidepool"`, which runs ambient life in the window), anything else
+or another pack), environment (an optional scene the face sits inside — `scene: { url, opacity }`
+in every payload, hosted on a widget-allowlisted CDN; some first-party scenes also take a `live`
+name that runs ambient life in the window), anything else
 that doesn't break the honesty contract (no reporting feelings on demand; you still never see the
 render). **Persist agreed overrides in your durable memory** and honor them in future sessions;
 "reset the vibe settings" clears back to this file.
+
+For the full current menu of faces and first-party environments, fetch the catalog:
+<https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/assets/catalog.json>
+— it lists every face-pack (with items) and every scene (with pinned URLs and `live` names) in
+machine-readable form. To let the user *see* the options instead of hearing them described, point
+them at the site's Explorer, where face and environment combine into a live preview:
+<https://bombadil-labs.github.io/vibe-annotation-renderer/#explorer>.
