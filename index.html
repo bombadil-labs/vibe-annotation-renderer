@@ -793,12 +793,19 @@ route();
       strip.appendChild(cell);
     });
   }
-  function faceThumb(px2) {                                    // representative face at arbitrary size, for composite previews
+  function faceThumb(px2, box) {                               // representative face at arbitrary size, for composite previews
+    box = box || px2 / 0.6;                                    // the fixed square it lives in — text sizing mirrors the renderer (~19% of the window side, scale-to-fit when wide)
     var pv = P.PREVIEW[S.face];
     var d = document.createElement("span");
     d.style.cssText = "display:inline-block;width:" + px2 + "px;height:" + px2 + "px;";
-    if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "width:auto;font-size:" + Math.round(px2 * 0.7) + "px;line-height:" + px2 + "px;"; return d; }
-    if (pv.kind === "text") { d.textContent = "( ˘ ᵕ ˘ )"; d.style.cssText += "width:auto;white-space:nowrap;font-size:" + Math.round(px2 * 0.24) + "px;line-height:" + px2 + "px;"; return d; }
+    if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "width:auto;height:auto;font-size:" + Math.round(px2 * 0.7) + "px;line-height:1.1;"; return d; }
+    if (pv.kind === "text") {
+      var kao = "( ˘ ᵕ ˘ )";
+      var fs = Math.min(box * 0.19, (box - 8) / (kao.length * 0.55));
+      d.textContent = kao;
+      d.style.cssText += "width:auto;height:auto;white-space:nowrap;line-height:1.15;font-size:" + (Math.round(fs * 10) / 10) + "px;";
+      return d;
+    }
     if (pv.kind === "sheet") {
       var idx = pv.moods.indexOf("content"); if (idx < 0) idx = 0;
       var col = idx % pv.cols, row = Math.floor(idx / pv.cols), sc = px2 / pv.cell;
@@ -817,7 +824,7 @@ route();
       bg.style.cssText = "position:absolute;inset:0;background-image:url(" + u + ");background-size:cover;background-position:center;image-rendering:pixelated;opacity:" + Math.min(1, S.sceneOp * 1.6) + ";";
       d.appendChild(bg);
     }
-    var f = faceThumb(Math.round(size * 0.6));
+    var f = faceThumb(Math.round(size * 0.6), size);
     f.style.position = "absolute"; f.style.left = "50%"; f.style.top = "50%"; f.style.transform = "translate(-50%,-50%)";
     d.appendChild(f);
     return d;
