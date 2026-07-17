@@ -303,10 +303,11 @@
     // compress; the skill's guidance is that big feelings bloom tall, not long.
     var kaoMaxW = TEXT_X - FACE_X - 10;
     function fit(line, size) { return estW(line, size) > kaoMaxW ? ' textLength="' + kaoMaxW + '" lengthAdjust="spacingAndGlyphs"' : ''; }
-    var kaoSVG;
+    var kaoSVG, faceBox = null;
     if (faceImg) {
       var iy = coreCy - faceImg.h / 2;
       var ix = FACE_X + Math.max(0, (kaoMaxW - faceImg.w) / 2);          // centre the image in the face column (text hugs left; images float)
+      faceBox = { x: ix, y: iy, w: faceImg.w, h: faceImg.h };            // authoritative banner-space box — getBBox on a nested sprite svg reports sheet coords, never use it
       if (faceImg.cellW && faceImg.cellH) {                    // spritesheet: crop one cell via a nested viewport
         var col = faceImg.index % faceImg.cols, rowI = Math.floor(faceImg.index / faceImg.cols);
         kaoSVG = '<svg class="vk" x="' + g(ix) + '" y="' + g(iy) + '" width="' + faceImg.w + '" height="' + faceImg.h +
@@ -340,7 +341,7 @@
     var L = {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
       restSVG: readSVG + langSVG + flagSVG,
-      kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, hasLangs: langs.length > 0,
+      kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
       stance: stance, conson: conson, prevFills: prevFills
     };
@@ -525,13 +526,14 @@
       if (!visible) { requestAnimationFrame(frame); return; }
       try {
         var cyC = L.coreCy;
-        // measure the face's real box so face-attached marks anchor correctly at any size (incl. multi-line blooms)
-        var fb = null;
-        if (kaoEl && kaoEl.getBBox) { try { var _b = kaoEl.getBBox(); if (_b && _b.width) fb = _b; } catch (e) { } }
-        var faceCX = fb ? fb.x + fb.width / 2 : 46;
+        // face anchor box: layout's own numbers for image faces (getBBox on a nested sprite
+        // svg reports sheet coordinates); measured bbox for text faces (multi-line blooms vary)
+        var fb = L.faceBox;
+        if (!fb && kaoEl && kaoEl.getBBox) { try { var _b = kaoEl.getBBox(); if (_b && _b.width) fb = { x: _b.x, y: _b.y, w: _b.width, h: _b.height }; } catch (e) { } }
+        var faceCX = fb ? fb.x + fb.w / 2 : 46;
         var faceTop = fb ? fb.y : cyC - 15;
-        var faceRight = fb ? fb.x + fb.width : 92;
-        var faceMidY = fb ? fb.y + fb.height / 2 : cyC;
+        var faceRight = fb ? fb.x + fb.w : 92;
+        var faceMidY = fb ? fb.y + fb.h / 2 : cyC;
         ctx.setTransform(sx, 0, 0, sy, 0, 0);
         ctx.clearRect(0, 0, W, H);
 
