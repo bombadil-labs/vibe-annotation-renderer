@@ -912,8 +912,10 @@
               var crr = mulberry32(L.seed + ci * 7717 + 5);
               var pax = 0.2 + crr() * 0.6, pay = 0.08 + crr() * 0.62;   // anchors live where the mantle is: upper-centre of the face box
               var sw1 = 0.045 + crr() * 0.075, sw2 = 0.04 + crr() * 0.065, cp1 = crr() * 6.28, cp2 = crr() * 6.28;
-              var cxp = (pax + 0.2 * Math.sin(t * sw1 * 6.28 + cp1)) * ccw;
-              var cyp = (pay + 0.2 * Math.sin(t * sw2 * 6.28 + cp2)) * cch;
+              // quasi-periodic drift: incommensurate frequencies (golden-ratio multiples)
+              // mean the path never visibly repeats — a wander, not an orbit
+              var cxp = (pax + 0.12 * Math.sin(t * sw1 * 6.28 + cp1) + 0.09 * Math.sin(t * sw1 * 6.28 * 1.618 + cp2 * 2.3) + 0.06 * Math.sin(t * 0.071 + ci * 1.3)) * ccw;
+              var cyp = (pay + 0.12 * Math.sin(t * sw2 * 6.28 + cp2) + 0.09 * Math.sin(t * sw2 * 6.28 * 2.414 + cp1 * 1.7) + 0.06 * Math.sin(t * 0.053 + ci * 2.1)) * cch;
               var crad = (0.1 + 0.045 * Math.sin(t * 0.6 + ci * 2.1)) * ccw;
               var cal = 0.26 + 0.14 * Math.sin(t * 0.8 + ci * 1.7);
               var cg = cctx.createRadialGradient(cxp, cyp, 0, cxp, cyp, crad);
