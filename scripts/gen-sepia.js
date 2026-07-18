@@ -16,7 +16,8 @@ const zlib = require("zlib");
 const COLORS = {
   o: "#4a3a44", b: "#e8dcd0", n: "#d8bcc8", W: "#f8f4ec", p: "#2a2230",
   s: "#ffd76a", F: "#e88aa0", d: "#9ec7e8", R: "#c04a48", G: "#cfc2d6", m: "#8f8698",
-  A: "#a5761f"                                                 // dark amber — RULE: no yellow pupils; anything in the eye must read against the whites
+  A: "#a5761f",                                                // dark amber — RULE: no yellow pupils; anything in the eye must read against the whites
+  e: "#6f9a5f", E: "#476b3d"                                   // theatre-mask green, lit and shaded
 };
 // The body must say "cuttlefish" without a caption: a mantle taller than it is wide,
 // fin frills running the full flanks, and a skirt of arms where a chin would be.
@@ -153,6 +154,7 @@ const MOUTH = {}; Object.keys(MOUTH16).forEach(k => { MOUTH[k] = up2(MOUTH16[k])
 MOUTH.smile = [[12,19],[13,20],[14,21],[15,21],[16,21],[17,21],[18,20],[19,19]];   // real arcs, 2px grid
 MOUTH.frown = [[12,21],[13,20],[14,19],[15,19],[16,19],[17,19],[18,20],[19,21]];
 MOUTH.wavy  = [[12,20],[13,21],[14,20],[15,19],[16,20],[17,21],[18,20],[19,19]];
+MOUTH.flatdrop = [[12,20],[13,20],[14,20],[15,20],[16,20],[17,20],[18,21],[19,22]];   // frustrated: flat, but one corner gives up and turns down
 // THE GUFFAW (v0.33.0): laugh's frame 1 is not a blink — it's the mouth thrown wide.
 // The renderer cycles the two feature frames fast for laugh, and the face HA-HA-HAs.
 const GUFFAW = [];
@@ -190,6 +192,12 @@ const X = {}; Object.keys(X16).forEach(k => { X[k] = up2(X16[k]); });
 // the ? and the grawlix are drawn by the renderer as REAL emoji/type, keyed to the MOOD
 // and anchored to the avatar — still the avatar's own props, never flag weather. The
 // sheet keeps only what is genuinely facial: eyes, mouths, brows, the mask, the guffaw.)
+// V-BROWS (v0.36.0): frustration's brows move to the CENTER, pursed into a V between
+// the eyes — the outer dashes were cute but invisible (the maintainer's note). 32-grid,
+// two-cell-thick diagonal strokes meeting over the nose bridge.
+const VBROWS = [];
+[[10,5],[11,6],[12,6],[13,7],[14,8]].forEach(q => { VBROWS.push([q[0], q[1], "o"], [q[0] + 1, q[1], "o"]); });
+[[21,5],[20,6],[19,6],[18,7],[17,8]].forEach(q => { VBROWS.push([q[0], q[1], "o"], [q[0] - 1, q[1], "o"]); });
 // A mood is a RECIPE, not a drawing: [name, eyes-preset (or [left,right]), mouth-name,
 // chromatophore hue, extras?]. Eyes and mouth are components that draw themselves;
 // fins (posture code) and spots (live layer) are the renderer's components.
@@ -210,9 +218,9 @@ const MOODS = [
   ["anxious",    "dot",              "wavy",  "#7a8296", X.sweat],
   ["mirth",      "happy",            "smile", "#e0b060"],
   ["laugh",      "cross",            "open",  "#ffd24a"],   // guffaw: the blink frame carries the wide-open mouth; the renderer cycles them
-  ["groan",      "slit",             "frown", "#9a9488"],   // the 💧 is a renderer-drawn prop; the body contracts live
+  ["groan",      "dot",              "frown", "#9a9488"],   // deadpan base; frame 1 squeezes the eyes to slits as the body contracts live
   ["oops",       "wide",             "open",  "#d98a6a", X.sweat],
-  ["frustrated", "glower",           "flat",  "#a05050", X.brows],
+  ["frustrated", "glower",           "flatdrop", "#a05050", VBROWS],
   ["angry",      "dot",              "frown", "#c04040", X.brows],
   ["dramatic",   "wide",             "smile", "#b0413e"],   // the Greek mask overlay is drawn in the frame pass below
   ["at_peace",   "closed",           "smile", "#8fae8f", X.flower],
@@ -283,31 +291,43 @@ MOODS.forEach((mood, i) => {
   // renderer OVER the wandering colour
   for (let frame = 0; frame < 2; frame++) {
     const cx = colX, cy = rowY + (1 + frame) * FRAME_ROWS * CELL;
-    const blink = frame === 1 && mood[0] !== "laugh";           // laugh's frame 1 is the guffaw beat, not a blink
+    const blink = frame === 1 && mood[0] !== "laugh" && mood[0] !== "groan";   // laugh's frame 1 is the guffaw beat; groan's is the SQUEEZE — neither is a blink
     const eyeSpec = mood[1], pair = Array.isArray(eyeSpec) ? eyeSpec : [eyeSpec, eyeSpec];
     const feat = [];
-    const gpair = mood[0] === "laugh" && frame === 1 ? ["wide", "wide"] : pair;   // the guffaw frame goes WIDE-eyed — wilder mid-cackle, and it doubles as the feeding-thrill face
+    const gpair = mood[0] === "laugh" && frame === 1 ? ["wide", "wide"]   // the guffaw frame goes WIDE-eyed — it doubles as the feeding-thrill face
+      : mood[0] === "groan" && frame === 1 ? ["slit", "slit"]             // the squeeze frame: deadpan gives way, eyes clenched to slits mid-contraction
+      : pair;
     drawEyes(feat, gpair[0], gpair[1], blink);
     if (mood[0] === "laugh" && frame === 1) feat.push(...GUFFAW);
     else if (!FINE_MOUTH[mood[0]]) feat.push(...MOUTH[mood[2]].map(q => [q[0], q[1], "p"]));
     feat.push(...(mood[4] || []));
     if (mood[0] === "dramatic") {
-      // THE GREEK MASK (v0.34.0, the maintainer's call): an oversized theatre porcelain
-      // strapped over the whole face — wider than the brow, the dart tip peeking above.
-      // The living eyes stay VISIBLE through its eyeholes, the smile through its grin;
-      // pushed last so the plate lids over everything except the holes it leaves open.
-      const span = { 5: [8, 23], 6: [5, 26], 7: [4, 27], 21: [3, 28], 22: [4, 27], 23: [6, 25], 24: [9, 22] };
-      const hole = (x, y) => (y >= 9 && y <= 16 && ((x >= 6 && x <= 14) || (x >= 17 && x <= 25))) ||
-        (y >= 18 && y <= 22 && x >= 10 && x <= 21);
-      for (let y = 5; y <= 24; y++) {
-        const sp = span[y] || [2, 29];
-        for (let x = sp[0]; x <= sp[1]; x++) {
-          if (hole(x, y)) continue;
-          const edge = x === sp[0] || x === sp[1] || y === 5 || y === 24 ||
-            hole(x + 1, y) || hole(x - 1, y) || hole(x, y + 1) || hole(x, y - 1);
-          feat.push([x, y, edge ? "o" : "W"]);
-        }
+      // THE GREEK MASK, take two (v0.36.0): the see-through porcelain read as magneto
+      // (the maintainer's verdict). This one is the real thing — a GREEN theatre mask
+      // bigger than the face, covering it ENTIRELY, with its own painted wide eyes and
+      // a fixed exaggerated grin showing teeth. Nothing of her shows; that's the bit.
+      const MSPAN = { 3: [10, 21], 4: [7, 24], 5: [5, 26], 6: [4, 27], 7: [3, 28], 8: [2, 29],
+        20: [2, 29], 21: [3, 28], 22: [4, 27], 23: [5, 26], 24: [6, 25], 25: [8, 23], 26: [10, 21], 27: [13, 18] };
+      const spanAt = y => MSPAN[y] || [1, 30];
+      for (let y = 3; y <= 27; y++) {
+        const sp = spanAt(y);
+        for (let x = sp[0]; x <= sp[1]; x++)
+          feat.push([x, y, (x === sp[0] || x === sp[1] || y === 3 || y === 27) ? "o" : "e"]);
       }
+      for (let x = 5; x <= 13; x++) feat.push([x, 8, "E"]);                        // brow ridges shading the sockets
+      for (let x = 18; x <= 26; x++) feat.push([x, 8, "E"]);
+      const ALM = { 9: [8, 11], 10: [7, 12], 11: [6, 13], 12: [6, 13], 13: [7, 12], 14: [8, 11] };   // the mask's own eyes: dark-ringed almonds, theatrically wide
+      const ALW = { 10: [8, 11], 11: [7, 12], 12: [7, 12], 13: [8, 11] };
+      [false, true].forEach(mirE => {
+        const mx = x => mirE ? 31 - x : x;
+        Object.keys(ALM).forEach(yy => { for (let x = ALM[yy][0]; x <= ALM[yy][1]; x++) feat.push([mx(x), +yy, "p"]); });
+        Object.keys(ALW).forEach(yy => { for (let x = ALW[yy][0]; x <= ALW[yy][1]; x++) feat.push([mx(x), +yy, "W"]); });
+        [[9, 11], [10, 11], [9, 12], [10, 12]].forEach(q => feat.push([mx(q[0]), q[1], "p"]));
+      });
+      const GRIN = { 18: [[7, 8], [23, 24]], 19: [[7, 24]], 20: [[8, 23]], 21: [[9, 22]], 22: [[11, 20]], 23: [[13, 18]] };   // the grin: a fixed exaggerated banana of joy
+      Object.keys(GRIN).forEach(yy => GRIN[yy].forEach(sp2 => { for (let x = sp2[0]; x <= sp2[1]; x++) feat.push([x, +yy, "p"]); }));
+      for (let x = 9; x <= 22; x++) feat.push([x, 19, "W"]);                       // teeth, grinning through
+      [11, 14, 17, 20].forEach(x => feat.push([x, 19, "p"]));
     }
     feat.forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
 
