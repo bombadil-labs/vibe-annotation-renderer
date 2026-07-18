@@ -39,13 +39,15 @@ const BASE16 = [
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
-  "................",
+  "..obbbbbbbbbbo..",
   "................",
   "................",
   "................"
 ];
-// (the arm stubs left the sheet in v0.24.0 — the renderer draws three longer arms that
-// sway independently, the way the fins went liquid in v0.21.0)
+// (the arm stubs left the sheet in v0.24.0 — the renderer draws the arm skirt. The body
+// runs one 16-row deeper since v0.25.0: breathing room below the mouth, and the hem's
+// bottom edge is NOT traced — the renderer closes the boundary only in the gaps between
+// arms, so body and skirt share one continuous line.)
 const B32 = [];
 BASE16.forEach(r => { const d = r.split("").map(c => c + c).join(""); B32.push(d.split("")); B32.push(d.split("")); });
 const PB = (y, x, c) => { B32[y][x] = c; };
@@ -54,7 +56,8 @@ PB(4, 6, "."); PB(4, 7, "."); PB(4, 24, "."); PB(4, 25, ".");  // second step in
 PB(5, 6, "."); PB(5, 25, ".");
 PB(6, 4, "."); PB(6, 6, "o"); PB(6, 7, "o");                   // sloped shoulder joins the flank
 PB(6, 27, "."); PB(6, 24, "o"); PB(6, 25, "o");
-PB(23, 4, "."); PB(23, 5, "."); PB(23, 26, "."); PB(23, 27, ".");   // the hem rounds — the body ends in a soft tuck; arms hang from it, renderer-drawn
+PB(24, 4, "."); PB(24, 27, ".");                               // the hem rounds — the body ends in a soft tuck; arms flow from it, renderer-drawn
+PB(25, 4, "."); PB(25, 5, "."); PB(25, 26, "."); PB(25, 27, ".");
 const BASE = B32.map(r => r.join(""));
 // Fin frills are an expression channel, not anatomy furniture: straight side bars read
 // as arms (the maintainer's flicker, round two), but fins that flare, ripple, droop, and
@@ -264,7 +267,7 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 2; frame++) {
       if (!solid(gx - 1, gy)) frect(rx, ry, 1, 2, EDGE);
       if (!solid(gx + 1, gy)) frect(rx + 1, ry, 1, 2, EDGE);
       if (!solid(gx, gy - 1)) frect(rx, ry, 2, 1, EDGE);
-      if (!solid(gx, gy + 1)) frect(rx, ry + 1, 2, 1, EDGE);
+      if (!solid(gx, gy + 1) && gy < 24) frect(rx, ry + 1, 2, 1, EDGE);   // the hem's bottom edge is NOT baked — arms flow out of it; the renderer closes the gaps
     }
   }
 
