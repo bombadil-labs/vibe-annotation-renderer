@@ -201,6 +201,17 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   became a guffaw mouth cycled in bouts via `anim.cycle` (frame 1 is whatever the mood
   needs — usually a blink, sometimes a beat).
 
+- **Props are real emoji, worn live (v0.34.0).** v0.33.0's pixel-art recreations of the
+  marks lasted one day — the maintainer: it's fine and good to use the same emoji, don't
+  re-create them in pixels. `anim.props` maps mood index → prop name; the renderer draws
+  💡/💧/💢/❗/curses/?s on the avatar's OWN fin canvas (inside the window, riding every
+  pose) with their old animation grammar (click-on halo, slide, throb, pop, clouds). The
+  sheet keeps only what is genuinely facial. Same pass: the opera-mask-on-a-stick became
+  a proper oversized GREEK mask overlay with the living eyes visible through its holes;
+  frustrated got a "glower" preset (lid low, pupils sunk); and two new anim channels —
+  `bounce` (laugh's kefka cackle: guffaw frame chattered at 140ms while the body jounces)
+  and `contract` (groan: fins/arms hauled in, mantle sunk and squashed, breathing).
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
