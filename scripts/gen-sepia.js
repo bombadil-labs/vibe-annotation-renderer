@@ -21,7 +21,12 @@ const COLORS = {
 // fin frills running the full flanks, and a skirt of arms where a chin would be.
 // (v1 had a chin taper and feet — it read as a bald man with tattoos. The maintainer's
 // flicker at the whole body; redrawn 2026-07-17.)
-const BASE = [
+// THE OCTAVE PASS (v0.22.0): the body moves from a 4px grid to a 2px grid — still
+// pixel-flesh (the low-resolution-being identity is load-bearing; smooth would collapse
+// the register hierarchy into generic vector art), but with room for real curves.
+// BASE16 is the ancestral 16×16 form; BASE32 doubles it, then hand-carves the
+// silhouette: a rounder five-step dome, sloped shoulders, tapered arm tips.
+const BASE16 = [
   "................",
   ".....oooooo.....",
   "...oobbbbbboo...",
@@ -39,6 +44,18 @@ const BASE = [
   "....oo.oo.oo....",
   "................"
 ];
+const B32 = [];
+BASE16.forEach(r => { const d = r.split("").map(c => c + c).join(""); B32.push(d.split("")); B32.push(d.split("")); });
+const PB = (y, x, c) => { B32[y][x] = c; };
+PB(2, 10, "."); PB(2, 21, ".");                                // crown: round the top corners
+PB(4, 6, "."); PB(4, 7, "."); PB(4, 24, "."); PB(4, 25, ".");  // second step in
+PB(5, 6, "."); PB(5, 25, ".");
+PB(6, 4, "."); PB(6, 6, "o"); PB(6, 7, "o");                   // sloped shoulder joins the flank
+PB(6, 27, "."); PB(6, 24, "o"); PB(6, 25, "o");
+PB(23, 4, "."); PB(23, 27, ".");                               // hip corners ease into the skirt
+[8, 11, 14, 17, 20, 23].forEach(x => { PB(27, x, "."); PB(28, x, "."); PB(29, x, "."); });   // arm tips taper
+PB(27, 6, "."); PB(27, 25, ".");
+const BASE = B32.map(r => r.join(""));
 // Fin frills are an expression channel, not anatomy furniture: straight side bars read
 // as arms (the maintainer's flicker, round two), but fins that flare, ripple, droop, and
 // tuck with the mood can only be fins. Left-side pixels; the right side mirrors.
@@ -59,8 +76,16 @@ const FRILL_OF = {
 // in the definition register (like the lashes) — a pressed-thin line reads restraint the
 // 4px grid can't. Table keyed by mood name; add sparingly, the block mouth is the norm.
 const FINE_MOUTH = { groan: "pressed" };
-// left-eye pupil presets (whites: cols 3-5 / 10-12, rows 5-7); right eye mirrors x -> 15-x
-const PUP = {
+// All feature tables are authored in the ancestral 16-grid and auto-doubled to the
+// 32-grid (pixel-identical rendering) — EXCEPT where the finer grid earns real curves:
+// hand-authored 32-grid overrides below (smile/frown/wavy arcs, curved lids, a true
+// heart). Doubling helper: one 16-cell → four 32-cells.
+const up2 = list => list.flatMap(q => [
+  [2 * q[0], 2 * q[1], q[2]], [2 * q[0] + 1, 2 * q[1], q[2]],
+  [2 * q[0], 2 * q[1] + 1, q[2]], [2 * q[0] + 1, 2 * q[1] + 1, q[2]]
+].map(p => q.length > 2 ? p : [p[0], p[1]]));
+// left-eye pupil presets, 16-grid (whites now cols 6-11 / 20-25, rows 10-15 in the 32-grid)
+const PUP16 = {
   w:      [[3,6],[4,7],[5,6]],
   dot:    [[4,6]],
   down:   [[4,7]],
@@ -72,17 +97,20 @@ const PUP = {
   spiral: [[3,5],[4,5],[5,5],[5,6],[5,7],[4,7],[3,7],[3,6]],
   side:   [[3,6]]
 };
-const HEART = [[3,5],[5,5],[3,6],[4,6],[5,6],[4,7]];
-const STAR = [[4,5],[3,6],[4,6],[5,6],[4,7]];
-const MOUTH = {
+const PUP = {}; Object.keys(PUP16).forEach(k => { PUP[k] = up2(PUP16[k]); });
+// a TRUE heart and a diamond glint, only possible on the finer grid (left-eye coords)
+const HEART = [[6,10],[7,10],[9,10],[10,10],[6,11],[7,11],[8,11],[9,11],[10,11],[11,11],[6,12],[7,12],[8,12],[9,12],[10,12],[11,12],[7,13],[8,13],[9,13],[10,13],[8,14],[9,14]];
+const STAR = [[8,10],[9,10],[7,11],[8,11],[9,11],[10,11],[6,12],[7,12],[8,12],[9,12],[10,12],[11,12],[7,13],[8,13],[9,13],[10,13],[8,14],[9,14]];
+const MOUTH16 = {
   sm: [[7,10],[8,10]],
-  smile: [[6,9],[7,10],[8,10],[9,9]],
   open: [[7,9],[8,9],[7,10],[8,10]],
   flat: [[6,10],[7,10],[8,10],[9,10]],
-  frown: [[6,10],[7,9],[8,9],[9,10]],
-  wavy: [[6,10],[7,9],[8,10],[9,9]],
   tiny: [[7,10]]
 };
+const MOUTH = {}; Object.keys(MOUTH16).forEach(k => { MOUTH[k] = up2(MOUTH16[k]); });
+MOUTH.smile = [[12,19],[13,20],[14,21],[15,21],[16,21],[17,21],[18,20],[19,19]];   // real arcs, 2px grid
+MOUTH.frown = [[12,21],[13,20],[14,19],[15,19],[16,19],[17,19],[18,20],[19,21]];
+MOUTH.wavy  = [[12,20],[13,21],[14,20],[15,19],[16,20],[17,21],[18,20],[19,19]];
 // Chromatophores are SUB-PIXEL — an affordance evolved for survival in a high-res world.
 // Density is arousal, camouflage is a state: awe/surprise BLANCH (real cuttlefish fear
 // response), peace barely speckles (nothing to hide), anxiety mottles hardest (trying to
@@ -96,7 +124,7 @@ function rng(seed) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-const mirror = px => px.map(q => [15 - q[0], q[1]]);
+const mirror = px => px.map(q => q.length > 2 ? [31 - q[0], q[1], q[2]] : [31 - q[0], q[1]]);   // 32-grid mirror
 function eyes(preset) {
   if (preset === "heart") return HEART.concat(mirror(HEART)).map(q => [q[0], q[1], "F"]);
   if (preset === "star") return STAR.concat(mirror(STAR)).map(q => [q[0], q[1], "s"]);
@@ -107,7 +135,7 @@ function eyesAsym(l, r) {
   return PUP[l].map(q => [q[0], q[1], "p"]).concat(mirror(PUP[r]).map(q => [q[0], q[1], "p"]));
 }
 const m = name => MOUTH[name].map(q => [q[0], q[1], "p"]);
-const X = {
+const X16 = {
   zzz: [[13,3,"m"],[14,2,"m"],[15,1,"m"]],
   sweat: [[13,4,"d"],[13,5,"d"]],
   boop: [[2,2,"s"],[13,2,"s"],[3,8,"F"],[4,8,"F"],[11,8,"F"],[12,8,"F"]],
@@ -119,6 +147,7 @@ const X = {
   bowtie: [[6,12,"R"],[7,12,"R"],[8,12,"R"],[9,12,"R"]],
   mote: [[2,3,"d"],[13,10,"d"]]
 };
+const X = {}; Object.keys(X16).forEach(k => { X[k] = up2(X16[k]); });
 // [name, eyes, mouth, chromatophore hue, extras?]
 const MOODS = [
   ["neutral",    eyes("w"),                m("sm"),    "#b89ab0"],
@@ -155,9 +184,9 @@ const MOODS = [
   ["love",       eyes("heart"),            m("open"),  "#e87a90", X.boop]
 ];
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);
-BASE.forEach((r, i) => { if (r.length !== 16) throw new Error("BASE row " + i + " length " + r.length); });
+BASE.forEach((r, i) => { if (r.length !== 32) throw new Error("BASE row " + i + " length " + r.length); });
 
-const SCALE = 4, CELL = 64, COLS = 8, ROWS = 12, FRAME_ROWS = 4;   // rows 0-3: base; rows 4-7: blink; rows 8-11: PER-MOOD mantle masks. Fins are NOT baked — the renderer draws them as smooth membranes (v0.21.0)
+const SCALE = 2, CELL = 64, COLS = 8, ROWS = 12, FRAME_ROWS = 4;   // 2px body grid (the octave pass); rows 0-3: base; 4-7: blink; 8-11: per-mood masks. Fins drawn live (v0.21.0)
 const W = CELL * COLS, H = CELL * ROWS;
 const px = Buffer.alloc(W * H * 4);   // RGBA, transparent
 const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
@@ -181,14 +210,14 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 2; frame++) {
   const blink = frame === 1;
   const t = TINT[mood[0]] || 0;
   const skin = t > 0 ? mixHex(COLORS.b, mood[3], t) : t < 0 ? mixHex(COLORS.b, "#f9f4ea", -t) : COLORS.b;
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
     const k = BASE[y][x];
     if (k !== ".") cellPut(cx, cy, x, y, (k === "b" || (blink && k === "W")) ? skin : COLORS[k]);   // blink: lids replace the whites
   }
   // fins are no longer baked: the renderer draws them as smooth undulating membranes,
   // posture per mood (FRILL_OF remains the canonical mood→posture table; the renderer's
   // fins code-string derives from it — keep them in sync)
-  const lidL = [[3, 6], [4, 6], [5, 6]];
+  const lidL = [[6, 13], [7, 12], [8, 12], [9, 12], [10, 12], [11, 13]];   // curved lids, 2px grid — corners dip
   const eyePix = blink ? lidL.concat(mirror(lidL)).map(q => [q[0], q[1], "p"]) : mood[1];
   const mouthPix = FINE_MOUTH[mood[0]] ? [] : mood[2];         // fine-mouth moods draw their lips in the fine pass below
   eyePix.concat(mouthPix, mood[4] || []).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
@@ -251,12 +280,12 @@ MOODS.forEach((mood, i) => {
       for (let x = gx * SCALE - 1; x <= gx * SCALE + SCALE; x++)
         if (x >= 0 && x < CELL && y >= 0 && y < CELL) ex[y * CELL + x] = 1;
   };
-  const mouthCells = FINE_MOUTH[mood[0]] ? [[6, 10], [7, 10], [8, 10], [9, 10]] : mood[2];   // fine mouths reserve only their own thin row
+  const mouthCells = FINE_MOUTH[mood[0]] ? up2([[6, 10], [7, 10], [8, 10], [9, 10]]) : mood[2];   // fine mouths reserve only their own thin row
   mouthCells.forEach(q => mark(q[0], q[1]));                   // the actual mouth, whatever shape this expression wears
   (mood[4] || []).forEach(q => mark(q[0], q[1]));              // extras that sit on the mantle (brows, blush, flower…)
   const okM = (x, y) => {
     if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
-    if (BASE[y >> 2][x >> 2] !== "b") return false;
+    if (BASE[y >> 1][x >> 1] !== "b") return false;            // 2px body grid
     if (y >= 17 && y <= 34 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;   // eyes + lashes (constant anatomy)
     if (ex[y * CELL + x]) return false;
     if (mood[0] === "resolute" && x >= 8 && x <= 61 && y >= 13 && y <= 32) return false;      // the hachimaki band, knot, and tails
