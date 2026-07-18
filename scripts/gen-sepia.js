@@ -332,17 +332,18 @@ MOODS.forEach((mood, i) => {
           feat.push([x, y, (x === sp[0] || x === sp[1] || y === 6 || y === 24) ? "o" : "W"]);
       }
       // (v0.40.2: gentler — the gaping hook-cornered grin read as a reddit rage-face.
-      // The smile is a shallow crescent now, the creases retire, the nose shrinks.)
+      // The smile is a shallow crescent now, the creases retire, the nose shrinks.
+      // v0.40.4: the brow-creases retire too, and the grin LIFTS two rows — some tint
+      // colours made the sliver of chin between mouth and mask edge vanish entirely.)
       [false, true].forEach(mirE => {
         const mx = x => mirE ? 31 - x : x;
-        for (let x = 8; x <= 11; x++) feat.push([mx(x), 10, "m"]);                 // brow-creases, short and light
         for (let x = 7; x <= 12; x++) feat.push([mx(x), 12, "p"]);                 // the smiling ∩ eyehole: a full arch…
         [7, 8, 11, 12].forEach(x => feat.push([mx(x), 13, "p"]));                  // …with two legs, the cheek rising through the middle
       });
-      [[15, 14], [16, 14], [15, 15], [16, 15]].forEach(q => feat.push([q[0], q[1], "m"]));   // a small nose shadow
-      const GRIN = { 18: [[9, 10], [21, 22]], 19: [[9, 22]], 20: [[10, 21]], 21: [[12, 19]] };   // a shallow serene crescent, corners lifting
+      [[15, 13], [16, 13], [15, 14], [16, 14]].forEach(q => feat.push([q[0], q[1], "m"]));   // a small nose shadow
+      const GRIN = { 16: [[9, 10], [21, 22]], 17: [[9, 22]], 18: [[10, 21]], 19: [[12, 19]] };   // a shallow serene crescent, corners lifting
       Object.keys(GRIN).forEach(yy => GRIN[yy].forEach(sp2 => { for (let x = sp2[0]; x <= sp2[1]; x++) feat.push([x, +yy, "p"]); }));
-      for (let x = 13; x <= 18; x++) feat.push([x, 22, "m"]);                      // the lower lip's shadow under the smile
+      for (let x = 13; x <= 18; x++) feat.push([x, 20, "m"]);                      // the lower lip's shadow — a clear chin of porcelain below it now
     }
     feat.forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
 
