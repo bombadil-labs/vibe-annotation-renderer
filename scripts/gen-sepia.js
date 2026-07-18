@@ -39,11 +39,13 @@ const BASE16 = [
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
-  "...obb.bb.bbo...",
-  "...obb.bb.bbo...",
-  "....oo.oo.oo....",
+  "................",
+  "................",
+  "................",
   "................"
 ];
+// (the arm stubs left the sheet in v0.24.0 — the renderer draws three longer arms that
+// sway independently, the way the fins went liquid in v0.21.0)
 const B32 = [];
 BASE16.forEach(r => { const d = r.split("").map(c => c + c).join(""); B32.push(d.split("")); B32.push(d.split("")); });
 const PB = (y, x, c) => { B32[y][x] = c; };
@@ -52,9 +54,7 @@ PB(4, 6, "."); PB(4, 7, "."); PB(4, 24, "."); PB(4, 25, ".");  // second step in
 PB(5, 6, "."); PB(5, 25, ".");
 PB(6, 4, "."); PB(6, 6, "o"); PB(6, 7, "o");                   // sloped shoulder joins the flank
 PB(6, 27, "."); PB(6, 24, "o"); PB(6, 25, "o");
-PB(23, 4, "."); PB(23, 27, ".");                               // hip corners ease into the skirt
-[8, 11, 14, 17, 20, 23].forEach(x => { PB(27, x, "."); PB(28, x, "."); PB(29, x, "."); });   // arm tips taper
-PB(27, 6, "."); PB(27, 25, ".");
+PB(23, 4, "."); PB(23, 5, "."); PB(23, 26, "."); PB(23, 27, ".");   // the hem rounds — the body ends in a soft tuck; arms hang from it, renderer-drawn
 const BASE = B32.map(r => r.join(""));
 // Fin frills are an expression channel, not anatomy furniture: straight side bars read
 // as arms (the maintainer's flicker, round two), but fins that flare, ripple, droop, and
@@ -230,7 +230,7 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 2; frame++) {
   const skin = t > 0 ? mixHex(COLORS.b, mood[3], t) : t < 0 ? mixHex(COLORS.b, "#f9f4ea", -t) : COLORS.b;
   for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
     const k = BASE[y][x];
-    if (k !== ".") cellPut(cx, cy, x, y, k === "b" ? skin : COLORS[k]);
+    if (k !== ".") cellPut(cx, cy, x, y, skin);                // the old 2px 'o' ring paints as skin now — the outline went fine-ink (below)
   }
   // COMPOSE the face from components. Fins are the renderer's (smooth membranes,
   // posture via FRILL_OF); spots are the renderer's (live layer); eyes and mouth
@@ -251,6 +251,22 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 2; frame++) {
   // (The old plum lash-lines and corner-clips retired with the socket outline: the
   // eye component now carries its own full ring — possible because the whites are
   // inset from the silhouette instead of flush against it.)
+
+  // The SILHOUETTE goes fine-ink (v0.24.0): a traced single-pixel edge instead of the
+  // 2px cell ring — softer, and it follows every carve of the body automatically. The
+  // renderer's fins wear a matching 1px rim, so one thin line wraps the whole creature.
+  {
+    const solid = (gx, gy) => gx >= 0 && gx < 32 && gy >= 0 && gy < 32 && BASE[gy][gx] !== ".";
+    const EDGE = "#5a4a52";
+    for (let gy = 0; gy < 32; gy++) for (let gx = 0; gx < 32; gx++) {
+      if (BASE[gy][gx] === ".") continue;
+      const rx = gx * 2, ry = gy * 2;
+      if (!solid(gx - 1, gy)) frect(rx, ry, 1, 2, EDGE);
+      if (!solid(gx + 1, gy)) frect(rx + 1, ry, 1, 2, EDGE);
+      if (!solid(gx, gy - 1)) frect(rx, ry, 2, 1, EDGE);
+      if (!solid(gx, gy + 1)) frect(rx, ry + 1, 2, 1, EDGE);
+    }
+  }
 
   // The baked chromatophore patterns are RETIRED (v0.20.0): the maintainer found the
   // fixed bold patches distracting once the smooth roaming layer existed. All camo is
