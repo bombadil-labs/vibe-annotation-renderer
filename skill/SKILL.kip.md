@@ -82,7 +82,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@03f53c63a7f36ff0537d8db214486960a3a885ea/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "kip", item: "content" },
