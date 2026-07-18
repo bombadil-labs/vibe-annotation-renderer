@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@8d9c24cfc0ef8f899c3200a2d61815c90dcad2f9/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@e2851ba4b6e6e648331eb23cd27481b8df3bcfb5/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -162,7 +162,10 @@
           fins: "rrftdtfrfffrdtrfdtttfcdrtrcrrdrf",           // per-mood fin posture (derives from gen-sepia's FRILL_OF — keep in sync): r ripple, f flared, d drooped, t tucked, c calm
           arms: true,                                          // three independently swaying arms, drawn from the hem (the baked stubs retired)
           ink: { 17: 1, 13: 0.4 },                             // her namesake pigment: oops sprays a full startled puff, anxious leaks nervous wisps
-          cycle: { 15: 0.3 }                                   // beat moods: laugh's frame 1 is the guffaw (mouth thrown wide), cycled in bouts — not a blink
+          cycle: { 15: 0.14 },                                 // beat moods: laugh's frame 1 is the guffaw, chattered rapidly in bouts (the kefka cackle) — not a blink
+          bounce: { 15: 1 },                                   // beat moods also jounce the whole body up and down with the cackle
+          contract: { 16: 1 },                                 // groan: the whole body CONTRACTS — fins and arms pulled in hard, the mantle sunk low
+          props: { 8: "bulb", 16: "sweat", 17: "excl", 18: "vein", 19: "grawlix", 27: "qmark" }   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
         }
       };
     }
@@ -395,9 +398,16 @@
             '" preserveAspectRatio="xMidYMid meet"><image href="' + esc(faceImg.url) + '" x="0" y="0" width="' + (faceImg.cellW * faceImg.cols) + '" height="' + (faceImg.cellH * faceImg.rows) +
             '" style="image-rendering:crisp-edges;image-rendering:pixelated"/></svg>';   // nearest-neighbour: no cross-cell texture bleed, crisper pixel art
         };
+        var propGlyph = "";                                    // static echo of the live emoji props (v0.34.0) — one still glyph where the animation would live
+        if (faceImg.anim && faceImg.anim.props && faceImg.anim.props[faceImg.index]) {
+          var PROPG = { bulb: "💡", sweat: "💧", vein: "💢", excl: "❗", grawlix: "#$@!", qmark: "?" };
+          var pg = PROPG[faceImg.anim.props[faceImg.index]];
+          if (pg) propGlyph = '<text x="' + g(ix + faceImg.w * 0.8) + '" y="' + g(iy + faceImg.h * 0.18) +
+            '" font-size="' + g(faceImg.w * 0.16) + '" text-anchor="middle" font-weight="600" fill="#7a6a55">' + pg + '</text>';
+        }
         kaoSVG = faceImg.anim && faceImg.anim.split            // split sheet: the static render stacks body + features
-          ? '<g class="vk">' + mkCell(faceImg.index, "") + mkCell(faceImg.index + faceImg.anim.frameRows * faceImg.cols, "") + '</g>'
-          : mkCell(faceImg.index, "vk");
+          ? '<g class="vk">' + mkCell(faceImg.index, "") + mkCell(faceImg.index + faceImg.anim.frameRows * faceImg.cols, "") + propGlyph + '</g>'
+          : mkCell(faceImg.index, "vk") + propGlyph;
       } else {
         kaoSVG = '<image class="vk" x="' + g(ix) + '" y="' + g(iy) + '" width="' + faceImg.w + '" height="' + faceImg.h +
           '" preserveAspectRatio="xMidYMid meet" href="' + esc(faceImg.url) + '"/>';
@@ -992,6 +1002,10 @@
         var surP = L.surprised ? Math.exp(-((t % 2.2) / 2.2) * 6) : 0;   // a quick startle every 2.2s
         var frP = L.frustrated ? 0.5 + 0.5 * Math.sin(t * 2.2) : 0;
 
+        var beatKy = 0;                                                              // laugh's cackle-jounce, fed into the body transform below
+        var conAmt = fm && fm.anim && fm.anim.contract && fm.anim.contract[fm.index]
+          ? fm.anim.contract[fm.index] * (0.78 + 0.12 * Math.sin(t * 0.8)) : 0;      // groan's whole-body contraction, breathing slowly around its hunch
+
         // --- the living sprite: shimmer + blink, cycled from the sheet's extra frames.
         // Chromatophores drift on a slow uneven clock; blinks land on a seeded organic
         // cadence. Native frames, never an animated image — the tidepool's philosophy. ---
@@ -1000,8 +1014,10 @@
           var fr = 0;                                                                // base at rest — fins and chromatophores carry all continuous motion now
           var beat = fm.anim.cycle && fm.anim.cycle[fm.index];
           if (beat != null) {                                                        // beat moods (the guffaw): frame 1 is a mouth thrown wide, not a blink —
-            var bout = t % 3.4;                                                      // a bout of laughter, then a breath
+            var bout = t % 3.4;                                                      // a bout of cackling, then a breath
             if (bout < 1.9 && (bout % (beat * 2)) < beat) fr = 1;
+            if (fm.anim.bounce && fm.anim.bounce[fm.index] && bout < 1.9)            // the body jounces with the cackle — same clock as the mouth
+              beatKy = -2.4 * Math.abs(Math.sin(bout * Math.PI / (beat * 2)));
           } else {
             var bper = 3.2 + (L.seed % 5) * 0.9;
             if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 1;                    // blink, ~160ms on a seeded organic cadence
@@ -1025,7 +1041,7 @@
             var fcode = fm.anim.fins.charAt(fm.index) || "r";
             var fp2 = FINP[fcode] || FINP.r;
             var fsc = fcw / 64;
-            var baseW = fp2[0] * fsc, famp = fp2[1] * fsc, frate = fp2[2];
+            var baseW = fp2[0] * fsc * (1 - 0.55 * conAmt), famp = fp2[1] * fsc * (1 - 0.6 * conAmt), frate = fp2[2];   // contraction pulls the membranes hard against the flanks
             // the fins ATTACH ALONG THE MANTLE'S CURVE (mirrors gen-sepia's PROFILE):
             // the flank bows out to the eye band and tapers away below — the membrane
             // follows it, so the fin reads as grown from the body line, not pinned to a wall
@@ -1050,7 +1066,7 @@
                 // below the brow, the fin's OUTER edge follows only ~20% of the body's
                 // tuck: the membrane holds nearly its brow-level width while the mantle
                 // narrows away beneath it (fading closed over the last few cells)
-                var tuckFill = fy > 31 ? 0.8 * (flankX(fy) - 6) * (fp2[0] / 5.5) * (fy > 42 ? (46 - fy) / 4 : 1) : 0;   // scaled by POSTURE width: flared holds its flare, tucked truly tucks
+                var tuckFill = fy > 31 ? 0.8 * (flankX(fy) - 6) * (fp2[0] / 5.5) * (fy > 42 ? (46 - fy) / 4 : 1) * (1 - 0.75 * conAmt) : 0;   // scaled by POSTURE width: flared holds its flare, tucked truly tucks; contraction all but erases it
                 var wdt = Math.max(0, baseW * prof * sagF + wv + tuckFill);
                 seamPts.push([axc, fy * fsc]);
                 edgePts.push([axc + fdir2 * wdt, fy * fsc]);
@@ -1080,7 +1096,7 @@
                 var acx = armS[0], ai2 = armS[1];
                 var arr2 = mulberry32(L.seed + ai2 * 3671 + 17);
                 var aph = arr2() * 6.28, arate = (0.5 + arr2() * 0.5) * (0.4 + fp2[2] * 0.35);
-                var aamp = (1.2 + fp2[1] * 0.9) * fsc, alen = armS[2], ay0 = 49;   // roots tuck up under the open hem — one flesh, no seam
+                var aamp = (1.2 + fp2[1] * 0.9) * fsc * (1 - 0.6 * conAmt), alen = Math.max(6, Math.round(armS[2] * (1 - 0.38 * conAmt))), ay0 = 49;   // roots tuck up under the open hem; contraction draws the whole skirt in
                 var aw0 = 2.3 * fsc;
                 var lEdge = [], rEdge = [];
                 for (var ayy = 0; ayy <= alen; ayy++) {
@@ -1122,6 +1138,78 @@
               });
               // (no hem gap segments anymore: the arms tile the narrow hem edge-to-edge,
               // and their own side strokes are the grooves — one continuous boundary)
+            }
+            // --- per-mood emoji PROPS (v0.34.0): real emoji, drawn live ON the avatar's
+            // own canvas — they ride every pose. The avatar's props, never flag weather;
+            // the next face may answer the same moods with different ones.
+            var propN = fm.anim.props && fm.anim.props[fm.index];
+            if (propN) {
+              var EMOF = 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+              fx2.textAlign = "center"; fx2.textBaseline = "middle";
+              if (propN === "bulb") {                                                // 💡 clicks on over her head, halo pulsing — the old click cycle, worn personally now
+                var scyc = t % 3.0, on;
+                if (scyc < 0.12) on = scyc / 0.12;
+                else if (scyc < 1.6) on = 1;
+                else if (scyc < 2.1) on = 1 - (scyc - 1.6) / 0.5;
+                else on = 0.15 + 0.05 * Math.sin(t * 2);
+                var bpx = 52 * fsc, bpy = 9 * fsc;
+                var hg = fx2.createRadialGradient(bpx, bpy, 1, bpx, bpy, (9 + 4 * on) * fsc);
+                hg.addColorStop(0, rgba("#fff6c0", 0.55 * on)); hg.addColorStop(0.55, rgba("#ffe27a", 0.22 * on)); hg.addColorStop(1, rgba("#ffe27a", 0));
+                fx2.fillStyle = hg; fx2.beginPath(); fx2.arc(bpx, bpy, (9 + 4 * on) * fsc, 0, 6.2832); fx2.fill();
+                fx2.globalAlpha = 0.45 + 0.55 * on;
+                fx2.font = (11 * fsc).toFixed(1) + EMOF;
+                fx2.fillText("💡", bpx, bpy);
+              } else if (propN === "sweat") {                                        // 💧 beads big at her brow and slides — the long-suffering drop
+                var swt = t % 5, swg = swt < 0.5 ? swt / 0.5 : (swt < 2.2 ? 1 : (swt < 3.0 ? 1 - (swt - 2.2) / 0.8 : 0));
+                if (swg > 0.03) {
+                  fx2.globalAlpha = 0.9 * swg;
+                  fx2.font = ((7 + 5 * swg) * fsc).toFixed(1) + EMOF;
+                  fx2.fillText("💧", 49 * fsc, (11 + swg * 6) * fsc);
+                }
+              } else if (propN === "vein") {                                         // 💢 throbbing by the crown
+                fx2.globalAlpha = 0.6 + 0.4 * Math.sin(t * 2.2);
+                fx2.font = (11 * fsc).toFixed(1) + EMOF;
+                fx2.fillText("💢", 51 * fsc, 8 * fsc);
+              } else if (propN === "excl") {                                         // ❗ pops with the startle
+                var ext = t % 4.5, exE = 0, exO = 0;
+                if (ext < 0.1) { exE = ext / 0.1; exO = exE; }
+                else if (ext < 1.6) { var exd = ext - 0.1, exv = Math.exp(-exd * 3.0); exE = exv; exO = exv * Math.cos(exd * 22); }
+                if (exE > 0.04) {
+                  fx2.globalAlpha = Math.min(1, exE * 1.3);
+                  fx2.font = (10 * fsc).toFixed(1) + EMOF;
+                  fx2.fillText("❗", (51 + exO * 3) * fsc, (8 - exE * 3) * fsc);
+                }
+              } else if (propN === "grawlix") {                                      // a cloud of curses popping around the crown
+                var gwds = ["$#@&", "%$#!", "@#$%", "#@!*", "&$@#", "*!?#", "$%&#"];
+                for (var gpi = 0; gpi < 7; gpi++) {
+                  var gpr = mulberry32(L.seed + gpi * 131 + 61);
+                  var gbirth = gpr() * 2.0, gword = gwds[Math.floor(gpr() * gwds.length) % gwds.length];
+                  var gang = gpr() * 6.2832, grad = 10 + gpr() * 12;
+                  var gage = (((t - gbirth) % 2.0) + 2.0) % 2.0;
+                  if (gage > 1.3) continue;
+                  var gu2 = gage / 1.3;
+                  var gfall = gu2 < 0.2 ? -3 * (gu2 / 0.2) : -3 + 10 * ((gu2 - 0.2) / 0.8);
+                  var gpx = 32 * fsc + Math.cos(gang) * grad * fsc, gpy = 9 * fsc + Math.sin(gang) * grad * 0.6 * fsc + gfall * fsc;
+                  fx2.globalAlpha = gu2 < 0.14 ? gu2 / 0.14 : Math.max(0, 1 - (gu2 - 0.14) / 0.86);
+                  fx2.font = "700 " + (5.5 * (1.05 - 0.4 * gu2) * fsc).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
+                  fx2.fillStyle = gpi % 3 === 0 ? "#ffd24a" : "#ff5a4a";
+                  fx2.fillText(gword, gpx, gpy);
+                }
+              } else if (propN === "qmark") {                                        // a gentle drift of ?s — the pre-spark
+                for (var qpi = 0; qpi < 4; qpi++) {
+                  var qpr = mulberry32(L.seed + qpi * 173 + 37);
+                  var qbirth = qpr() * 3.4, qang2 = qpr() * 6.2832, qrad2 = 9 + qpr() * 11;
+                  var qage2 = (((t - qbirth) % 3.4) + 3.4) % 3.4;
+                  if (qage2 > 2.4) continue;
+                  var qu2 = qage2 / 2.4;
+                  var qrise2 = qu2 < 0.15 ? 1.2 * (qu2 / 0.15) : 1.2 - 7 * ((qu2 - 0.15) / 0.85);
+                  fx2.globalAlpha = 0.6 * (qu2 < 0.18 ? qu2 / 0.18 : Math.max(0, 1 - (qu2 - 0.18) / 0.82));
+                  fx2.font = "600 " + (6.5 * (0.85 + 0.3 * qpr()) * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
+                  fx2.fillStyle = qpi % 3 === 0 ? "#9a8a6a" : "#7a6a55";
+                  fx2.fillText("?", 32 * fsc + Math.cos(qang2) * qrad2 * fsc, (9 + qrise2) * fsc + Math.sin(qang2) * qrad2 * 0.55 * fsc);
+                }
+              }
+              fx2.globalAlpha = 1; fx2.textAlign = "start"; fx2.textBaseline = "alphabetic";
             }
             if (boopFx && boopFx.t0 != null) {                                       // the poke: a soft impact FLASH absorbed at the spot — deliberately nothing like a water ripple
               var bAge2 = t - boopFx.t0;
@@ -1197,6 +1285,8 @@
         // avatar (Sepia's moods/fins/tint/ink; kaomoji and emoji just are what they
         // are). The only face motion left is the boop startle, which is physics.
         var kx = 0, ky = 0, ks = 1, krot = 0;                                        // kept as anchors — the weather marks still ride these (now-still) offsets
+        ky += beatKy;                                                                // the cackle-jounce: the avatar's OWN body language, not a flag pose
+        if (conAmt) { ky += 4.5 * conAmt; ks *= 1 - 0.05 * conAmt; }                 // the contraction: sunk low and drawn small
         if (kaoEl && boopFx && boopFx.t0 == null) boopFx.t0 = t;
         var boopAge = boopFx && boopFx.t0 != null ? t - boopFx.t0 : 9;
         if (kaoEl && boopAge < 0.8) {                                                // the startle: recoil away from the finger, squash and boing
@@ -1204,8 +1294,11 @@
           ks *= 1 + 0.09 * bev * Math.sin(boopAge * 20);
           kx += (32 - boopFx.cx) * 0.1 * bev;
           ky += (32 - boopFx.cy) * 0.08 * bev;
-          kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";
-        } else if (kaoEl && kaoEl.style.transform) kaoEl.style.transform = "";       // rest cleanly after the startle
+        }
+        if (kaoEl) {
+          if (kx || ky || ks !== 1) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";
+          else if (kaoEl.style.transform) kaoEl.style.transform = "";                // rest cleanly
+        }
 
         // --- the field: three columns holding a seeded vertical band set by focus ---
         var arrive = 1;                                                              // prev: one-step trajectory — hue arrives from the last banner's palette
