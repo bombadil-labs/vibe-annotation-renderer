@@ -251,6 +251,29 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   with a fine 11Hz tremble, fins frill out ~55% past tucked but no further. Fury held
   in the body — the strain, not the explosion, is the signal.
 
+- **The character carries the meaning; the weather is atmosphere (v0.39.0).** Watching
+  the restrained-fury banner, the maintainer called the turn: the avatar's character
+  animation had become the expressive instrument, and the oval-encoding machinery was
+  fighting it (subtle encodings under text, a button to hide the text — cross-purposes).
+  Three moves: (1) FULL-BLEED WEATHER — the field and every banner detail cover the
+  whole rectangle via an even-odd clip; the window is a hole through the weather, storms
+  and ovals running behind and around its margins. (2) The ovals REMAIN palette-driven
+  but are officially atmosphere, not instrument — the mappings stay as flavor, no new
+  data may be routed into them. (3) The collapse-to-pills button died; a text/stats
+  toggle sits over the readout's upper-left, and STATS view renders explicit legible
+  gauges (focus, engagement, stance asking↔telling, consonance, palette swatches),
+  tooltips on every row. Presence-is-signal holds: optional params only render gauges
+  when reported.
+
+- **Jimothy (bench, the maintainer's request, 2026-07-18).** Once Sepia is locked down,
+  the next custom character: Jimothy, the beloved deformed raccoon of Seattle — stunted,
+  compressed, a walking arch with a low-slung masked face and stub legs. Cute and memey;
+  the whole read is the SILHOUETTE (the hunch is the identity, the way Sepia's dart is
+  hers), so the sheet likely wants a profile-leaning pose rather than Sepia's frontal
+  symmetry — which breaks the mirrored-eye component assumption and earns its own
+  PROFILE-style table. Same registers: pixel flesh, fine ink, renderer-drawn life
+  (waddle bounce instead of fins?). Initial illustration sketched in-chat 2026-07-18.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
