@@ -272,6 +272,20 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   note that came out of the study survives on its own: a profile-silhouette character
   breaks the mirrored-eye frontal assumption and would earn its own profile table.
 
+- **The flat-Sepia bug (v0.39.5→v0.39.7): `var cv` shadowed the canvas.** The stats
+  view's consonance row declared `var cv = num(p.consonance, 1)` inside mount() —
+  function scoping made it a REASSIGNMENT of the canvas variable. fit() set .width on a
+  number (silent no-op), every frame read .isConnected off a number (undefined → the
+  detach branch), and every banner shipped as pure CSS: body and panels alive, all live
+  layers dead. Found only after the maintainer reported it three times and the renderer
+  was finally run in a REAL browser with instrumentation — two prior in-context theories
+  (host clone-detach, rAF starvation) were plausible, produced useful hardening (the
+  remount marker; the watchdog interval, which the repro host genuinely needed: rAF
+  never fired there and the interval drove the loop), but were not the bug. Lessons:
+  short names in a 1700-line closure are landmines; and render-path regressions cannot
+  be caught by the node-side parity suite — verify live changes in an actual browser
+  before shipping (the Browser-pane repro server pattern works).
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
