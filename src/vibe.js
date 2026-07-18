@@ -716,7 +716,22 @@
     // the registry: >=0.7 → one full startled puff shortly after arrival; smaller →
     // recurring nervous wisps on a seeded cadence. Drawn in the window, behind the face.
     var inkAmt = (fm && fm.kind === "sprite" && fm.anim && fm.anim.ink && fm.anim.ink[fm.index]) || 0;
-    var inkBursts = [];
+    var inkBursts = [], inkFired = false, boopFx = null;
+    // The startle reflex: booping an inked creature gets a REACTION — recoil away from
+    // the finger, a squash-and-boing, a poke-ripple at the spot, and a puff of ink.
+    // Pure visuals (no message), so it fires on plain pages too; the chat boop stays
+    // its own listener below, gated on sendPrompt as ever.
+    if (kaoEl && fm && fm.kind === "sprite" && fm.anim && fm.anim.ink && p.play !== false) {
+      kaoEl.addEventListener("click", function (e) {
+        var br2 = kaoEl.getBoundingClientRect();
+        boopFx = {
+          t0: null,
+          cx: br2.width ? (e.clientX - br2.left) / br2.width * 64 : 32,
+          cy: br2.height ? (e.clientY - br2.top) / br2.height * 64 : 32
+        };
+        inkBursts.push({ t0: null, s: 0.8 });
+      });
+    }
     if (live && p.play !== false) {                            // tap the water, get ripples
       wrap.addEventListener("click", function (e) {
         var r = wrap.getBoundingClientRect(); if (!r.width || !r.height) return;
@@ -894,16 +909,16 @@
         }
 
         // --- ink: a sepia cloud expelled behind the body, dispersing in the window ---
-        if (inkAmt) {
-          var inkBig = inkAmt >= 0.7;
-          if (inkBig) { if (!inkBursts.length && t > 0.7) inkBursts.push({ t0: t, s: inkAmt }); }
-          else {
+        if (inkAmt || inkBursts.length) {
+          if (inkAmt >= 0.7) { if (!inkFired && t > 0.7) { inkBursts.push({ t0: t, s: inkAmt }); inkFired = true; } }
+          else if (inkAmt) {
             var iper = 7 + (L.seed % 5);
             if (((t + (L.seed % 11) * 0.7) % iper) < 0.05 &&
-              (!inkBursts.length || t - inkBursts[inkBursts.length - 1].t0 > 2.5)) inkBursts.push({ t0: t, s: inkAmt });
+              (!inkBursts.length || inkBursts[inkBursts.length - 1].t0 == null || t - inkBursts[inkBursts.length - 1].t0 > 2.5)) inkBursts.push({ t0: t, s: inkAmt });
           }
           if (inkBursts.length > 4) inkBursts.splice(0, inkBursts.length - 4);
           inkBursts.forEach(function (b, bi2) {
+            if (b.t0 == null) b.t0 = t;                        // boop bursts late-bind their clock
             var iage = t - b.t0; if (iage < 0 || iage > 2.4) return;
             var pr2 = mulberry32(L.seed + bi2 * 977 + 29);
             var ptw = L.portrait, pss = ptw.s;
@@ -1029,6 +1044,19 @@
                 fx2.strokeStyle = rgba("#5a4a52", 0.55); fx2.stroke();               // the fine line wraps the arms too
               });
             }
+            if (boopFx && boopFx.t0 != null) {                                       // the poke-ripple, at the exact spot she was touched
+              var bAge2 = t - boopFx.t0;
+              if (bAge2 < 0.7) {
+                fx2.lineWidth = Math.max(1, fsc);
+                [0, 0.18].forEach(function (boff) {
+                  var bu = bAge2 - boff; if (bu < 0) return;
+                  fx2.globalAlpha = 0.55 * (1 - bu / 0.7);
+                  fx2.strokeStyle = "#fff8ec";
+                  fx2.beginPath(); fx2.arc(boopFx.cx * fsc, boopFx.cy * fsc, (2 + bu * 30) * fsc, 0, 6.2832); fx2.stroke();
+                });
+                fx2.globalAlpha = 1;
+              }
+            }
           }
         }
 
@@ -1085,7 +1113,15 @@
 
         // --- the face itself ---
         var kx = 0, ky = 0, ks = 1, krot = 0, kfill = "";                            // face transform, hoisted so marks can ride along
-        if (kaoEl && (L.laugh || L.excited || L.anxious || L.melancholy || L.groan || L.oops || L.dramatic || L.surprised || L.frustrated || L.angry || L.solemn || L.awe)) {
+        if (kaoEl && boopFx && boopFx.t0 == null) boopFx.t0 = t;
+        var boopAge = boopFx && boopFx.t0 != null ? t - boopFx.t0 : 9;
+        if (kaoEl && (boopAge < 0.8 || L.laugh || L.excited || L.anxious || L.melancholy || L.groan || L.oops || L.dramatic || L.surprised || L.frustrated || L.angry || L.solemn || L.awe)) {
+          if (boopAge < 0.8) {                                                       // the startle: recoil away from the finger, squash and boing
+            var bev = Math.exp(-boopAge * 4);
+            ks *= 1 + 0.09 * bev * Math.sin(boopAge * 20);
+            kx += (32 - boopFx.cx) * 0.1 * bev;
+            ky += (32 - boopFx.cy) * 0.08 * bev;
+          }
           if (laughKp > 0.03) { ks *= 1 + laughKp * 0.15; kfill = mixCss(baseFill, [255, 223, 58], laughKp * 0.92); }        // laugh: swell + flush yellow
           if (L.excited) { kx += Math.tanh(3 * Math.sin(t * 1.0)) * 10; }                                                    // excited: sway foot-to-foot
           if (L.anxious) { kx += (Math.sin(t * 41) + Math.sin(t * 57)) * 0.7; ky += Math.sin(t * 47) * 0.6; }                // anxious: shiver
