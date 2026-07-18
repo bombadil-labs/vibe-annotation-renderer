@@ -1,8 +1,8 @@
 {
   "what": "Machine-readable catalog of the vibe-banner ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
-  "version": "0.42.0",
+  "version": "0.42.1",
   "builder": "https://bombadil-labs.github.io/vibe-banner/#builder",
-  "whatsNew": "0.42.0 — the payload is two keys: avatar (who and where) and details (everything beside it). An omitted details renders the window alone, as a square tile. The flat form still works.",
+  "whatsNew": "0.42.1 — the gallery gains a habitat selector: dress all forty exchanges in any shipped scene.",
   "renderer": {
     "bundle": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/dist/vibe.min.js",
     "payload_notes": {

@@ -392,7 +392,7 @@ const CATALOG = {
   what: "Machine-readable catalog of the vibe-banner ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
   version: VERSION,                                            // a skill stamps its build version; compare against this to notice it has fallen behind
   builder: SITE + "#builder",
-  whatsNew: "0.42.0 — the payload is two keys: avatar (who and where) and details (everything beside it). An omitted details renders the window alone, as a square tile. The flat form still works.",
+  whatsNew: "0.42.1 — the gallery gains a habitat selector: dress all forty exchanges in any shipped scene.",
   renderer: {
     bundle: PIECES.snippetUrl,
     payload_notes: {

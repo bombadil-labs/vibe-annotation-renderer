@@ -122,6 +122,9 @@
       <button class="tab-btn" data-face="noto">noto</button>
       <button class="tab-btn" data-face="twemoji">twemoji</button>
     </div>
+    <p style="margin:14px 0 0; font-size:13px; color:var(--sub);">…and any shipped habitat
+    (the tidepool and the study are alive — bubbles and fish, lamplight and steam):</p>
+    <div id="scene-picker" style="display:flex; gap:2px; flex-wrap:wrap; margin:4px 0 0;"></div>
     <div id="gallery-cells"></div>
   </section>
 
@@ -430,13 +433,22 @@ var KIP_MAP = { spark:"delighted", excited:"excited", surprised:"surprised", ten
   solemn:"solemn", rhyme:"content", awe:"surprised", vertigo:"puzzled", resolute:"excited", puzzled:"puzzled" };
 var FACE_CHOICE = "kaomoji";
 try { FACE_CHOICE = localStorage.getItem("vibeFace") || "kaomoji"; } catch (e) {}
+var SCENE_CHOICE = "none";
+try { SCENE_CHOICE = localStorage.getItem("vibeGalleryScene") || "none"; } catch (e) {}
+// The gallery dresses every cell in the chosen face AND the chosen habitat — the same
+// two axes the Explorer plays with, applied across forty real exchanges at once. Scenes
+// come from SKILL_PIECES so the menu can never drift from what actually ships.
 function withFace(p) {
-  if (FACE_CHOICE === "kaomoji") return p;
   var mood = p.flag || "content";
   var q = {}; for (var k in p) q[k] = p[k];
   if (FACE_CHOICE === "sepia") q.face = { set: "sepia", item: mood };
   else if (FACE_CHOICE === "kip") q.face = { set: "kip", item: KIP_MAP[mood] || "content" };
-  else q.face = { set: FACE_CHOICE, item: EMOJI_MOODS[mood] || EMOJI_MOODS.content };
+  else if (FACE_CHOICE !== "kaomoji") q.face = { set: FACE_CHOICE, item: EMOJI_MOODS[mood] || EMOJI_MOODS.content };
+  var SP = window.SKILL_PIECES && window.SKILL_PIECES.SCENES;
+  if (SCENE_CHOICE !== "none" && SP && SP[SCENE_CHOICE]) {
+    q.scene = { url: SP[SCENE_CHOICE].url, opacity: 0.55 };
+    if (SP[SCENE_CHOICE].live) q.scene.live = SP[SCENE_CHOICE].live;
+  }
   return q;
 }
 function buildChat(promptText) {
@@ -513,6 +525,29 @@ document.querySelectorAll("#face-picker button").forEach(function (b) {
     buildGallery();
   });
 });
+(function () {                                                 // scene buttons build from the shipped catalogue, so the menu tracks reality
+  var picker = document.getElementById("scene-picker");
+  if (!picker) return;
+  var SP = (window.SKILL_PIECES && window.SKILL_PIECES.SCENES) || {};
+  var opts = [["none", "none"]].concat(Object.keys(SP).map(function (k) {
+    return [k, k + (SP[k].live ? " ✦" : "")];                  // ✦ marks a habitat with native ambience
+  }));
+  if (!SP[SCENE_CHOICE]) SCENE_CHOICE = "none";                // a stored scene that no longer ships
+  opts.forEach(function (o) {
+    var b = document.createElement("button");
+    b.className = "tab-btn"; b.dataset.scene = o[0]; b.textContent = o[1];
+    if (SP[o[0]] && SP[o[0]].blurb) b.title = SP[o[0]].blurb;
+    if (o[0] === SCENE_CHOICE) b.classList.add("active");
+    b.addEventListener("click", function () {
+      SCENE_CHOICE = o[0];
+      try { localStorage.setItem("vibeGalleryScene", SCENE_CHOICE); } catch (e) {}
+      picker.querySelectorAll("button").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+      buildGallery();
+    });
+    picker.appendChild(b);
+  });
+})();
 buildGallery();
 
 var TAB_ALIAS = { "": "landing", landing: "landing", key: "gallery",
