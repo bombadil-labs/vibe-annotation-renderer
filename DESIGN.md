@@ -188,6 +188,19 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   her feeling natively; kaomoji and emoji just are what they are. The only face motion
   left is the boop startle, which is physics, not expression.
 
+- **Marks are the avatar's props, not climate (v0.33.0).** The v0.31.0 split left the
+  marks — bulb, 💢, sweat, !, ?, grawlix — in the weather, and the maintainer caught the
+  misfiling: those were never about the room, they're part of a given FACE when prompted
+  with the right mood. They now live as per-mood cells in Sepia's own sheet (the X-extras
+  table plus 32-grid MARK consts in gen-sepia), and the renderer draws none of them. Each
+  new avatar answers the same moods with its own props, or different ones, or none. The
+  banner keeps only true climate: storm, spotlight, 集中線, ember, blossoms, halos, air
+  sparkles. Same pass: dramatic lifts an opera half-mask on a stick (a "mask" eye preset —
+  a component, so any face can wear one), groan narrows to ringless slit-bars, star pupils
+  went amber (RULE: no yellow pupils — invisible against the whites), and laugh's frame 1
+  became a guffaw mouth cycled in bouts via `anim.cycle` (frame 1 is whatever the mood
+  needs — usually a blink, sometimes a beat).
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
