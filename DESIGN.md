@@ -493,6 +493,27 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   ugly — it is a field that silently doesn't get filled in. The awkwardness was the symptom
   and the empty window was the disease.
 
+- **The skill files are gone (v0.49.0).** The maintainer's call, and the v0.48.0 bug is the
+  argument for it: five `skill/SKILL*.md` files sat in the repo, each generated, each with its
+  own pin to stamp and its own row in the docs, and every one of them shipped without an
+  environment for months because a generated artifact is exactly the thing nobody reads. A
+  checked-in copy of a composed thing is not a convenience, it is a second source of truth
+  that drifts silently and looks authoritative while doing it.
+  The Builder is now the only place the skill exists, plus `scripts/compose-skill.js` running
+  the same generator for the terminal (`npm run skill:install` writes Sepia-in-her-tidepool
+  straight to `~/.claude/skills/`). Two things had to move to make deletion safe rather than
+  merely tidy:
+  - **The pin.** `npm run pin` used to stamp the emitted files; with no files, the composer
+    resolves its own sha by the same rule (last commit touching `dist/`) and refuses loudly
+    if it comes out as the placeholder. A skill that loads nothing is worse than no skill.
+  - **The guarantees.** The v0.48.0 tests read the files on disk. They now compose in memory
+    via the exported `assemble()` and assert the same properties, so the protection follows
+    the generator instead of the artifact — which is where it should have been.
+  One more hazard closed while here: the Builder defaulted to `scene: "none"`, which is how
+  the sceneless skills got written in the first place. It now opens in a home and follows the
+  face's home when you switch faces, until you pick one yourself — after which it stops
+  second-guessing you. An unmade choice should not render as a considered one.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
@@ -580,7 +601,7 @@ Entered, not admitted. If you take one up, honor the notes.
   script (`npm run sepia`) after a browser-transcription attempt corrupted itself — pixel
   art should be *source code*, not artifacts copied by hand. The `resolute` cell wears the
   hachimaki that v1 was denied: on a face the author owns, anatomy may be edited.
-  `skill/SKILL.sepia.md` is the hard-coded variant; the base skill remains face-agnostic.
+  The sepia variant is composed with `npm run skill -- sepia tidepool`; the base remains face-agnostic.
 
 ## How this project evolves
 

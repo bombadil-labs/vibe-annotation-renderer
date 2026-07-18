@@ -1,6 +1,6 @@
 {
   "name": "vibe-banner",
-  "version": "0.48.0",
+  "version": "0.49.0",
   "description": "Renders Claude's vibe banner from feeling-values. Loaded by the vibe-banner skill via jsDelivr; the skill passes only the values.",
   "license": "MIT",
   "private": false,
@@ -11,7 +11,9 @@
     "pin": "node scripts/pin.js",
     "scene": "node scripts/gen-scene.js",
     "sepia": "node scripts/gen-sepia.js",
-    "skills": "node scripts/gen-skills.js"
+    "skills": "node scripts/gen-skills.js",
+    "skill": "node scripts/compose-skill.js",
+    "skill:install": "node scripts/compose-skill.js sepia tidepool --install"
   },
   "devDependencies": {
     "esbuild": "^0.23.1"

@@ -20,19 +20,19 @@ feelings honest.
 <script>
   vibe(document.getElementById('v'), {
     avatar: {
-      set: "sepia", item: "content",       // any pack; all speak the same 32 moods
-      scene: { url: "…", opacity: 0.6 }    // optional habitat; omit for an empty window
+      set: "sepia", item: "content",       // any pack; all speak the same 33 moods
+      scene: "tidepool"                    // a named habitat; omit for an empty window
     },
+    palette: ["#7d8fb8"],                  // top level: it colours YOU as well as the field
     details: {
       readout: [                           // up to 5 rows, any labels
         { label: "user", value: "…" },     //   a snap read of the user
         { label: "mood", value: "…" },     //   your activated emotions
         { label: "goal", value: "…" }      //   immediate next goal
       ],
-      palette: ["#7d8fb8"],                // 0+ mood colours → three columns
       focus: 0.5, engagement: 0.5,
       languages: ["ru"],                   // optional: a bottom-right [Reasoned in] trace
-      flag: "spark"                        // optional: ONE of the flag vocabulary below
+      weather: "spotlight"                 // optional: ONE of the seven weathers
     }
   });
 </script>
@@ -44,16 +44,19 @@ also exported (Node too) — it's the static fallback and the basis for the test
 ## Two keys
 
 A payload is an **avatar** — who you are and where you are — plus **details**, everything the
-banner shows beside it. Leave `details` out and you get the window alone: a square avatar tile,
-no field, no readout, no weather.
+banner shows beside it, plus a **palette** that sits outside both because it belongs to both:
+it tints the creature (Sepia's chromatophores, the motes' own light) as well as the field.
+Leave `details` out and you get the window alone: a square avatar tile, no field, no readout,
+no weather — still coloured by the palette.
 
 ```js
 vibe(el, {
-  avatar:  { set: "sepia", item: "content", scene: { url: "…", opacity: 0.6 } },
-  details: { readout: [{ label: "user", value: "…" }], palette: ["#7d8fb8"], focus: 0.5, engagement: 0.7 }
+  avatar:  { set: "sepia", item: "content", scene: "tidepool" },
+  palette: ["#7d8fb8"],
+  details: { readout: [{ label: "user", value: "…" }], focus: 0.5, engagement: 0.7 }
 });
 
-vibe(el, { avatar: { set: "sepia", item: "content" } });   // → a 156×152 tile, nothing else
+vibe(el, { avatar: { set: "sepia", item: "content" }, palette: ["#7d8fb8"] });   // → a 156×152 tile
 ```
 
 The flat form (`face`, `seems`/`feel`/`trying`/`noticing` or `readout`, and the values at the top
@@ -91,45 +94,33 @@ SVG rows and the SVG face:
 | `engagement` (0–1) | **deflationary only**: ≥0.5 baseline; below, the columns shrink, harder toward 0 |
 | `stance` (0–1) | contour firmness: 1 (telling) gives the ovals a definite stroked edge; 0/omitted (asking) keeps the pure gradient falloff |
 | `coherence` (0–1) | focus's emotional dual, and per-blob diffusion: 1/omitted → compact, solid ovals; 0 → diffuse washes (bigger, thinner). Plural-at-peace vs. plural-in-tension. (`consonance` is the old name, still accepted) |
-| `scene` | the habitat, as a **framed portrait window**: `"https://…png"` or `{ url, opacity, live }` (opacity clamped 0.15–0.95, default 0.5). The scene fills a rounded square on the banner's left with the face centred inside it; readout and field columns shift right. Faces are alpha-transparent, so any scene works — first-party tidepool at `assets/scene-tidepool.png`; user photos host like face-packs (allowlisted CDNs). `live: "tidepool"` runs native ambience in the window — rising bubbles, a passing fish, tap-ripples, and feeding falls in as flakes; unknown `live` names are ignored, and the static render ignores the channel entirely. **The window always draws** — with no scene (or `scene: {}`) it renders empty: frame and a faint interior, no view yet. The window is the layout; `scene` only decides what's visible through it |
+| `scene` | the habitat, as a **framed portrait window**: a NAME — `"tidepool"` · `"study"` · `"night"` · `"glade"` — and the renderer owns the art, the pin, the opacity and whether the place is alive. A custom image still takes `{ url, opacity }` (clamped 0.15–0.95); a bare word that is not a known name empties the window rather than requesting a broken image. The scene fills a rounded square on the banner's left with the face centred inside it. `tidepool` and `study` are **live**: native ambience in the window — rising bubbles, a passing fish, tap-ripples, lamplight, feeding. **The window always draws** — with no scene it renders empty: frame and a faint interior, no view yet |
 | `field` | power path: hand-author the ovals instead of `palette` |
 
-**Flags (optional DETAILS)** — rare, condition-triggered banner weather (light, storms, marks — never face poses; the face belongs to the avatar), passed as `flag: "<name>"` (a single
-string). Set one only when the named state genuinely holds; their whole value is that
-they're uncommon.
+**Weather (optional DETAIL)** — rare, condition-triggered banner weather: light, storms and
+air around you, never face poses. The face belongs to the avatar and already carries the
+emotion, which is why the old emotional flag names retired in v0.44.0. Passed as
+`weather: "<name>"`, a single string. Set one only when the named state genuinely holds;
+their whole value is that they're uncommon.
 
-| flag | gesture |
+| weather | the room |
 |---|---|
-| `spark` | a glowing light-bulb blinks on over the face, casting rays — a flash of insight |
-| `excited` | stars twinkle and slowly spin in the margins — buoyancy |
-| `surprised` | a halo pulses outward from the face — the unexpected |
-| `tender` | warmth pools softly around the edges of the banner — fondness |
-| `melancholy` | cool motes drift slowly downward — wistfulness |
-| `anxious` | wispy cold fog roils over the whole banner, edges creeping in — dread |
-| `mirth` | champagne bubbles rise across the width — a private laugh |
-| `laugh` | the whole field bounces a deep *ha-ha-ha* with laughter-marks radiating off the face |
-| `groan` | the field sags and a sweat-drop wells up by the head — an affectionate *ughhh* |
-| `oops` | the field jolts sideways and a startled `!` pops up — a quick self-catch |
-| `frustrated` | the columns pulse dark red and the anime anger-vein mark (💢) throbs by the head — irritation |
-| `angry` | the field goes storm-black with a red underglow and lightning cracks across it — real anger |
-| `dramatic` | the stage dims, a warm spotlight pools on the face, and the type turns to a tracked theatrical serif — playing it up for the bit |
-| `at_peace` | a soft halo glows below the face and a few blossoms rest in the margins — stillness as a positive state, the quiet that isn't deflation |
-| `solemn` | the field desaturates and dims once; a single warm ember stays lit low in the frame — gravity without sadness |
-| `rhyme` | a low-alpha ghost of the kaomoji itself rests offset behind the face, slowly fading in and out — recognition, the pattern returning (it holds resting posture even when the live face moves: memory) |
-| `awe` | the field swells and densifies around the face — the room filled by something vast |
-| `vertigo` | a one-level Droste: the whole banner appears inside itself, lower right, flags omitted within. The loop just sits there |
-| `resolute` | concentration lines (集中線) flare inward from the frame edges toward the face, then hold faint — the ignition of determination |
-| `puzzled` | a loose cloud of "?" pops, drifts up, and fades around the head — grawlix mechanics in a gentle register; productive stuckness, the pre-spark |
+| `storm` | dark, red-lit, lightning cracking across the field — real anger, or things going badly wrong |
+| `spotlight` | the stage dims and a warm pool finds you — performing, or a moment that matters |
+| `hush` | the colour drains and a single warm ember holds low in the frame — gravity, grief, the quiet after news |
+| `fog` | cold wisps roll through and the edges creep in — dread, or not knowing |
+| `glow` | warmth pools at the margins — fondness, tenderness toward whoever you're with |
+| `bloom` | the field swells and blossoms scatter — peace, wonder, something opening |
+| `converge` | concentration lines pull inward from the frame edges — effort, resolve, bearing down on one thing |
 
-**The contract is one flag per banner, by construction: `flag` is a single optional string**
-(this is plain JS, so the "enum" is the fixed vocabulary above — unknown strings are ignored,
-never crash). Legacy boolean payloads (`spark: true`) are still accepted for graceful
-degradation and resolve deterministically through a priority order (roughly "the state whose
-absence would most misrepresent the moment wins"): `angry → solemn → awe → vertigo → dramatic
-→ laugh → anxious → surprised → excited → spark → rhyme → resolute → oops → frustrated →
-groan → puzzled → mirth → melancholy → tender → at_peace`. With this many registers, stacked
-flags read as noise rather than nuance — so composition isn't a discipline, it's simply not
-in the grammar.
+**One weather per banner, by construction: `weather` is a single optional string** (plain JS,
+so the "enum" is the fixed vocabulary above — unknown strings are ignored, never crash).
+Thirteen effects retired with the rename, each because it duplicated something the avatar now
+says better: the spark bulb, excited sparkles, the surprised halo, melancholy motes, mirth
+bubbles, the laugh field-bounce, groan's sag, oops's jolt, frustrated's red pulse, the rhyme
+echo and the vertigo Droste among them. **There is no alias table** — every deployed skill
+pins a full commit SHA, so an old skill loads the old renderer bytes and never meets this
+vocabulary at all. The pin *is* the compatibility story.
 
 **Attunement + play** — on surfaces where the host injects a `sendPrompt(text)` function
 (Claude's widget contexts), the banner grows quiet interactions. Every banner-generated
@@ -176,7 +167,7 @@ excited · surprised · tender · melancholy · anxious · mirth · laugh · gro
 frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
 puzzled · asking · weary · wink · love`
 
-[skill/SKILL.sepia.md](skill/SKILL.sepia.md) is the skill variant that wears this face.
+`npm run skill -- sepia tidepool` composes the variant that wears this face.
 
 ## Kip — the reference face-pack
 
@@ -201,22 +192,27 @@ face: {
 
 ## The skill
 
-This repo also ships the **`vibe-banner` skill** — [`skill/SKILL.md`](skill/SKILL.md) — the
+This repo also carries the **`vibe-banner` skill** — the
 Claude Code skill that drives Claude to render these banners. It's the honest half: it asks Claude to
 report the feeling (never describing what any value *renders* as), then emits a one-line
 `vibe(el, {…})` call that loads this bundle from the CDN. Claude passes only values and never sees the
 picture, which is what keeps the readings honest.
 
-**Face selection happens at the skill level.** The renderer accepts any face, but each
-shipped skill wears exactly one; pick your variant and install it (all are generated from
-one base — `npm run skills` — so they never drift):
+**There is no checked-in `SKILL.md`.** The skill is *composed* — by the site's Builder tab, or
+by `npm run skill` from a terminal, both running the same generator. A copy sitting in the repo
+was only ever a second thing to drift, and it did: for months every checked-in variant shipped
+with no environment at all, because nobody read the file they were all generated into.
 
-| variant | face |
-|---|---|
-| `skill/SKILL.md` | kaomoji, improvised fresh every banner |
-| `skill/SKILL.sepia.md` | Sepia — the cuttlefish Claude designed for itself (32 moods) |
-| `skill/SKILL.kip.md` | Kip — the project mascot (8 moods) |
-| `skill/SKILL.twemoji.md` | Twemoji (flat, tiny, classic) |
+**Face selection happens at the skill level.** The renderer accepts any face, but a composed
+skill wears exactly one. Each face has a home it reads best in, and that pairing is the default:
+
+| face | home | |
+|---|---|---|
+| `kaomoji` | study | improvised fresh every banner |
+| `sepia` | tidepool | the cuttlefish Claude designed for itself (33 moods) |
+| `motes` | night | a swarm drawn in code — no art fetched at all |
+| `kip` | glade | the project mascot (8 moods) |
+| `twemoji` | study | flat, tiny, classic |
 
 Try them before choosing: the site's **Gallery tab has a face picker** that re-dresses
 every scene in any shipped face, the **Explorer tab combines any face with any
@@ -237,12 +233,15 @@ Every variant accepts a kaomoji as a valid alternative at any time — when the 
 vocabulary doesn't fit the moment, honesty outranks the pack.
 
 ```bash
-mkdir -p ~/.claude/skills/vibe-banner
-cp skill/SKILL.sepia.md ~/.claude/skills/vibe-banner/SKILL.md   # or SKILL.md / SKILL.kip.md
+npm run skill:install              # sepia in her tidepool → ~/.claude/skills/vibe-banner/SKILL.md
+npm run skill -- motes night       # any pairing, to stdout
+npm run skill -- kip glade -o ./SKILL.md
 ```
 
-It pins the renderer to a full commit hash; update that line to the new release commit's hash
-when you cut a renderer release (see "Make it your own" for why hashes, not tags).
+The composer stamps the renderer pin itself, using the same rule as `npm run pin`: the last
+commit that touched `dist/`, which is the release commit by construction. So compose *after*
+pinning — it will refuse loudly if the pin is still the placeholder. Full commit hash, never a
+tag (see "Make it your own" for why).
 
 ## Develop
 

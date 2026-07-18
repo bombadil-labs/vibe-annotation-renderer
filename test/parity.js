@@ -294,15 +294,20 @@ ok(sceneOf("https://cdn.jsdelivr.net/gh/u/r@abc/assets/scene-custom.png") === nu
    || /example|custom/.test(String(sceneOf("https://cdn.jsdelivr.net/gh/u/r@abc/assets/scene-custom.png"))), "a url-shaped string is still taken as a url");
 let namedObj = buildSVG({ avatar: { set: "sepia", item: "content", scene: { name: "tidepool", opacity: 0.9 } }, details: { seems: "a", feel: "b", trying: "c" } });
 ok(/scene-tidepool\.png/.test(namedObj) && /opacity="0\.9"/.test(namedObj), "{ name, opacity } lets you keep the name and still set opacity");
-const SKILLS = require("fs").readdirSync("skill").filter((f) => /^SKILL.*\.md$/.test(f));
-let sceneless = SKILLS.filter((f) => !/scene:/.test(require("fs").readFileSync("skill/" + f, "utf8")));
-ok(!sceneless.length, "every shipped skill names a home — a stock skill could not set one before v0.48.0" + (sceneless.length ? ": " + sceneless : ""));
-let shaInSkill = SKILLS.filter((f) => {
-  const t = require("fs").readFileSync("skill/" + f, "utf8");
-  const snip = /scene: \{[^}]*\}/.exec(t);
-  return snip && /[0-9a-f]{40}/.test(snip[0]);
-});
-ok(!shaInSkill.length, "no shipped skill asks the reporter to hand-copy a 40-char sha for a scene");
+// The skill is composed, not checked in (v0.49.0) — so these assert the COMPOSER, which is
+// the same function the Builder runs in the browser. The guarantee moves with the generator
+// rather than with an artifact nobody was looking at.
+const { assemble: composeSkill, HOMES } = require("../scripts/gen-skills.js");
+let composed = Object.keys(HOMES).map((face) => ({ face: face, md: composeSkill(face, { scene: HOMES[face] }) }));
+let sceneless = composed.filter((c) => !/scene:/.test(c.md)).map((c) => c.face);
+ok(!sceneless.length, "every composed skill names a home — a stock skill could not set one before v0.48.0" + (sceneless.length ? ": " + sceneless : ""));
+let shaInScene = composed.filter((c) => { const snip = /scene: \{[^}]*\}/.exec(c.md); return snip && /[0-9a-f]{40}/.test(snip[0]); }).map((c) => c.face);
+ok(!shaInScene.length, "no composed skill asks the reporter to hand-copy a 40-char sha for a scene");
+ok(composed.every((c) => /scene: "[a-z]+"/.test(c.md)), "the scene arrives as a bare name in every variant");
+ok(!require("fs").existsSync("skill"), "no checked-in skill files: the Builder is where the skill lives");
+let sepiaMd = composeSkill("sepia", { scene: "tidepool" });
+ok(/set: "sepia"/.test(sepiaMd) && /scene: "tidepool"/.test(sepiaMd), "the canonical build composes: sepia in her tidepool");
+ok(/palette: \[/.test(sepiaMd) && !/details: \{[^}]*palette/.test(sepiaMd.replace(/\n/g, "")), "composed skills put palette at the top level, not in details");
 
 console.log("\nshapes tween (v0.47.0): no mood ever hard-swaps its target");
 let jumpy = [];

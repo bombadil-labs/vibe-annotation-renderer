@@ -172,15 +172,15 @@
     <h3>In Claude Code</h3>
     <p>Hit <strong>Download SKILL.md</strong> and drop it in its own folder:</p>
     <pre>~/.claude/skills/vibe-banner/SKILL.md</pre>
-    <p>Or, if you're happy with the defaults and would rather not build anything, take the
-    shipped file as-is:</p>
-    <pre>mkdir -p ~/.claude/skills/vibe-banner
-curl -fsSL https://raw.githubusercontent.com/bombadil-labs/vibe-banner/main/skill/SKILL.md \
-  -o ~/.claude/skills/vibe-banner/SKILL.md</pre>
-    <p>Windows (PowerShell):</p>
-    <pre>New-Item -ItemType Directory -Force "$HOME\.claude\skills\vibe-banner" | Out-Null
-Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-banner/main/skill/SKILL.md `
-  -OutFile "$HOME\.claude\skills\vibe-banner\SKILL.md"</pre>
+    <p>Or, if you have the repo checked out, compose the same file from a terminal — Sepia in
+    her tidepool, pinned to the current release:</p>
+    <pre>npm run skill:install</pre>
+    <p>Any pairing works, to stdout or to a path:</p>
+    <pre>npm run skill -- motes night
+npm run skill -- kip glade -o ./SKILL.md</pre>
+    <p class="note">There is no checked-in <code>SKILL.md</code> to curl. The skill is composed
+    — here, or by that script, both running the same generator — because a copy sitting in the
+    repo was only ever a second thing to drift, and it did.</p>
     <p>Either way, the skill self-triggers ("preface every response with a usage of it"), so the next
     conversation starts with a banner. To dial the cadence down or turn it off, just tell Claude —
     the skill honors that for the session. To remove it, delete the skill (claude.ai: the Skills
@@ -201,7 +201,7 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-banner/ma
   vibe(document.getElementById('v'), {
     avatar: {                                  // who you are, and where
       set: "sepia", item: "content",           //   any pack; all of them speak the same 33 moods
-      scene: { url: "…", opacity: 0.6 }        //   optional; omit for an empty window
+      scene: "tidepool"                        //   a name: tidepool · study · night · glade
     },
     palette: ["#7d8fb8"],                      // top level: it colours YOU as well as the field
     details: {                                 // everything shown beside the window
@@ -232,7 +232,7 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-banner/ma
 
   <footer>
     <a href="https://github.com/bombadil-labs/vibe-banner">bombadil-labs/vibe-banner</a>
-    · <a href="https://github.com/bombadil-labs/vibe-banner/blob/main/skill/SKILL.md">the skill</a>
+    · <a href="https://github.com/bombadil-labs/vibe-banner/blob/main/scripts/gen-skills.js">the skill generator</a>
     · single-file, framework-free, meant to be forked
   </footer>
 </div>
@@ -619,7 +619,11 @@ route();
   var NAME = "vibe-banner";
   var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
   var S = {
-    face: "sepia", cadence: "always", every: 3, scene: "none", sceneUrl: "", sceneOp: 0.5,
+    // The Builder opens in a HOME, not in the void. Defaulting to "none" is how the checked-in
+    // skills shipped sceneless for months: an empty window looks like a considered choice
+    // rather than an unmade one. Switching face follows that face's home unless you've picked.
+    face: "sepia", cadence: "always", every: 3, scene: "tidepool", sceneUrl: "", sceneOp: 0.5,
+    scenePicked: false,
     fields: clone(P.DEFAULT_FIELDS),
     customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png"
   };
@@ -805,6 +809,8 @@ route();
   }
   faceSel.addEventListener("change", function () {
     S.face = faceSel.value;
+    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", twemoji: "study" };
+    if (!S.scenePicked && homes[S.face]) { S.scene = homes[S.face]; scSel.value = S.scene; }   // each face has a place it reads best in
     refreshLive(); refreshCustom(); refreshScene(); renderNarrators(); status();
   });
   customTa.addEventListener("input", function () { S.customLines = customTa.value; refreshCustom(); status(); });
@@ -821,6 +827,7 @@ route();
   scOpts.forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; scSel.appendChild(op);
   });
+  scSel.value = S.scene;                                     // the control must show the home the builder opened in
   cE.appendChild(scSel);
   var scUrlIn = document.createElement("input");
   scUrlIn.placeholder = "https://cdn.jsdelivr.net/gh/you/scenes@commit/mine.png";
@@ -841,7 +848,7 @@ route();
     refreshLive(); renderNarrators();
     status();
   }
-  scSel.addEventListener("change", function () { S.scene = scSel.value; refreshScene(); });
+  scSel.addEventListener("change", function () { S.scene = scSel.value; S.scenePicked = true; refreshScene(); });
   scUrlIn.addEventListener("input", function () { S.sceneUrl = scUrlIn.value; refreshScene(); });
   scOpRow.querySelector("input").addEventListener("input", function (e) {
     S.sceneOp = +e.target.value;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Single source for all skill text. Emits:
- *   - skill/SKILL*.md         (the shipped variants)
+ *   - (no skill files: the skill is COMPOSED — see scripts/compose-skill.js)
  *   - assets/skill-base.js    (the same pieces + face previews, for the site's Builder)
  * Usage: npm run skills, then npm run pin (stamps the renderer sha everywhere).
  * Hand-editing a generated file is a bug: edit this file and regenerate.
@@ -315,6 +315,7 @@ reference face-pack. Cheerful, compact, eight moods.`,
 
   // First-party scenes (Builder environment station + the catalog + the Explorer).
   // `live` marks scenes with native ambience in the renderer; `blurb` is one honest line.
+  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", twemoji: "study" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
     night: { url: SCENE_URL("night"), blurb: "indigo sky, stars, a crescent, one dark hill" },
@@ -410,21 +411,13 @@ function assemble(faceKey, opts) {
   ].join("\n");
 }
 
-// Every shipped skill now names a home. Before v0.48.0 these were assembled with no options
-// at all, so the snippet carried NO scene and the window shipped empty — the environment
-// could not be set from a stock skill however the reporter tried. Each face gets the place it
-// reads best in: Sepia her tidepool, Motes the dark (glowing motes wash out on a bright
-// ground), and the rest a lamplit study.
-const SHIP = {
-  "SKILL.md": ["kaomoji", "study"], "SKILL.motes.md": ["motes", "night"],
-  "SKILL.sepia.md": ["sepia", "tidepool"], "SKILL.kip.md": ["kip", "glade"],
-  "SKILL.twemoji.md": ["twemoji", "study"]
-};
-Object.keys(SHIP).forEach(function (file) {
-  const out = assemble(SHIP[file][0], { scene: SHIP[file][1] });
-  fs.writeFileSync("skill/" + file, out);
-  console.log("generated skill/" + file + " (" + out.length + " bytes)");
-});
+// No skill files are written any more (v0.49.0). The Builder composes the skill, so a
+// checked-in copy was only ever a second thing to drift: it had its own pin to stamp, its own
+// row in the docs, and it silently shipped without a scene for months precisely because
+// nobody looked at it. The composer below is the single path, and the Builder runs this exact
+// function in the browser. `npm run skill:sepia` prints the sepia/tidepool build for install.
+// The face + home pairings the project considers canonical, kept for the CLI and the tests.
+const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", twemoji: "study" };
 // Functions survive the trip into the browser bundle as source, so the Builder runs the
 // SAME generator the shipped skills do — no client-side mirror to drift out of sync.
 // (They must therefore be closure-free: everything they need arrives as arguments.)
@@ -433,8 +426,11 @@ const pieceJSON = JSON.stringify(PIECES, function (k, v) {
   if (typeof v === "function") { FN.push(v.toString()); return "@@FN" + (FN.length - 1) + "@@"; }
   return v;
 }, 1).replace(/"@@FN(\d+)@@"/g, function (m, i) { return FN[+i]; });
-fs.writeFileSync("assets/skill-base.js", "window.SKILL_PIECES = " + pieceJSON + ";\n");
-console.log("generated assets/skill-base.js (Builder pieces + previews)");
+const CLI = require.main === module;                           // importable: requiring this must not rewrite assets
+if (CLI) {
+  fs.writeFileSync("assets/skill-base.js", "window.SKILL_PIECES = " + pieceJSON + ";\n");
+  console.log("generated assets/skill-base.js (Builder pieces + previews)");
+}
 
 // The catalog: a machine-readable index of the whole ecosystem, for Claude to fetch
 // during a settings conversation (raw main URL = always the current menu).
@@ -463,9 +459,18 @@ const CATALOG = {
       starter_items: PIECES.PREVIEW.twemoji.strip, note: "flat, tiny, classic; any codepoint works" }
   },
   scenes: PIECES.SCENES,
-  skills: Object.keys(SHIP).reduce((m, f) => { m[SHIP[f]] = RAW + "skill/" + f; return m; }, {}),
+  // No skill URLs: there are no checked-in skill files to link. The skill is composed — point
+  // a settings conversation at the Builder, which is the only place it exists.
+  skills: { composed_at: SITE + "#builder", homes: HOMES },
   site: { gallery: SITE + "#gallery", builder: SITE + "#builder", explorer: SITE + "#explorer" }
 };
-fs.writeFileSync("assets/catalog.json", JSON.stringify(CATALOG, null, 2) + "\n");
-console.log("generated assets/catalog.json (settings-conversation menu)");
-console.log("now run: npm run pin");
+if (CLI) {
+  fs.writeFileSync("assets/catalog.json", JSON.stringify(CATALOG, null, 2) + "\n");
+  console.log("generated assets/catalog.json (settings-conversation menu)");
+  console.log("now run: npm run pin");
+}
+
+// Exported so the tests can compose a skill in memory and assert the same properties the
+// checked-in files used to be checked for — the guarantee moves with the composer, not the
+// artifact. `npm run skill:sepia` prints the canonical sepia/tidepool build to stdout.
+module.exports = { assemble, PIECES, HOMES };

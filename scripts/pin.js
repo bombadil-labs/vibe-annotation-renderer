@@ -22,9 +22,9 @@ try {
   process.exit(1);
 }
 
-const FILES = ["skill/SKILL.md", "skill/SKILL.sepia.md", "skill/SKILL.kip.md",
-  "skill/SKILL.twemoji.md",
-  "assets/skill-base.js", "assets/catalog.json", "README.md", "index.html"];
+// No skill files here any more (v0.49.0): the skill is composed, not checked in, and
+// `npm run skill` stamps its own pin from the same rule this script uses.
+const FILES = ["assets/skill-base.js", "assets/catalog.json", "README.md", "index.html"];
 const RE = /vibe-banner@[0-9a-f]{40}/g;
 let changed = 0;
 for (const f of FILES) {
@@ -36,4 +36,4 @@ for (const f of FILES) {
     changed++;
   }
 }
-console.log(changed ? `all consumers pinned to ${sha.slice(0, 7)} — commit this, then copy skill/SKILL.md to ~/.claude/skills/vibe-banner/ (and re-paste on claude.ai)` : "already pinned to " + sha.slice(0, 7));
+console.log(changed ? `all consumers pinned to ${sha.slice(0, 7)} — commit this, then run \`npm run skill:install\` (and re-paste on claude.ai)` : "already pinned to " + sha.slice(0, 7));
