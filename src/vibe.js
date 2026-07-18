@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@23fa79a2778d28776ab1b7f5ef2b67bd7376da54/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@5d47eb1ccc4802dff7bc452c3ef570eea78f8186/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -159,7 +159,9 @@
         url: SEPIA_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 12, index: i,
         anim: {
           frames: 2, frameRows: 4, stride: 32, maskStart: 64,
-          fins: "rrftdtfrfffrdtrfdtttfcdrtrcrrdrf"            // per-mood fin posture (derives from gen-sepia's FRILL_OF — keep in sync): r ripple, f flared, d drooped, t tucked, c calm
+          fins: "rrftdtfrfffrdtrfdtttfcdrtrcrrdrf",           // per-mood fin posture (derives from gen-sepia's FRILL_OF — keep in sync): r ripple, f flared, d drooped, t tucked, c calm
+          arms: true,                                          // three independently swaying arms, drawn from the hem (the baked stubs retired)
+          ink: { 17: 1, 13: 0.4 }                              // her namesake pigment: oops sprays a full startled puff, anxious leaks nervous wisps
         }
       };
     }
@@ -710,6 +712,11 @@
     // live scene state: drawn natively in the frame loop below (never an animated image —
     // see DESIGN.md). Ambience runs for everyone; only the click affordances gate on play.
     var live = (L.scene && L.scene.live && L.portrait) ? { ripples: [], feeds: [] } : null;
+    // INK: her namesake pigment (sepia is literally cuttlefish ink). Config per mood in
+    // the registry: >=0.7 → one full startled puff shortly after arrival; smaller →
+    // recurring nervous wisps on a seeded cadence. Drawn in the window, behind the face.
+    var inkAmt = (fm && fm.kind === "sprite" && fm.anim && fm.anim.ink && fm.anim.ink[fm.index]) || 0;
+    var inkBursts = [];
     if (live && p.play !== false) {                            // tap the water, get ripples
       wrap.addEventListener("click", function (e) {
         var r = wrap.getBoundingClientRect(); if (!r.width || !r.height) return;
@@ -886,6 +893,44 @@
           ctx.globalAlpha = 1; ctx.restore();
         }
 
+        // --- ink: a sepia cloud expelled behind the body, dispersing in the window ---
+        if (inkAmt) {
+          var inkBig = inkAmt >= 0.7;
+          if (inkBig) { if (!inkBursts.length && t > 0.7) inkBursts.push({ t0: t, s: inkAmt }); }
+          else {
+            var iper = 7 + (L.seed % 5);
+            if (((t + (L.seed % 11) * 0.7) % iper) < 0.05 &&
+              (!inkBursts.length || t - inkBursts[inkBursts.length - 1].t0 > 2.5)) inkBursts.push({ t0: t, s: inkAmt });
+          }
+          if (inkBursts.length > 4) inkBursts.splice(0, inkBursts.length - 4);
+          inkBursts.forEach(function (b, bi2) {
+            var iage = t - b.t0; if (iage < 0 || iage > 2.4) return;
+            var pr2 = mulberry32(L.seed + bi2 * 977 + 29);
+            var ptw = L.portrait, pss = ptw.s;
+            ctx.save();
+            ctx.beginPath();                                   // clip to the window: ink disperses in the water, not over the banner
+            ctx.moveTo(ptw.x + 10, ptw.y);
+            ctx.arcTo(ptw.x + pss, ptw.y, ptw.x + pss, ptw.y + pss, 10);
+            ctx.arcTo(ptw.x + pss, ptw.y + pss, ptw.x, ptw.y + pss, 10);
+            ctx.arcTo(ptw.x, ptw.y + pss, ptw.x, ptw.y, 10);
+            ctx.arcTo(ptw.x, ptw.y, ptw.x + pss, ptw.y, 10);
+            ctx.closePath(); ctx.clip();
+            var fb2 = fm.box, iox = fb2.x + fb2.w * 0.2, ioy = fb2.y + fb2.h * 0.88;
+            for (var ik = 0; ik < 8; ik++) {
+              var ia = Math.PI * (0.6 + pr2() * 0.7);          // a leftish-down fan from the siphon
+              var ispd = (14 + pr2() * 26) * b.s;
+              var idist = ispd * (1 - Math.exp(-iage * 1.6));  // jet, then drift
+              var ixp = iox + Math.cos(ia) * idist, iyp = ioy + Math.sin(ia) * idist * 0.7 + iage * 3;
+              var irad = (2.5 + iage * 6) * (0.6 + pr2() * 0.7) * b.s;
+              var ial = Math.max(0, 0.5 * b.s * (1 - iage / 2.4));
+              var ig2 = ctx.createRadialGradient(ixp, iyp, 0, ixp, iyp, irad);
+              ig2.addColorStop(0, rgba("#3b2c26", ial)); ig2.addColorStop(1, rgba("#3b2c26", 0));
+              ctx.fillStyle = ig2; ctx.beginPath(); ctx.arc(ixp, iyp, irad, 0, 6.2832); ctx.fill();
+            }
+            ctx.restore();
+          });
+        }
+
         // --- timed envelopes shared by field + face ---
         var laughB = 1, lLt = 0, lCyc = 0, laughKp = 0;
         if (L.laugh) {
@@ -931,9 +976,9 @@
             var fp2 = FINP[fcode] || FINP.r;
             var fsc = fcw / 64;
             var baseW = fp2[0] * fsc, famp = fp2[1] * fsc, frate = fp2[2];
-            fx2.fillStyle = rgba("#d8bcc8", 0.92);
             [[9.5, -1], [54.5, 1]].forEach(function (fside) {
               var ax = fside[0] * fsc, fdir2 = fside[1];
+              var edgePts = [];
               fx2.beginPath();
               fx2.moveTo(ax, 12 * fsc);
               for (var fy = 12; fy <= 44; fy++) {
@@ -942,10 +987,48 @@
                 var wv = famp * Math.sin(fy * 0.32 - t * frate * 6.283 * fdir2) * prof;
                 var wdt = Math.max(0, baseW * prof * sagF + wv);
                 fx2.lineTo(ax + fdir2 * wdt, fy * fsc);
+                edgePts.push([ax + fdir2 * wdt, fy * fsc]);
               }
               fx2.lineTo(ax, 44 * fsc);
-              fx2.closePath(); fx2.fill();
+              fx2.closePath();
+              fx2.fillStyle = rgba("#d8bcc8", 0.92); fx2.fill();
+              fx2.lineWidth = Math.max(1, fsc);                                      // the fine silhouette continues around the fins
+              fx2.strokeStyle = rgba("#5a4a52", 0.8);
+              fx2.beginPath(); fx2.moveTo(edgePts[0][0], edgePts[0][1]);
+              for (var ep = 1; ep < edgePts.length; ep++) fx2.lineTo(edgePts[ep][0], edgePts[ep][1]);
+              fx2.stroke();
+              fx2.strokeStyle = rgba("#a08a9a", 0.65);                               // the single-pixel fine boundary where fin meets body
+              fx2.beginPath(); fx2.moveTo(ax, 13 * fsc); fx2.lineTo(ax, 43 * fsc); fx2.stroke();
             });
+            // --- the arms: three ribbons from the hem, each swaying to its own current.
+            // Posture follows the fins' mood params at reduced amplitude — tucked moods
+            // hold their arms close too.
+            if (fm.anim.arms) {
+              [[20, 0], [32, 1], [44, 2]].forEach(function (armS) {
+                var acx = armS[0], ai2 = armS[1];
+                var arr2 = mulberry32(L.seed + ai2 * 3671 + 17);
+                var aph = arr2() * 6.28, arate = (0.5 + arr2() * 0.5) * (0.4 + fp2[2] * 0.35);
+                var aamp = (1.2 + fp2[1] * 0.9) * fsc, alen = 14, ay0 = 47;
+                var aw0 = 2.2 * fsc;
+                fx2.beginPath();
+                for (var ayy = 0; ayy <= alen; ayy++) {                              // left edge down
+                  var au = ayy / alen;
+                  var adx = aamp * Math.sin(t * arate * 6.283 + aph + au * 1.9) * au * au;
+                  var aw = aw0 * (1 - 0.55 * au);
+                  fx2.lineTo((acx * fsc) + adx - aw, (ay0 + ayy) * fsc);
+                }
+                for (var ayy2 = alen; ayy2 >= 0; ayy2--) {                           // right edge back up
+                  var au2 = ayy2 / alen;
+                  var adx2 = aamp * Math.sin(t * arate * 6.283 + aph + au2 * 1.9) * au2 * au2;
+                  var aw2 = aw0 * (1 - 0.55 * au2);
+                  fx2.lineTo((acx * fsc) + adx2 + aw2, (ay0 + ayy2) * fsc);
+                }
+                fx2.closePath();
+                fx2.fillStyle = rgba("#d8bcc8", 0.95); fx2.fill();
+                fx2.lineWidth = Math.max(1, fsc * 0.8);
+                fx2.strokeStyle = rgba("#5a4a52", 0.55); fx2.stroke();               // the fine line wraps the arms too
+              });
+            }
           }
         }
 
