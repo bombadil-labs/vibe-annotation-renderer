@@ -286,6 +286,39 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   be caught by the node-side parity suite — verify live changes in an actual browser
   before shipping (the Browser-pane repro server pattern works).
 
+- **vibe-banner: the rename, and why the CDN survived it (v0.41.0).** The project became
+  `vibe-banner` — repo, skill, package. Every deployed SKILL.md pins jsDelivr URLs under
+  the OLD repo name, so this looked like it would break every banner in the wild. It
+  does not: GitHub redirects renamed repos and jsDelivr follows, verified by fetching
+  uncached old-name paths immediately after the rename (200). The standing hazard is
+  narrow but real — if anyone ever creates a new `vibe-annotation-renderer` under the
+  org, the redirect dies and old skills 404. Never reuse the old name.
+
+- **The readout is a list; every face speaks one vocabulary (v0.41.0).** Two contract
+  changes, both the maintainer's read that a good default had been mistaken for a law.
+  (1) `seems/feel/trying/noticing` become `readout: [{label, value}, …]` — up to five
+  rows with any labels a skill defines. The four originals are the default and the
+  legacy keys still map onto them, so nothing deployed breaks. Known labels keep their
+  typographic voice; new ones take one by position. The ≤15/≤25-word caps are appended
+  by the generator and cannot be edited away — they are data-loss warnings, not style.
+  (2) The emoji packs took raw codepoints, so the face vocabulary changed SHAPE when you
+  switched packs; now every pack resolves Sepia's 32 moods (audited all 32 against the
+  animated set: only the musical note is absent, so rhyme borrows an upside-down face
+  there). `consonance` → `coherence`, focus's emotional dual; both still accepted.
+
+- **The builder has a spine (v0.41.0).** v2 made every section editable; that was wrong.
+  Editable versions of the load-bearing parts — preamble, honesty contract, locked value
+  bullets, flag vocabulary, loader snippet, attunement rules, settings desk — mostly
+  produced WORSE skills, and the snippet in particular must never be hand-edited (it
+  carries the pinned hash). v3 gives real controls to the four things that are genuinely
+  personal (face, environment, cadence, text fields) and names the rest as fixed rather
+  than hiding it. Cadence was rebuilt too: "only real shifts" retired, because between
+  two turns the state has essentially always moved — it collapsed into "every turn"
+  while sounding stricter. The honest axis is frequency. The Builder now runs the SAME
+  generator functions the shipped skills do (serialised into skill-base.js as source),
+  so there is no client-side mirror left to drift. The wrench hands users back to the
+  builder and compares the skill's stamped version against the catalog's.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
