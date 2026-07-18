@@ -239,7 +239,7 @@ const MOODS = [
   ["dramatic",   "wide",             "smile", "#b0413e"],   // the Greek mask overlay is drawn in the frame pass below
   ["at_peace",   "closed",           "smile", "#8fae8f", X.flower],
   ["solemn",     "closed",           "flat",  "#8a8f9a"],
-  ["rhyme",      "w",                "sm",    "#9a8fae", X.ghost],
+  ["rhyme",      "w",                "sm",    "#9a8fae"],   // the baked ghost retired in v0.40.0 — rhyme's echo is a live replica now
   ["awe",        "uptiny",           "open",  "#5a6a8a"],
   ["vertigo",    "spiral",           "wavy",  "#b79ad0"],
   ["resolute",   "steely",           "sm",    "#e0994e"],   // steely narrowed eyes + tight fine-mouth; headband drawn in the fine pass
@@ -316,32 +316,29 @@ MOODS.forEach((mood, i) => {
     else if (!FINE_MOUTH[mood[0]]) feat.push(...MOUTH[mood[2]].map(q => [q[0], q[1], "p"]));
     feat.push(...(mood[4] || []));
     if (mood[0] === "dramatic") {
-      // THE GREEK MASK, take two (v0.36.0): the see-through porcelain read as magneto
-      // (the maintainer's verdict). This one is the real thing — a GREEN theatre mask
-      // bigger than the face, covering it ENTIRELY, with its own painted wide eyes and
-      // a fixed exaggerated grin showing teeth. Nothing of her shows; that's the bit.
+      // THE COMEDY MASK, take three (v0.40.0, the maintainer's reference): the classic
+      // white theatre pair. Porcelain WHITE, arched gray brow-creases, ∩-crescent
+      // smiling eyeholes, a soft nose shadow, and one huge open grin with upturned
+      // corners and crease-lines. Covers her entirely; the dart tip peeks above.
       const MSPAN = { 3: [10, 21], 4: [7, 24], 5: [5, 26], 6: [4, 27], 7: [3, 28], 8: [2, 29],
         20: [2, 29], 21: [3, 28], 22: [4, 27], 23: [5, 26], 24: [6, 25], 25: [8, 23], 26: [10, 21], 27: [13, 18] };
       const spanAt = y => MSPAN[y] || [1, 30];
       for (let y = 3; y <= 27; y++) {
         const sp = spanAt(y);
         for (let x = sp[0]; x <= sp[1]; x++)
-          feat.push([x, y, (x === sp[0] || x === sp[1] || y === 3 || y === 27) ? "o" : "e"]);
+          feat.push([x, y, (x === sp[0] || x === sp[1] || y === 3 || y === 27) ? "o" : "W"]);
       }
-      for (let x = 5; x <= 13; x++) feat.push([x, 8, "E"]);                        // brow ridges shading the sockets
-      for (let x = 18; x <= 26; x++) feat.push([x, 8, "E"]);
-      const ALM = { 9: [8, 11], 10: [7, 12], 11: [6, 13], 12: [6, 13], 13: [7, 12], 14: [8, 11] };   // the mask's own eyes: dark-ringed almonds, theatrically wide
-      const ALW = { 10: [8, 11], 11: [7, 12], 12: [7, 12], 13: [8, 11] };
       [false, true].forEach(mirE => {
         const mx = x => mirE ? 31 - x : x;
-        Object.keys(ALM).forEach(yy => { for (let x = ALM[yy][0]; x <= ALM[yy][1]; x++) feat.push([mx(x), +yy, "p"]); });
-        Object.keys(ALW).forEach(yy => { for (let x = ALW[yy][0]; x <= ALW[yy][1]; x++) feat.push([mx(x), +yy, "W"]); });
-        [[9, 11], [10, 11], [9, 12], [10, 12]].forEach(q => feat.push([mx(q[0]), q[1], "p"]));
+        for (let x = 6; x <= 13; x++) feat.push([mx(x), 8, "m"]);                  // arched brow-creases
+        for (let x = 6; x <= 13; x++) feat.push([mx(x), 10, "p"]);                 // the smiling ∩ eyehole: a full arch…
+        [6, 7, 12, 13].forEach(x => { feat.push([mx(x), 11, "p"], [mx(x), 12, "p"]); });   // …with two legs, the cheek rising through the middle
       });
-      const GRIN = { 18: [[7, 8], [23, 24]], 19: [[7, 24]], 20: [[8, 23]], 21: [[9, 22]], 22: [[11, 20]], 23: [[13, 18]] };   // the grin: a fixed exaggerated banana of joy
+      [[15, 12], [16, 12], [15, 13], [16, 13], [15, 14], [16, 14], [14, 15], [17, 15]].forEach(q => feat.push([q[0], q[1], "m"]));   // the nose shadow
+      feat.push([6, 15, "m"], [25, 15, "m"], [5, 14, "m"], [26, 14, "m"]);         // smile creases running up from the grin's corners
+      const GRIN = { 16: [[7, 8], [23, 24]], 17: [[7, 9], [22, 24]], 18: [[7, 24]], 19: [[8, 23]], 20: [[9, 22]], 21: [[11, 20]], 22: [[13, 18]] };
       Object.keys(GRIN).forEach(yy => GRIN[yy].forEach(sp2 => { for (let x = sp2[0]; x <= sp2[1]; x++) feat.push([x, +yy, "p"]); }));
-      for (let x = 9; x <= 22; x++) feat.push([x, 19, "W"]);                       // teeth, grinning through
-      [11, 14, 17, 20].forEach(x => feat.push([x, 19, "p"]));
+      for (let x = 13; x <= 18; x++) feat.push([x, 23, "m"]);                      // the lower lip's shadow under the grin
     }
     feat.forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
 
