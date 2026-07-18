@@ -125,6 +125,17 @@ function drawEyes(out, lp, rp, blink) {
       out.push([bx + goff, 14, "p"], [bx + goff + 1, 14, "p"], [bx + goff, 15, "p"], [bx + goff + 1, 15, "p"]);
       return;
     }
+    if (preset === "fury") {                                   // angry: the lids SLASH down toward the nose — a wedge of shadow, the pupil burning low beneath it
+      for (let y = 10; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
+      for (let k = 0; k <= 4; k++) {
+        const lx = mir ? bx + 4 - k : bx + k;
+        const ly = 10 + (k * 3 >> 2);                          // 10,10,11,12,13 — steepest at the inner corner
+        for (let y = 10; y <= ly; y++) out.push([lx, y, "p"]);
+      }
+      const foff = mir ? 3 - POFF[1] : POFF[1];
+      out.push([bx + foff, 14, "p"], [bx + foff + 1, 14, "p"], [bx + foff, 15, "p"], [bx + foff + 1, 15, "p"]);
+      return;
+    }
     if (preset === "steely") {                                 // resolute: the lid lowers hard — narrowed whites, a fixed dot beneath
       for (let x = bx; x <= bx + 4; x++) out.push([x, 11, "p"]);
       for (let y = 12; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
@@ -198,6 +209,12 @@ const X = {}; Object.keys(X16).forEach(k => { X[k] = up2(X16[k]); });
 const VBROWS = [];
 [[10,5],[11,6],[12,6],[13,7],[14,8]].forEach(q => { VBROWS.push([q[0], q[1], "o"], [q[0] + 1, q[1], "o"]); });
 [[21,5],[20,6],[19,6],[18,7],[17,8]].forEach(q => { VBROWS.push([q[0], q[1], "o"], [q[0] - 1, q[1], "o"]); });
+// THE GRIT (v0.37.0): anger's mouth is a bared-teeth snarl — dark lips clamped around a
+// row of gritted teeth. Drawn over the placeholder block mouth (extras push last).
+const GRIT = [];
+for (let x = 11; x <= 20; x++) GRIT.push([x, 19, "p"], [x, 22, "p"]);
+for (let y = 20; y <= 21; y++) for (let x = 11; x <= 20; x++)
+  GRIT.push([x, y, (x === 11 || x === 20 || x === 14 || x === 17) ? "p" : "W"]);
 // A mood is a RECIPE, not a drawing: [name, eyes-preset (or [left,right]), mouth-name,
 // chromatophore hue, extras?]. Eyes and mouth are components that draw themselves;
 // fins (posture code) and spots (live layer) are the renderer's components.
@@ -221,7 +238,7 @@ const MOODS = [
   ["groan",      "dot",              "frown", "#9a9488"],   // deadpan base; frame 1 squeezes the eyes to slits as the body contracts live
   ["oops",       "wide",             "open",  "#d98a6a", X.sweat],
   ["frustrated", "glower",           "flatdrop", "#a05050", VBROWS],
-  ["angry",      "dot",              "frown", "#c04040", X.brows],
+  ["angry",      "fury",             "flat",  "#c04040", VBROWS.concat(GRIT)],   // fury lids + V-brows + the gritted snarl (flat mouth hides beneath it)
   ["dramatic",   "wide",             "smile", "#b0413e"],   // the Greek mask overlay is drawn in the frame pass below
   ["at_peace",   "closed",           "smile", "#8fae8f", X.flower],
   ["solemn",     "closed",           "flat",  "#8a8f9a"],
