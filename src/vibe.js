@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@85923d0431feaa52cb4848ef259627610b1b0831/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@c57794f0ef9761ef9aace21c2074749b4af4ae7a/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -162,10 +162,10 @@
           fins: "rrftdtfrfffrdtrfdtttfcdrtrcrrdrf",           // per-mood fin posture (derives from gen-sepia's FRILL_OF — keep in sync): r ripple, f flared, d drooped, t tucked, c calm
           arms: true,                                          // three independently swaying arms, drawn from the hem (the baked stubs retired)
           ink: { 17: 1, 13: 0.4 },                             // her namesake pigment: oops sprays a full startled puff, anxious leaks nervous wisps
-          cycle: { 15: 0.14 },                                 // beat moods: laugh's frame 1 is the guffaw, chattered rapidly in bouts (the kefka cackle) — not a blink
-          bounce: { 15: 1 },                                   // beat moods also jounce the whole body up and down with the cackle
-          contract: { 16: 1 },                                 // groan: the whole body CONTRACTS — fins and arms pulled in hard, the mantle sunk low
-          props: { 8: "bulb", 16: "sweat", 17: "excl", 18: "vein", 19: "grawlix", 27: "qmark" },   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
+          cycle: { 15: 0.32 },                                 // beat moods: laugh's frame 1 is the guffaw, cycled in slow deep HAs (belly laugh, not cackle — the maintainer's note)
+          bounce: { 15: 1 },                                   // beat moods also heave the whole body — up-down AND a chest-wide width pulse
+          contract: { 16: 1 },                                 // groan: the long contraction cycle — deadpan, then the visible squeeze, held ~30s, eventually released
+          props: { 8: "bulb", 15: "laughs", 16: "sweat", 17: "excl", 18: "vein", 19: "grawlix", 27: "qmark" },   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
           thrill: 15                                           // the feeding reaction (v0.35.0): whatever the mood, being fed flashes this cell's frame 1 — laugh's wide-eyed guffaw — one delighted pulse, then back
         }
       };
@@ -736,6 +736,7 @@
     // see DESIGN.md). Ambience runs for everyone; only the click affordances gate on play.
     var live = (L.scene && L.scene.live && L.portrait) ? { kind: L.scene.live, ripples: [], feeds: [], plate: 0 } : null;
     var feedFx = null;                                         // the feeding THRILL (v0.35.0): any environment, any face that has a thrill cell — eyes wide, mouth thrown open, one delighted pulse, then back
+    var groanT0 = 0, conReset = false;                         // the contraction cycle's clock; a boop or a feeding sends her back to relaxed
     // INK: her namesake pigment (sepia is literally cuttlefish ink). Config per mood in
     // the registry: >=0.7 → one full startled puff shortly after arrival; smaller →
     // recurring nervous wisps on a seeded cadence. Drawn in the window, behind the face.
@@ -755,6 +756,7 @@
           cy: br2.height ? (e.clientY - br2.top) / br2.height * 64 : 32
         };
         inkBursts.push({ t0: null, s: 0.85, k: inkSeq++ });
+        conReset = true;                                       // a boop startles her out of the contraction — the cycle restarts relaxed
       });
     }
     if (live && live.kind === "tidepool" && p.play !== false) {   // tap the water, get ripples
@@ -795,6 +797,7 @@
       var fb = document.createElement("button");
       fb.textContent = "🥫"; fb.title = "feed claude"; fb.style.cssText = BTN;
       fb.addEventListener("click", function () {
+        conReset = true;                                       // food interrupts the contraction too — she relaxes to receive it
         var flav = flavorOf(p.palette, live && live.kind === "tidepool" ? "tidepool" : null) + " flavor*";
         if (live && live.kind === "tidepool") {                // in a tidepool the meal arrives as flakes on the water; the message follows the fall
           live.feeds.push({ t0: null });
@@ -1074,9 +1077,21 @@
         var surP = L.surprised ? Math.exp(-((t % 2.2) / 2.2) * 6) : 0;   // a quick startle every 2.2s
         var frP = L.frustrated ? 0.5 + 0.5 * Math.sin(t * 2.2) : 0;
 
-        var beatKy = 0;                                                              // laugh's cackle-jounce, fed into the body transform below
-        var conAmt = fm && fm.anim && fm.anim.contract && fm.anim.contract[fm.index]
-          ? fm.anim.contract[fm.index] * (0.78 + 0.12 * Math.sin(t * 0.8)) : 0;      // groan's whole-body contraction, breathing slowly around its hunch
+        var beatKy = 0, beatKw = 0;                                                  // laugh's belly-heave: vertical jounce + chest-wide width pulse
+        // groan's LONG contraction cycle (v0.36.0): the act itself is the show — deadpan
+        // and open for a beat, then the visible squeeze (eyes clench in the sheet frame,
+        // fins and arms haul in, the mantle sinks), HELD ~30s, released, and round again.
+        // A boop or a feeding resets her to the relaxed top of the cycle.
+        var conAmt = 0, conFrame = 0;
+        var conBase = (fm && fm.anim && fm.anim.contract && fm.anim.contract[fm.index]) || 0;
+        if (conReset) { groanT0 = t + 0.9; conReset = false; }
+        if (conBase) {
+          var cgt = t - groanT0, cp = cgt < 0 ? 0 : cgt % 40;
+          var cenv = cp < 1.4 ? 0 : cp < 3.2 ? (cp - 1.4) / 1.8 : cp < 36 ? 1 : cp < 37.4 ? 1 - (cp - 36) / 1.4 : 0;
+          cenv = cenv * cenv * (3 - 2 * cenv);                                       // smoothstep: the squeeze eases in, the release eases out
+          conAmt = conBase * cenv * (0.92 + 0.08 * Math.sin(t * 0.8));
+          conFrame = cenv > 0.55 ? 1 : 0;                                            // past halfway the eyes clench shut
+        }
         if (feedFx && feedFx.t0 == null) feedFx.t0 = t;                              // late-bind the feeding clock, like every other gesture
         var feedAge = feedFx ? t - feedFx.t0 - feedFx.delay : 9;
         var thrillE = feedAge > 0 && feedAge < 1.1 ? Math.sin(feedAge / 1.1 * Math.PI) : 0;   // the thrill: one delighted pulse when the food arrives, then back to the mood
@@ -1089,10 +1104,15 @@
           var fr = 0;                                                                // base at rest — fins and chromatophores carry all continuous motion now
           var beat = fm.anim.cycle && fm.anim.cycle[fm.index];
           if (beat != null) {                                                        // beat moods (the guffaw): frame 1 is a mouth thrown wide, not a blink —
-            var bout = t % 3.4;                                                      // a bout of cackling, then a breath
-            if (bout < 1.9 && (bout % (beat * 2)) < beat) fr = 1;
-            if (fm.anim.bounce && fm.anim.bounce[fm.index] && bout < 1.9)            // the body jounces with the cackle — same clock as the mouth
-              beatKy = -2.4 * Math.abs(Math.sin(bout * Math.PI / (beat * 2)));
+            var bout = t % 3.8;                                                      // a bout of deep HAs, then a breath
+            if (bout < 2.3 && (bout % (beat * 2)) < beat) fr = 1;
+            if (fm.anim.bounce && fm.anim.bounce[fm.index] && bout < 2.3) {          // the belly laugh: the whole body heaves on the mouth's clock —
+              var bph = Math.abs(Math.sin(bout * Math.PI / (beat * 2)));
+              beatKy = -3.0 * bph;                                                   // …rising with each HA…
+              beatKw = 0.07 * bph;                                                   // …and swelling WIDE at the chest
+            }
+          } else if (conBase) {
+            fr = conFrame;                                                           // contract moods: the frame IS the squeeze, on the long cycle's clock
           } else {
             var bper = 3.2 + (L.seed % 5) * 0.9;
             if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 1;                    // blink, ~160ms on a seeded organic cadence
@@ -1224,38 +1244,63 @@
             if (propN) {
               var EMOF = 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
               fx2.textAlign = "center"; fx2.textBaseline = "middle";
-              if (propN === "bulb") {                                                // 💡 clicks on over her head, halo pulsing — the old click cycle, worn personally now
-                var scyc = t % 3.0, on;
-                if (scyc < 0.12) on = scyc / 0.12;
-                else if (scyc < 1.6) on = 1;
-                else if (scyc < 2.1) on = 1 - (scyc - 1.6) / 0.5;
-                else on = 0.15 + 0.05 * Math.sin(t * 2);
-                var bpx = 52 * fsc, bpy = 9 * fsc;
-                var hg = fx2.createRadialGradient(bpx, bpy, 1, bpx, bpy, (9 + 4 * on) * fsc);
-                hg.addColorStop(0, rgba("#fff6c0", 0.55 * on)); hg.addColorStop(0.55, rgba("#ffe27a", 0.22 * on)); hg.addColorStop(1, rgba("#ffe27a", 0));
-                fx2.fillStyle = hg; fx2.beginPath(); fx2.arc(bpx, bpy, (9 + 4 * on) * fsc, 0, 6.2832); fx2.fill();
-                fx2.globalAlpha = 0.45 + 0.55 * on;
-                fx2.font = (11 * fsc).toFixed(1) + EMOF;
-                fx2.fillText("💡", bpx, bpy);
+              if (propN === "bulb") {                                                // 💡 pops in DARK, clicks ON, and stays lit — the idea arriving, then held
+                var bAppear = 0.5, bOn = 1.5;
+                if (t > bAppear) {
+                  var bpx = 44 * fsc, bpy = 7 * fsc;                                 // nearer the crown than before — hers, not the room's
+                  var popU = Math.min(1, (t - bAppear) / 0.35), ub = popU - 1;
+                  var pscl = popU >= 1 ? 1 : 0.3 + 0.7 * (1 + (2.70158 * ub + 1.70158) * ub * ub);   // ease-out-back: the pop overshoots, then settles
+                  var onA = t < bOn ? 0 : Math.min(1, (t - bOn) / 0.12);             // the click: fast attack, then ON for good
+                  if (onA > 0) {
+                    var hgl = 0.34 + 0.06 * Math.sin(t * 2.3);                       // lit steady, breathing gently
+                    var hg = fx2.createRadialGradient(bpx, bpy, 1, bpx, bpy, 12 * fsc);
+                    hg.addColorStop(0, rgba("#fff6c0", hgl * onA)); hg.addColorStop(0.55, rgba("#ffe27a", 0.4 * hgl * onA)); hg.addColorStop(1, rgba("#ffe27a", 0));
+                    fx2.fillStyle = hg; fx2.beginPath(); fx2.arc(bpx, bpy, 12 * fsc, 0, 6.2832); fx2.fill();
+                  }
+                  if (onA < 1) fx2.filter = "grayscale(1) brightness(0.55)";         // unlit: the bulb is there before the idea is
+                  fx2.globalAlpha = 0.55 + 0.45 * onA;
+                  fx2.font = (14 * fsc * pscl).toFixed(1) + EMOF;
+                  fx2.fillText("💡", bpx, bpy);
+                  fx2.filter = "none";
+                }
+              } else if (propN === "laughs") {                                       // laughter marks flicking off the flanks with each deep HA
+                var lbt = t % 3.8;
+                if (lbt < 2.3) {
+                  var lph = Math.abs(Math.sin(lbt * Math.PI / 0.64));
+                  fx2.strokeStyle = "#ffd24a"; fx2.lineCap = "round"; fx2.lineWidth = 1.6;
+                  [[-1, 10], [1, 54]].forEach(function (lside) {
+                    for (var lmi = 0; lmi < 3; lmi++) {
+                      var lang = (lside[0] < 0 ? Math.PI : 0) + lside[0] * (-0.55 + lmi * 0.55);
+                      var lr0 = (4 + lph * 2) * fsc, lr1 = lr0 + (3.5 + lph * 2.5) * fsc;
+                      var lcx = lside[1] * fsc, lcy = 20 * fsc;
+                      fx2.globalAlpha = 0.35 + 0.55 * lph;
+                      fx2.beginPath();
+                      fx2.moveTo(lcx + Math.cos(lang) * lr0, lcy - Math.sin(lang) * lr0);
+                      fx2.lineTo(lcx + Math.cos(lang) * lr1, lcy - Math.sin(lang) * lr1);
+                      fx2.stroke();
+                    }
+                  });
+                }
               } else if (propN === "sweat") {                                        // 💧 beads big at her brow and slides — the long-suffering drop
-                var swt = t % 5, swg = swt < 0.5 ? swt / 0.5 : (swt < 2.2 ? 1 : (swt < 3.0 ? 1 - (swt - 2.2) / 0.8 : 0));
-                if (swg > 0.03) {
-                  fx2.globalAlpha = 0.9 * swg;
-                  fx2.font = ((7 + 5 * swg) * fsc).toFixed(1) + EMOF;
-                  fx2.fillText("💧", 49 * fsc, (11 + swg * 6) * fsc);
+                var swn = conBase ? Math.max(0, Math.min(1, conAmt / conBase))       // on a contract mood the drop RIDES the squeeze itself — beads as she clenches, holds while she holds
+                  : (function () { var swt = t % 5; return swt < 0.5 ? swt / 0.5 : (swt < 2.2 ? 1 : (swt < 3.0 ? 1 - (swt - 2.2) / 0.8 : 0)); })();
+                if (swn > 0.03) {
+                  fx2.globalAlpha = 0.92 * swn;
+                  fx2.font = ((9 + 6 * swn) * fsc).toFixed(1) + EMOF;
+                  fx2.fillText("💧", 49 * fsc, (10 + swn * 6) * fsc);
                 }
               } else if (propN === "vein") {                                         // 💢 throbbing by the crown
                 fx2.globalAlpha = 0.6 + 0.4 * Math.sin(t * 2.2);
-                fx2.font = (11 * fsc).toFixed(1) + EMOF;
-                fx2.fillText("💢", 51 * fsc, 8 * fsc);
+                fx2.font = (14 * fsc).toFixed(1) + EMOF;
+                fx2.fillText("💢", 50 * fsc, 8 * fsc);
               } else if (propN === "excl") {                                         // ❗ pops with the startle
                 var ext = t % 4.5, exE = 0, exO = 0;
                 if (ext < 0.1) { exE = ext / 0.1; exO = exE; }
                 else if (ext < 1.6) { var exd = ext - 0.1, exv = Math.exp(-exd * 3.0); exE = exv; exO = exv * Math.cos(exd * 22); }
                 if (exE > 0.04) {
                   fx2.globalAlpha = Math.min(1, exE * 1.3);
-                  fx2.font = (10 * fsc).toFixed(1) + EMOF;
-                  fx2.fillText("❗", (51 + exO * 3) * fsc, (8 - exE * 3) * fsc);
+                  fx2.font = (13 * fsc).toFixed(1) + EMOF;
+                  fx2.fillText("❗", (50 + exO * 3) * fsc, (8 - exE * 3) * fsc);
                 }
               } else if (propN === "grawlix") {                                      // a cloud of curses popping around the crown
                 var gwds = ["$#@&", "%$#!", "@#$%", "#@!*", "&$@#", "*!?#", "$%&#"];
@@ -1269,7 +1314,7 @@
                   var gfall = gu2 < 0.2 ? -3 * (gu2 / 0.2) : -3 + 10 * ((gu2 - 0.2) / 0.8);
                   var gpx = 32 * fsc + Math.cos(gang) * grad * fsc, gpy = 9 * fsc + Math.sin(gang) * grad * 0.6 * fsc + gfall * fsc;
                   fx2.globalAlpha = gu2 < 0.14 ? gu2 / 0.14 : Math.max(0, 1 - (gu2 - 0.14) / 0.86);
-                  fx2.font = "700 " + (5.5 * (1.05 - 0.4 * gu2) * fsc).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
+                  fx2.font = "700 " + (7 * (1.05 - 0.4 * gu2) * fsc).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
                   fx2.fillStyle = gpi % 3 === 0 ? "#ffd24a" : "#ff5a4a";
                   fx2.fillText(gword, gpx, gpy);
                 }
@@ -1282,7 +1327,7 @@
                   var qu2 = qage2 / 2.4;
                   var qrise2 = qu2 < 0.15 ? 1.2 * (qu2 / 0.15) : 1.2 - 7 * ((qu2 - 0.15) / 0.85);
                   fx2.globalAlpha = 0.6 * (qu2 < 0.18 ? qu2 / 0.18 : Math.max(0, 1 - (qu2 - 0.18) / 0.82));
-                  fx2.font = "600 " + (6.5 * (0.85 + 0.3 * qpr()) * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
+                  fx2.font = "600 " + (8.5 * (0.85 + 0.3 * qpr()) * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
                   fx2.fillStyle = qpi % 3 === 0 ? "#9a8a6a" : "#7a6a55";
                   fx2.fillText("?", 32 * fsc + Math.cos(qang2) * qrad2 * fsc, (9 + qrise2) * fsc + Math.sin(qang2) * qrad2 * 0.55 * fsc);
                 }
@@ -1375,7 +1420,7 @@
           ky += (32 - boopFx.cy) * 0.08 * bev;
         }
         if (kaoEl) {
-          if (kx || ky || ks !== 1) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";
+          if (kx || ky || ks !== 1 || beatKw) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + (ks * (1 + beatKw)).toFixed(3) + "," + ks.toFixed(3) + ")";
           else if (kaoEl.style.transform) kaoEl.style.transform = "";                // rest cleanly
         }
 
@@ -1499,28 +1544,9 @@
           }
           ctx.globalAlpha = 1;
         }
-        if (L.laugh) {
-          var faceCx = faceCX, faceCy = faceMidY, NM = 7, MLIFE = 1.25;
-          ctx.strokeStyle = "#ffdf3a"; ctx.lineWidth = 1.8; ctx.lineCap = "round";
-          for (var li = 0; li < NM; li++) {
-            var life = (lLt - li * 0.12) / MLIFE;
-            if (life < 0 || life > 1) continue;
-            var la = life < 0.15 ? life / 0.15 : (life < 0.62 ? 1 : Math.max(0, 1 - (life - 0.62) / 0.26));
-            if (la <= 0) continue;
-            var dir = (li / NM) * 6.2832 + lCyc * 0.7 + 0.25, dist = 14 + life * 46;
-            var lmx = faceCx + Math.cos(dir) * dist, lmy = faceCy + Math.sin(dir) * dist * 0.72;
-            var sz = 4 + Math.min(life * 8, 5), rot = dir + 0.4;
-            ctx.globalAlpha = 0.9 * la;
-            for (var r = 0; r < 2; r++) {
-              var ang2 = r * Math.PI / 2 + rot;
-              ctx.beginPath();
-              ctx.moveTo(lmx - Math.cos(ang2) * sz, lmy - Math.sin(ang2) * sz);
-              ctx.lineTo(lmx + Math.cos(ang2) * sz, lmy + Math.sin(ang2) * sz);
-              ctx.stroke();
-            }
-          }
-          ctx.globalAlpha = 1;
-        }
+        // (laugh's yellow asterisk-burst left the weather in v0.36.0 — laughter marks are
+        // the avatar's own now, flicking off her flanks with each HA; the field's gentle
+        // laughB breathing is all the room keeps)
         if (L.rhyme && kaoEl && !L.faceImg) {                                        // the echo of the face: the kaomoji's own ghost, resting posture, slow fade cycle (text faces only)
           if (!kaoFont) {
             var kcs = root.getComputedStyle ? getComputedStyle(kaoEl) : null;
