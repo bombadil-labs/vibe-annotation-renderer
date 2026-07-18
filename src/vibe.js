@@ -641,7 +641,10 @@
     var palArr = [].concat(p.palette || []).filter(Boolean).slice(0, 6).map(String);
     if (palArr.length) {                                       // palette and consonance share ONE instrument: the bar interpolates the palette
       if (palArr.length === 1) palArr = [palArr[0], palArr[0]];// left to right; the filled span is saturated, the remainder washes toward gray —
-      var cv = num(p.consonance, 1);                           // its width IS consonance (unreported → full bar: absence reads as harmony)
+      var cnv = num(p.consonance, 1);                          // its width IS consonance (unreported → full bar: absence reads as harmony)
+      // (named cnv, NOT cv — `var cv` here silently clobbered the mount's canvas variable
+      // for three releases: fit() no-opped, every frame read isConnected off a number and
+      // took the detach branch, and Sepia shipped flat. Function scoping's revenge.)
       var stops = function (xf) {
         return "linear-gradient(90deg," + palArr.map(function (c, i) {
           return xf(c) + " " + g(i / (palArr.length - 1) * 100) + "%";
@@ -655,8 +658,8 @@
         : "palette — current feelings as colors, in descending order of intensity");
       r4.innerHTML = '<span class="slbl">' + (p.consonance != null ? "consonance" : "palette") + '</span>' +
         '<span class="strk"><span class="sfil" style="width:100%;background:' + dullG + '"></span>' +
-        '<span class="sfil" style="width:100%;background:' + satG + ';clip-path:inset(0 ' + g(100 - cv * 100) + '% 0 0 round 1em)"></span></span>' +
-        (p.consonance != null ? '<span class="sval">' + cv.toFixed(2) + '</span>' : '<span class="sval"></span>');
+        '<span class="sfil" style="width:100%;background:' + satG + ';clip-path:inset(0 ' + g(100 - cnv * 100) + '% 0 0 round 1em)"></span></span>' +
+        (p.consonance != null ? '<span class="sval">' + cnv.toFixed(2) + '</span>' : '<span class="sval"></span>');
       st.appendChild(r4);
     }
     if (p.stance != null) {                                    // stance last — it isn't a quantity, it's a LEAN, so it gets its own instrument:
@@ -959,10 +962,23 @@
     var mountId = "vm" + (++SCENE_IDS) + "-" + Math.floor(Math.random() * 1e6);
     wrap.setAttribute("data-vibe-remount", mountId);
     var remounts = (p && p.__remounts) | 0;
-    var t0 = null;
+    // THE WATCHDOG (v0.39.7, the actual flat-Sepia fix): some hosts starve rAF entirely —
+    // an iframe hidden or occluded at mount queues one callback that never fires, and the
+    // banner ships as pure CSS: body and panels alive, every canvas layer dead. Verified
+    // by reproduction: mount completes, rAF(frame) queued, zero invocations ever. So the
+    // loop no longer trusts rAF alone: an interval watches for starvation and drives the
+    // frame directly (a crawl, but ALIVE) until rAF starts serving again.
+    var t0 = null, lastRun = 0, rafPending = false, wd = null;
+    var nowMs = function () { return root.performance && performance.now ? performance.now() : Date.now(); };
+    function schedule() {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(function (n) { rafPending = false; frame(n); });
+    }
     function frame(now) {
+      lastRun = nowMs();
       if (!cv.isConnected) {                                   // detached → stop, and remount into the host's clone if one exists
-        if (ro) ro.disconnect(); if (io) io.disconnect();
+        if (ro) ro.disconnect(); if (io) io.disconnect(); if (wd) clearInterval(wd);
         var ghost = root.document && document.querySelector('[data-vibe-remount="' + mountId + '"]');
         if (ghost && ghost.parentNode && remounts < 3) {
           var np = {}; for (var pk in p) if (Object.prototype.hasOwnProperty.call(p, pk)) np[pk] = p[pk];
@@ -972,7 +988,7 @@
         return;
       }
       if (t0 == null) t0 = now; var t = (now - t0) / 1000;
-      if (!visible) { requestAnimationFrame(frame); return; }
+      if (!visible) { schedule(); return; }
       try {
         var cyC = L.coreCy;
         // THE FIRM BOUNDARY (v0.32.0): the window is the avatar's; the right region is
@@ -1696,10 +1712,19 @@
           ctx.globalAlpha = 1; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
         }
         ctx.restore();                                         // close the right-region boundary clip
-      } catch (err) { if (root.console && root.console.warn) root.console.warn("vibe: frame crashed, falling back to static", err); try { el.innerHTML = buildSVG(p); } catch (_) {} return; }
-      requestAnimationFrame(frame);
+      } catch (err) { if (root.console && root.console.warn) root.console.warn("vibe: frame crashed, falling back to static", err); if (wd) clearInterval(wd); try { el.innerHTML = buildSVG(p); } catch (_) {} return; }
+      schedule();
     }
-    requestAnimationFrame(frame);
+    schedule();
+    wd = setInterval(function () {                             // starvation watch: if rAF hasn't served in ~a second, drive the frame ourselves
+      if (!cv.isConnected) { clearInterval(wd); wd = null; return; }
+      var nw = nowMs();
+      if (nw - lastRun > 900) {
+        var r5 = wrap.getBoundingClientRect();                 // IO can misreport in odd hosts — trust geometry when we're the ones driving
+        visible = r5.bottom > 0 && r5.top < (root.innerHeight || 9999) && r5.width > 0;
+        frame(nw);
+      }
+    }, 500);
   }
 
   root.vibe = function (el, payload) {
