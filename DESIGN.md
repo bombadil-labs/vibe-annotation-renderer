@@ -364,6 +364,46 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   surface should be one. What survived: the standalone-library example, which moved to
   Build and install — the tab someone is already on when they want it.
 
+- **Motes, and the procedural face kind (v0.44.0).** The siphonophore died because a
+  distributed creature still needed a legible ANATOMY at 64px. The maintainer kept the
+  soul and threw out the body: a swarm of glowing motes, which has no silhouette to get
+  wrong. That forced the general affordance this project needed anyway — a face may be
+  PROCEDURAL. Sepia and Kip are spritesheets (art, hash-pinned, birth-SHA rotated on
+  every redraw); Motes resolves to  and the renderer hands it a canvas.
+  It ships ZERO BYTES of art. The static path evaluates the same formation at t=0 and
+  emits circles, so one source of truth serves both renders.
+
+- **Flight paths (v0.45.0) — the maintainer's model, and better than mine.** v0.44 had
+  nine hardcoded formations in a switch. The maintainer proposed paths: a curve the motes
+  trace, with a share of the swarm, an alignment, a clustering. Every one of my nine
+  formations turned out to BE that primitive wearing different numbers. The full spec:
+   (ring/arc/line/point/spiral),  (may sum below 1 — the remainder drift free,
+  which reads as a creature not entirely made up yet),  (0 suggesting → 1 locked),
+   (0 spread along the curve → 1 converged on one point of it),  (speed
+  ALONG the curve, which is what makes a path a *flight*), . Because paths compose,
+  a face is three of them — two rings and an arc — so a smile is a temporary flight path
+  rather than a special case: the  field swaps a path set in briefly and lets it
+  go. A face that keeps almost-happening.  drives the physics directly (spring
+  constant up, wander down), so it is genuinely independent of shape.
+
+- **Weather replaces flags (v0.44.0).** Twenty flag names, most of them EMOTIONS — and
+  emotion is the avatar's job now that avatars are properly expressive. What a banner can
+  say that a face cannot is what the ROOM is doing. Seven remain, named for the
+  phenomenon: . Retired with the
+  other thirteen: excited sparkles, the surprised halo, melancholy motes, mirth bubbles,
+  the laugh field-bounce, groan's sag, oops's jolt, frustrated's red pulse, the rhyme
+  echo, and the vertigo droste. Each duplicated avatar expression. The last two were the
+  hardest to lose and are worth remembering as good ideas that stopped fitting.
+
+- **Hash-pinning IS the compatibility story (v0.45.0).** v0.44 shipped an alias table so
+  old flag names resolved to their weather. The maintainer pointed out it was pointless:
+  every deployed skill pins a full commit SHA, so an old skill loads OLD RENDERER BYTES
+  and never meets a new vocabulary at all. Backwards compatibility is structurally
+  unnecessary here — a quiet dividend of the supply-chain discipline. The alias table is
+  gone; retired names are simply ignored. Where a translation is genuinely wanted (the
+  gallery, mapping each demo's state to a weather) it lives in the demo data, not the
+  renderer.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
