@@ -90,7 +90,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@04fec1e2591858cfd382de68ead5ea7f9710c4cd/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "sepia", item: "content" },
