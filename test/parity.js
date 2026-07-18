@@ -127,8 +127,7 @@ ok(/text-anchor="end"/.test(lang), "pinned to the right edge");
 console.log("flags render (static markers)");
 ok(/<circle/.test(buildSVG(Object.assign({}, base, { flag: "spark" }))), "spark adds a light-bulb");
 ok(/rotate\(/.test(buildSVG(Object.assign({}, base, { flag: "excited" }))), "excited adds rotated sparkles");
-ok(/scale\(0\.62\)/.test(buildSVG(Object.assign({}, base, { flag: "awe" }))), "awe shrinks the face hard in the still frame too");
-ok(/translate\(55\.5 /.test(buildSVG(Object.assign({}, base, { flag: "awe", face: "https://cdn.jsdelivr.net/gh/u/r@abc/m.png" }))), "image-face poses pivot on the window centre (55.5)");
+ok(!/scale\(0\.62\)/.test(buildSVG(Object.assign({}, base, { flag: "awe" }))), "awe never poses the face (v0.31.0: a flag is banner weather; the face is the avatar's)");
 
 console.log("removed params are ignored, no crash");
 ok(buildSVG(Object.assign({}, base, { spread: 0.9, turbulence: 0.9, conviction: 0.3, history: [{ v: .4 }] })).startsWith("<svg"), "legacy params ignored");

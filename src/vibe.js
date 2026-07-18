@@ -527,12 +527,7 @@
     }
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
     if (L.rhyme) out.push('<g opacity="0.12" transform="translate(14,6)">' + L.kaoSVG + '</g>');   // the echo of the face, behind-ish and offset
-    var kao = L.kaoSVG;                                        // constant-pose flags transform the face in the still frame too
-    var pvx = L.faceBox ? L.faceBox.x + L.faceBox.w / 2
-      : L.portrait.x + L.portrait.s / 2;                       // pivot on the face's real centre (window centre for text faces)
-    if (L.awe) kao = '<g transform="translate(' + g(pvx) + ' ' + g(L.coreCy + 5) + ') scale(0.62) rotate(-3) translate(' + g(-pvx) + ' ' + g(-L.coreCy) + ')">' + kao + '</g>';
-    else if (L.solemn) kao = '<g transform="translate(' + g(pvx) + ' ' + g(L.coreCy + 3) + ') rotate(4) translate(' + g(-pvx) + ' ' + g(-L.coreCy) + ')">' + kao + '</g>';
-    out.push(kao + L.restSVG + '</svg>');
+    out.push(L.kaoSVG + L.restSVG + '</svg>');                 // flags never pose the face (v0.31.0) — a flag is banner weather; the face is the avatar's
     return out.join("");
   }
 
@@ -1193,33 +1188,20 @@
           }
         }
 
-        // --- the face itself ---
-        var kx = 0, ky = 0, ks = 1, krot = 0, kfill = "";                            // face transform, hoisted so marks can ride along
+        // --- the face itself: FLAGS NO LONGER TOUCH IT (v0.31.0). A flag is banner
+        // WEATHER — light, storms, marks, atmosphere; the face belongs entirely to the
+        // avatar (Sepia's moods/fins/tint/ink; kaomoji and emoji just are what they
+        // are). The only face motion left is the boop startle, which is physics.
+        var kx = 0, ky = 0, ks = 1, krot = 0;                                        // kept as anchors — the weather marks still ride these (now-still) offsets
         if (kaoEl && boopFx && boopFx.t0 == null) boopFx.t0 = t;
         var boopAge = boopFx && boopFx.t0 != null ? t - boopFx.t0 : 9;
-        if (kaoEl && (boopAge < 0.8 || L.laugh || L.excited || L.anxious || L.melancholy || L.groan || L.oops || L.dramatic || L.surprised || L.frustrated || L.angry || L.solemn || L.awe)) {
-          if (boopAge < 0.8) {                                                       // the startle: recoil away from the finger, squash and boing
-            var bev = Math.exp(-boopAge * 4);
-            ks *= 1 + 0.09 * bev * Math.sin(boopAge * 20);
-            kx += (32 - boopFx.cx) * 0.1 * bev;
-            ky += (32 - boopFx.cy) * 0.08 * bev;
-          }
-          if (laughKp > 0.03) { ks *= 1 + laughKp * 0.15; kfill = mixCss(baseFill, [255, 223, 58], laughKp * 0.92); }        // laugh: swell + flush yellow
-          if (L.excited) { kx += Math.tanh(3 * Math.sin(t * 1.0)) * 10; }                                                    // excited: sway foot-to-foot
-          if (L.anxious) { kx += (Math.sin(t * 41) + Math.sin(t * 57)) * 0.7; ky += Math.sin(t * 47) * 0.6; }                // anxious: shiver
-          if (L.surprised) { ks *= 1 + surP * 0.13; ky -= surP * 3; }                                                        // surprised: a quick startled pop
-          if (L.groan) { ky += groanGr * 7; krot += groanGr * 13; if (!kfill) kfill = mixCss(baseFill, [138, 140, 150], groanGr * 0.4); }
-          if (L.oops) { ky -= oopsE * 5; kx += oopsOsc * 4; krot += oopsOsc * 6; ks *= 1 - oopsE * 0.06; if (!kfill) kfill = mixCss(baseFill, [206, 208, 220], oopsE * 0.5); }
-          if (L.dramatic) { ks *= 1.06; ky += Math.sin(t * 0.8) * 1.2; }
-          if (L.solemn) { krot += 4; ky += 3; }                                                                              // solemn: the face bows, held
-          if (L.awe) { ks *= 0.62; ky += 5; krot -= 3; }                                                                     // awe: the face made quite tiny and sunk low, still tilted up at the vast thing
-          if (L.frustrated) { kx += Math.sin(t * 34) * 0.9; if (!kfill) kfill = mixCss(baseFill, [150, 44, 40], 0.3 + 0.2 * frP); }  // frustrated: tense micro-shake, red
-          if (L.angry) { kx += Math.sin(t * 46) * 1.4; ky += Math.sin(t * 39) * 0.8; kfill = mixCss(baseFill, [200, 60, 46], 0.6); } // angry: hard shake, hot red
-          if (L.solemn && !kfill) { kfill = mixCss(baseFill, [112, 106, 96], 0.35); }
-          if (L.melancholy && !kfill) { kfill = mixCss(baseFill, [120, 134, 176], 0.45); }
-          kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";   // banner units → real pixels for the HTML face
-          kaoEl.style.color = kfill;                           // mood tint: text recolors, image faces ignore it
-        }
+        if (kaoEl && boopAge < 0.8) {                                                // the startle: recoil away from the finger, squash and boing
+          var bev = Math.exp(-boopAge * 4);
+          ks *= 1 + 0.09 * bev * Math.sin(boopAge * 20);
+          kx += (32 - boopFx.cx) * 0.1 * bev;
+          ky += (32 - boopFx.cy) * 0.08 * bev;
+          kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + ks.toFixed(3) + ")";
+        } else if (kaoEl && kaoEl.style.transform) kaoEl.style.transform = "";       // rest cleanly after the startle
 
         // --- the field: three columns holding a seeded vertical band set by focus ---
         var arrive = 1;                                                              // prev: one-step trajectory — hue arrives from the last banner's palette

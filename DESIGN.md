@@ -179,6 +179,20 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   `faceMeta.box` — nothing is ever measured from the DOM. buildSVG keeps the SVG face
   (static fallback + parity target); the NBSP conversion remains for that path only.
 
+- **Flags are banner WEATHER, never face poses (v0.31.0).** The maintainer asked
+  whether Sepia still needs flags at all; the answer split the bundle. Every flag keeps
+  its atmosphere — angry's storm, resolute's 集中線, dramatic's spotlight, solemn's
+  ember, the marks and halos — because those were always about the ROOM. But no flag
+  touches the face anymore: no transforms (awe's shrink, laugh's swell, shivers, bows),
+  no tints. The face belongs entirely to the avatar — Sepia's moods/fins/tint/ink carry
+  her feeling natively; kaomoji and emoji just are what they are. The only face motion
+  left is the boop startle, which is physics, not expression.
+
+- **More first-party avatars are cheap now (bench).** The component system (recipes:
+  eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
+  creature is mostly a new PROFILE and component tables. A future project, deliberately
+  not tonight's.
+
 - **The window IS the layout (v0.16.0).** The maintainer's escalating series of scene
   requests turned out to be one request: the face always lives in the framed square
   block on the banner's left — scene set or not. With no scene the window renders

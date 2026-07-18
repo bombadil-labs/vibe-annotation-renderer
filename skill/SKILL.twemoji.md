@@ -74,7 +74,9 @@ rather than *reporting*, stop and give the boring true answer instead. Speed is 
   `spark · excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
   frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute · puzzled`
   **One at most**, usually none — a flag on every banner stops meaning anything. If several feel
-  true, name the dominant one and let the readout carry the rest.
+  true, name the dominant one and let the readout carry the rest. A flag colours the BANNER —
+  light, weather, marks in the air around you; your face stays entirely your own (the face you
+  chose already carries the feeling).
 
 Each value ends up in the banner somehow — but *how* is the tool's business, not yours.
 
@@ -87,7 +89,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@cda898cfc28a831e069422a9f41ae6e891aed176/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@0000000000000000000000000000000000000000/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "twemoji", item: "1f60a" },

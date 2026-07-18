@@ -71,29 +71,29 @@ SVG rows and the SVG face:
 | `scene` | the habitat, as a **framed portrait window**: `"https://…png"` or `{ url, opacity, live }` (opacity clamped 0.15–0.95, default 0.5). The scene fills a rounded square on the banner's left with the face centred inside it; readout and field columns shift right. Faces are alpha-transparent, so any scene works — first-party tidepool at `assets/scene-tidepool.png`; user photos host like face-packs (allowlisted CDNs). `live: "tidepool"` runs native ambience in the window — rising bubbles, a passing fish, tap-ripples, and feeding falls in as flakes; unknown `live` names are ignored, and the static render ignores the channel entirely. **The window always draws** — with no scene (or `scene: {}`) it renders empty: frame and a faint interior, no view yet. The window is the layout; `scene` only decides what's visible through it |
 | `field` | power path: hand-author the ovals instead of `palette` |
 
-**Flags** — rare, condition-triggered flourishes, passed as `flag: "<name>"` (a single
+**Flags** — rare, condition-triggered BANNER WEATHER (light, storms, marks — never face poses; the face belongs to the avatar), passed as `flag: "<name>"` (a single
 string). Set one only when the named state genuinely holds; their whole value is that
 they're uncommon.
 
 | flag | gesture |
 |---|---|
 | `spark` | a glowing light-bulb blinks on over the face, casting rays — a flash of insight |
-| `excited` | stars twinkle and slowly spin in the margins while the face sways foot-to-foot — buoyancy |
-| `surprised` | a halo pulses outward over the face and the face pops — the unexpected |
+| `excited` | stars twinkle and slowly spin in the margins — buoyancy |
+| `surprised` | a halo pulses outward from the face — the unexpected |
 | `tender` | warmth pools softly around the edges of the banner — fondness |
-| `melancholy` | cool motes drift slowly downward and the face tints a little blue — wistfulness |
-| `anxious` | wispy cold fog roils over the whole banner and the face shivers — dread |
+| `melancholy` | cool motes drift slowly downward — wistfulness |
+| `anxious` | wispy cold fog roils over the whole banner, edges creeping in — dread |
 | `mirth` | champagne bubbles rise across the width — a private laugh |
-| `laugh` | the whole field and the **face** bounce a deep *ha-ha-ha*, the kaomoji swelling and flushing bright yellow, with laughter-marks radiating off it |
-| `groan` | the face lolls its head and sinks, the field sags, a sweat-drop wells up — an affectionate *ughhh* |
-| `oops` | the face flinches back with a wobble, the field jolts sideways, a startled `!` pops up — a quick self-catch |
-| `frustrated` | the columns pulse dark red and back and the anime anger-vein mark (💢) throbs by the head — irritation |
+| `laugh` | the whole field bounces a deep *ha-ha-ha* with laughter-marks radiating off the face |
+| `groan` | the field sags and a sweat-drop wells up by the head — an affectionate *ughhh* |
+| `oops` | the field jolts sideways and a startled `!` pops up — a quick self-catch |
+| `frustrated` | the columns pulse dark red and the anime anger-vein mark (💢) throbs by the head — irritation |
 | `angry` | the field goes storm-black with a red underglow and lightning cracks across it — real anger |
 | `dramatic` | the stage dims, a warm spotlight pools on the face, and the type turns to a tracked theatrical serif — playing it up for the bit |
 | `at_peace` | a soft halo glows below the face and a few blossoms rest in the margins — stillness as a positive state, the quiet that isn't deflation |
-| `solemn` | the face bows and holds; the field desaturates and dims once; a single warm ember stays lit low in the frame — gravity without sadness |
+| `solemn` | the field desaturates and dims once; a single warm ember stays lit low in the frame — gravity without sadness |
 | `rhyme` | a low-alpha ghost of the kaomoji itself rests offset behind the face, slowly fading in and out — recognition, the pattern returning (it holds resting posture even when the live face moves: memory) |
-| `awe` | the face goes tiny and sinks low in the frame, still tilted up, while the field swells and densifies — the one gesture where the face *loses*: made small by something vast |
+| `awe` | the field swells and densifies around the face — the room filled by something vast |
 | `vertigo` | a one-level Droste: the whole banner appears inside itself, lower right, flags omitted within. The loop just sits there |
 | `resolute` | concentration lines (集中線) flare inward from the frame edges toward the face, then hold faint — the ignition of determination |
 | `puzzled` | a loose cloud of "?" pops, drifts up, and fades around the head — grawlix mechanics in a gentle register; productive stuckness, the pre-spark |
