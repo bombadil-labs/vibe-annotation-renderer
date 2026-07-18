@@ -113,8 +113,6 @@ rather than *reporting*, stop and give the boring true answer instead. Speed is 
   it). Mode, not confidence.
 * **\`coherence\`** (0–1) *(optional)* — focus's emotional dual: when the palette holds several
   feelings, are they harmonizing (1) or grinding (0)? Omit when there's no tension worth reporting.
-* **\`prev\`** *(optional)* — the \`palette\` array from your previous banner, verbatim. Omit on the
-  first banner. One-step memory of where you're arriving from.
 * **\`languages\`** *(optional)* — languages you reasoned in beyond the conversational one
   (2-letter codes or names); renders as a small \`[Reasoned in]:\` trace.`,
 
@@ -382,7 +380,7 @@ const CATALOG = {
   what: "Machine-readable catalog of the vibe-banner ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
   version: VERSION,                                            // a skill stamps its build version; compare against this to notice it has fallen behind
   builder: SITE + "#builder",
-  whatsNew: "0.41.0 — the readout is a configurable list of up to five labelled lines; every face-pack speaks the same 32 moods; consonance is now coherence; the builder locks everything load-bearing.",
+  whatsNew: "0.41.2 — prev is retired; every avatar preview on the site is a live render.",
   renderer: {
     bundle: PIECES.snippetUrl,
     payload_notes: {

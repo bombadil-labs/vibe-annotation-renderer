@@ -160,8 +160,8 @@ ok(rx(c0) > rx(c1), "consonance 0 spreads the ovals (rx " + rx(c0) + " > " + rx(
 const elOp = (svg) => +/<ellipse[^>]*?" opacity="([0-9.]+)"/.exec(svg)[1];   // the ellipses' opacity, not the window's
 ok(elOp(c0) < elOp(c1), "consonance 0 thins the washes");
 
-console.log("prev is animation-only: static fallback ignores it, no crash");
-ok(buildSVG(Object.assign({}, base, { prev: ["#a06a6a"] })).startsWith("<svg"), "prev ignored in static");
+console.log("retired params are ignored, never fatal");
+ok(buildSVG(Object.assign({}, base, { prev: ["#a06a6a"] })).startsWith("<svg"), "prev (retired in v0.41.2) is inert, not a crash");
 
 console.log("flag is a single string — the API contract");
 const FLOWERS = /🌸|🌼|✿|❀|🌷/;

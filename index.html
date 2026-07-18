@@ -175,9 +175,6 @@
         feelings harmonize, the ovals stay compact and solid; when they grind against each other,
         they blur into diffuse washes. Plural-at-peace and plural-in-tension finally look
         different.</li>
-      <li><strong>Arrival</strong> is trajectory: when Claude passes the previous banner's palette
-        (<code>prev</code>), the columns visibly arrive from those colours over the first two
-        seconds — you can watch the mood change, not just see the new one.</li>
     </ul>
 
     <h3>Flags</h3>
@@ -381,11 +378,7 @@ var GROUPS = [
       {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"everywhere at once", feel:"broad · diffuse", trying:"let it all spread out", palette:["#e0994e","#c98fb0","#6fa39c"], focus:0.1},
       "Taking those in ascending order of consequence: the cat is fine, pottery yes, and the other two are secretly the same question."]
   ]],
-  ["Trajectory, stance, consonance — the relational grammar", [
-    ["prev → the field arrives from the last banner's colours",
-      "wait — the vet just called back. it's benign. it's BENIGN.",
-      {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"surfacing from a week underwater", feel:"flooded with relief", trying:"let the good news land properly", prev:["#7a8296","#8f95a4"], palette:["#6fa39c","#e0b060"], engagement:0.9},
-      "It's benign. Breathe. That week of grey just lifted — and yes, you can uncancel the birthday plans."],
+  ["Stance and coherence — the relational grammar", [
     ["stance 0 → asking: open falloff, questions held open",
       "should we get a dog? like… really actually get a dog?",
       {kaomoji:"( ・ ᵕ ・ )", seems:"already knows what they want; wants company in the deciding", feel:"open · exploratory", trying:"ask the questions that make the answer obvious", stance:0.1, palette:["#8f9ac0","#d9b07a"]},
@@ -568,10 +561,10 @@ var SHIFT_DEMO = {
     [{kaomoji:"( ・_・)", seems:"handed me a real family mystery, worried the error is theirs", feel:"methodical · intrigued", trying:"lay the letters out chronologically and find where the dates break", palette:["#7d8fb8","#8f9ac0"], focus:0.85, engagement:0.8},
      "Let's not assume transcription error yet — let's lay them out and see where the timeline actually breaks. March 12th from the training camp, March 30th from the same camp, and then the April 17th letter from the port. Checking that postmark against the unit's movement records…",
      false],
-    [{kaomoji:"( ⊙ ᵕ ⊙ )", seems:"didn't mess anything up — the letters are telling the truth", feel:"startled · recalibrating", trying:"take in what three matching postmarks actually mean", noticing:"the discrepancy is the story, not the mistake", flag:"surprised", prev:["#7d8fb8","#8f9ac0"], palette:["#b79ad0","#8f9ac0"], focus:0.6, engagement:0.85},
+    [{kaomoji:"( ⊙ ᵕ ⊙ )", seems:"didn't mess anything up — the letters are telling the truth", feel:"startled · recalibrating", trying:"take in what three matching postmarks actually mean", noticing:"the discrepancy is the story, not the mistake", flag:"surprised", palette:["#b79ad0","#8f9ac0"], focus:0.6, engagement:0.85},
      "Wait. It's not one letter — three of the five carry that same early postmark, and your transcription of all three is internally consistent. A single copying slip doesn't repeat itself across three envelopes. The discrepancy isn't in your work at all. It's in his itinerary.",
      false],
-    [{kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"about to get a better story than the one they asked about", feel:"lit · delighted", trying:"say it plainly: he was there early, with the advance party", flag:"spark", prev:["#b79ad0","#8f9ac0"], palette:["#e0a24e","#b79ad0"], focus:0.9, engagement:0.95},
+    [{kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"about to get a better story than the one they asked about", feel:"lit · delighted", trying:"say it plainly: he was there early, with the advance party", flag:"spark", palette:["#e0a24e","#b79ad0"], focus:0.9, engagement:0.95},
      "And there's the click: units sent small advance detachments ahead to prepare the port — weeks before the official movement date that ends up in the histories. If he shipped out with the advance party, every date in your transcription is correct, and your grandfather was quietly two months ahead of his own paper trail. Here's how to confirm it…",
      true]
   ]
@@ -653,48 +646,39 @@ route();
     customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png"
   };
 
-  function avatar(mood, fitPx) {                               // the narrator's face, per module mood
-    var pv = P.PREVIEW[S.face];
-    var d = document.createElement("span");
-    d.style.cssText = "width:32px;height:32px;flex:0 0 32px;display:inline-block;border-radius:6px;";
-    if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "font-size:22px;text-align:center;line-height:32px;"; return d; }
-    if (pv.kind === "text") {                                  // natural proportions, scaled to fit the fixed square chip (the renderer's own rule)
-      var kt = mood.k || "( ˘ ᵕ ˘ )";
-      var klines = kt.split("\n");
-      var klong = klines.reduce(function (a, b) { return b.length > a.length ? b : a; }, "");
-      var fs2 = fitPx ? Math.min(13, (fitPx - 5) / (klong.length * 0.55), (fitPx - 4) / (klines.length * 1.25)) : 13;
-      d.textContent = kt;                                      // white-space:pre keeps \n AND leading-space indentation
-      d.style.cssText += "width:auto;height:auto;flex:0 0 auto;white-space:pre;text-align:center;line-height:1.2;font-size:" + (Math.round(fs2 * 10) / 10) + "px;background:rgba(20,14,8,0.32);border-radius:6px;padding:1px 4px;";
-      return d;
-    }
-    if (pv.kind === "sheet") {
-      var i = pv.moods.indexOf(mood.m); if (i < 0) i = 0;
-      var col = i % pv.cols, row = Math.floor(i / pv.cols), sc = 32 / pv.cell;
-      var sz = (pv.cols * pv.cell * sc) + "px " + (pv.rows * pv.cell * sc) + "px";
-      if (pv.split) {                                          // layered sheet: features stacked over the body
-        d.style.cssText += "background-image:url(" + pv.url + "),url(" + pv.url + ");background-size:" + sz + "," + sz +
-          ";background-position:-" + (col * 32) + "px -" + ((row + pv.split) * 32) + "px,-" + (col * 32) + "px -" + (row * 32) + "px;image-rendering:pixelated;";
-      } else {
-        d.style.cssText += "background-image:url(" + pv.url + ");background-size:" + sz + ";background-position:-" + (col * 32) + "px -" + (row * 32) + "px;image-rendering:pixelated;";
-      }
-      return d;
-    }
-    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", P.MOOD_EMOJI_PREVIEW[mood.m] || mood.e) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
-    return d;
+  // A LIVE CHIP (v0.41.2). Small avatar previews used to be sprite crops — bodies with no
+  // fins, arms, or drifting colour, i.e. indistinguishable from a broken render. There is
+  // no standalone avatar API to mount at 42px (that is the extraction question), but the
+  // banner already draws its avatar inside a known window, so: mount a REAL banner at the
+  // width that makes its window exactly `size`, and crop to the window with overflow. The
+  // readout and field render off-frame and cost a little; the avatar is genuinely alive.
+  var BW = 680, BH = 152, WINX = 8, WINS = 140;                // banner geometry — the window's place inside it
+  function liveChip(mood, size) {
+    var cell = document.createElement("span");
+    cell.style.cssText = "position:relative;flex:0 0 auto;display:inline-block;width:" + size + "px;height:" + size + "px;" +
+      "border-radius:9px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";
+    if (typeof window.vibe !== "function") return cell;
+    var scale = size / WINS, inner = document.createElement("div");
+    inner.style.cssText = "position:absolute;width:" + (BW * scale) + "px;left:" + (-WINX * scale) + "px;top:" + (-((BH - WINS) / 2) * scale) + "px;pointer-events:none;";
+    cell.appendChild(inner);
+    var pay = {
+      kaomoji: "( ˘ ᵕ ˘ )", readout: [{ label: "u", value: "·" }, { label: "m", value: "·" }],
+      palette: ["#d9a877"], focus: 0.6, engagement: 0.8, play: false, cues: false
+    };
+    if (S.face === "kaomoji") pay.face = mood.k || "( ˘ ᵕ ˘ )";
+    else if (S.face === "custom") {
+      var ce = customEntries().entries;
+      var hit = ce.filter(function (e) { return e[0] === mood.m; })[0] || ce[0];
+      if (hit) pay.face = hit[1]; else pay.face = mood.k || "( ˘ ᵕ ˘ )";
+    } else pay.face = { set: S.face, item: mood.m };
+    var u = sceneUrl();
+    if (u) pay.scene = { url: u, opacity: S.sceneOp, live: (P.SCENES[S.scene] && P.SCENES[S.scene].live) || undefined };
+    try { window.vibe(inner, pay); } catch (e) { }
+    return cell;
   }
   var narrators = [];                                          // every callout registers, so a face or environment switch re-dresses all guides
   function narratorChip(mood) {                                // the narrator sits in their window too — face and home are never apart
-    var cell = document.createElement("span");
-    cell.style.cssText = "position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:9px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";
-    var u = sceneUrl();
-    if (u) {
-      var bg = document.createElement("span");
-      bg.style.cssText = "position:absolute;inset:0;background-image:url(" + u + ");background-size:cover;background-position:center;image-rendering:pixelated;opacity:" + Math.min(1, S.sceneOp * 1.4) + ";";
-      cell.appendChild(bg);
-    }
-    var av = avatar(mood, 42); av.style.position = "relative";
-    cell.appendChild(av);
-    return cell;
+    return liveChip(mood, 42);
   }
   function callout(text, mood, link) {
     var row = document.createElement("div");
@@ -830,47 +814,8 @@ route();
     if (su) pay.scene = { url: su, opacity: S.sceneOp, live: (P.SCENES[S.scene] && P.SCENES[S.scene].live) || undefined };
     try { window.vibe(liveMount, pay); } catch (e) { liveMount.textContent = "(preview failed: " + e.message + ")"; }
   }
-  function faceThumb(px2, box) {                               // representative face at arbitrary size, for composite previews
-    box = box || px2 / 0.6;
-    var pv = P.PREVIEW[S.face];
-    var d = document.createElement("span");
-    d.style.cssText = "display:inline-block;width:" + px2 + "px;height:" + px2 + "px;";
-    if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "width:auto;height:auto;font-size:" + Math.round(px2 * 0.7) + "px;line-height:1.1;"; return d; }
-    if (pv.kind === "text") {
-      var kao = "( ˘ ᵕ ˘ )";
-      var fs = Math.min(box * 0.19, (box - 8) / (kao.length * 0.55));
-      d.textContent = kao;
-      d.style.cssText += "width:auto;height:auto;white-space:nowrap;line-height:1.15;font-size:" + (Math.round(fs * 10) / 10) + "px;background:rgba(20,14,8,0.32);border-radius:8px;padding:2px 6px;";
-      return d;
-    }
-    if (pv.kind === "sheet") {
-      var idx = pv.moods.indexOf("content"); if (idx < 0) idx = 0;
-      var col = idx % pv.cols, row = Math.floor(idx / pv.cols), sc = px2 / pv.cell;
-      var tsz = (pv.cols * pv.cell * sc) + "px " + (pv.rows * pv.cell * sc) + "px";
-      if (pv.split) {
-        d.style.cssText += "background-image:url(" + pv.url + "),url(" + pv.url + ");background-size:" + tsz + "," + tsz +
-          ";background-position:-" + (col * px2) + "px -" + ((row + pv.split) * px2) + "px,-" + (col * px2) + "px -" + (row * px2) + "px;image-rendering:pixelated;";
-      } else {
-        d.style.cssText += "background-image:url(" + pv.url + ");background-size:" + tsz + ";background-position:-" + (col * px2) + "px -" + (row * px2) + "px;image-rendering:pixelated;";
-      }
-      return d;
-    }
-    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", P.MOOD_EMOJI_PREVIEW.content) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
-    return d;
-  }
-  function compositeChip(size) {                               // the window as it will actually render: face centred, environment behind
-    var d = document.createElement("div");
-    d.style.cssText = "width:" + size + "px;height:" + size + "px;border-radius:10px;border:1px solid var(--edge);position:relative;overflow:hidden;background:rgba(138,122,134,0.07);";
-    var u = sceneUrl();
-    if (u) {
-      var bg = document.createElement("div");
-      bg.style.cssText = "position:absolute;inset:0;background-image:url(" + u + ");background-size:cover;background-position:center;image-rendering:pixelated;opacity:" + Math.min(1, S.sceneOp * 1.6) + ";";
-      d.appendChild(bg);
-    }
-    var f = faceThumb(Math.round(size * 0.6), size);
-    f.style.position = "absolute"; f.style.left = "50%"; f.style.top = "50%"; f.style.transform = "translate(-50%,-50%)";
-    d.appendChild(f);
-    return d;
+  function compositeChip(size) {                               // the window as it will actually render — live, same crop trick as the narrator chips
+    return liveChip({ m: previewMood || "content", k: "( ˘ ᵕ ˘ )" }, size);
   }
   function refreshCustom() {
     customWrap.style.display = S.face === "custom" ? "block" : "none";
@@ -1038,7 +983,7 @@ route();
   cL.appendChild(callout("Everything else ships identical for everyone: the preamble, the honesty contract, the value bullets the animation depends on, the flag vocabulary, the loader snippet with its pinned hash, the attunement rules, and the settings desk. That's not me being precious — those parts are load-bearing, and the versions people edited mostly got worse.", { m: "solemn", e: "1f636", k: "( ˘ - ˘ )" }));
   var lockList = document.createElement("p");
   lockList.style.cssText = "font-size:12.5px;color:var(--sub);line-height:1.6;margin:0;";
-  lockList.innerHTML = "<code>preamble</code> · <code>honesty contract</code> · <code>palette / focus / engagement / stance / coherence / prev / languages</code> · <code>flag vocabulary</code> · <code>render snippet</code> · <code>attunement &amp; play</code> · <code>settings desk</code>";
+  lockList.innerHTML = "<code>preamble</code> · <code>honesty contract</code> · <code>palette / focus / engagement / stance / coherence / languages</code> · <code>flag vocabulary</code> · <code>render snippet</code> · <code>attunement &amp; play</code> · <code>settings desk</code>";
   cL.appendChild(lockList);
 
   // — Preview
@@ -1300,10 +1245,6 @@ route();
   langField.addEventListener("input", render);
   langIn.appendChild(langField); panel.appendChild(langIn);
 
-  var prevOn = toggle("prev (arrive from grey)", "prevOn", "the previous banner's palette: the columns visibly travel from those colours over the first two seconds");
-  prevOn.wrap.style.gridColumn = "1/-1";
-  panel.appendChild(prevOn.wrap);
-
   var src = document.createElement("pre");
   src.style.cssText = "grid-column:1/-1;font-size:10.5px;max-height:150px;overflow:auto;margin:4px 0 0;";
   panel.appendChild(src);
@@ -1317,7 +1258,6 @@ route();
     if (X.stanceOn) payload.stance = X.stance == null ? 0.5 : X.stance;
     if (X.cohOn) payload.coherence = X.coherence == null ? 1 : X.coherence;
     if (X.flag) payload.flag = X.flag;
-    if (X.prevOn) payload.prev = ["#9a9488", "#8a8f9a"];
     var langs = langField.value.split(",").map(function (t) { return t.trim(); }).filter(Boolean);
     if (langs.length) payload.languages = langs;
     payload.face = X.set === "kaomoji" ? (kaoIn.value || "( ˘ ᵕ ˘ )") : { set: X.set, item: X.item };

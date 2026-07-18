@@ -308,8 +308,6 @@
     var env = VR_MIN + (VR_MAX - VR_MIN) * (1 - focus);        // vertical band width (focused → narrow, scattered → wide)
     var stance = p.stance == null ? 0 : clamp01(p.stance, 0);  // 0 asking (pure falloff, today's look) → 1 telling (defined edge)
     var conson = clamp01(p.coherence != null ? p.coherence : p.consonance, 1);   // v0.41.0: coherence is the emotional dual of focus; consonance still accepted                     // 1 integrated (compact, solid) → 0 split (diffuse washes); omitted = 1
-    var prevFills = null;                                      // one-step trajectory: previous banner's palette, columns lerp in on mount
-    if (p.prev != null) prevFills = fieldFromPalette(p.prev).map(function (c) { return c.fill; });
     var activeFlag = null;                                     // the contract: flag?: string — exactly one of FLAG_PRIORITY, or none
     if (typeof p.flag === "string") { if (FLAG_PRIORITY.indexOf(p.flag) >= 0) activeFlag = p.flag; }  // unknown strings are ignored
     else for (var fi = 0; fi < FLAG_PRIORITY.length; fi++) { if (p[FLAG_PRIORITY[fi]]) { activeFlag = FLAG_PRIORITY[fi]; break; } }  // legacy boolean payloads: highest priority wins
@@ -528,7 +526,7 @@
       mountSVG: langSVG, faceMeta: faceMeta, oItems: oItems, readout: rows, caption: !!activeFlag, flagName: activeFlag,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, textPivot: textPivot, scene: scene, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
-      stance: stance, conson: conson, prevFills: prevFills
+      stance: stance, conson: conson
     };
     FLAG_PRIORITY.forEach(function (f) { L[f] = f === activeFlag; });
     return L;
@@ -1681,15 +1679,12 @@
         }
 
         // --- the field: three columns holding a seeded vertical band set by focus ---
-        var arrive = 1;                                                              // prev: one-step trajectory — hue arrives from the last banner's palette
-        if (L.prevFills) { var am = Math.min(1, t / 2); arrive = am * am * (3 - 2 * am); }
         B.forEach(function (b, bi) {
           var ox = 2.2 * Math.sin(0.45 * t + b.phase) + oopsOsc * 10;                // columns hold their focus positions; a hair of life + oops jolt
           var oy = b.bias * env + 1.6 * Math.sin(0.5 * t + b.phase) + groanGr * 9;   // vertical position from focus, gently alive
           var br = (1 + 0.05 * Math.sin(0.7 * t + b.phase)) * laughB * (1 + 0.22 * soft) * (L.awe ? 1.18 : 1);
           var fill = b.fill;
           if (b.pool) { var per = 6, f = (t / per) % b.pool.length, i0 = Math.floor(f), fr = f - i0; fill = lerpHex(b.pool[i0], b.pool[(i0 + 1) % b.pool.length], fr * fr * (3 - 2 * fr)); }  // centre cycles smoothly
-          if (arrive < 1) fill = lerpHex(L.prevFills[bi] || fill, fill, arrive);     // one-time arrival transition, then normal idle
           if (L.frustrated) fill = lerpHex(fill, "#7a1616", frP * 0.5);              // frustrated: ovals pulse dark red and back
           if (L.solemn) fill = lerpHex(fill, grayLum(fill), 0.7);                    // solemn: the field desaturates
           var bop = b.op;

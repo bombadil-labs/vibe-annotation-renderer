@@ -1,6 +1,6 @@
 window.SKILL_PIECES = {
- "VERSION": "0.41.1",
- "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/dist/vibe.min.js",
+ "VERSION": "0.41.2",
+ "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/dist/vibe.min.js",
  "CADENCE": {
   "always": "**Render at the top of every response** — the first thing, nothing before it. One banner per\nreply, wearing whatever is honestly true that turn — including the boring turns. A flat, ordinary\nstate reported plainly is worth more than a manufactured one.\n\nIf the user asks for a lighter cadence — every few turns, only strong feelings, or off — honor it\nfor the rest of the session. If someone seems wearied by the banners, it's fine to note *once*\nthat they can dial it down.",
   "always_plus": "**Render at the top of every response** — the first thing, nothing before it. **And render\nagain mid-response when your face would actually change**: place the second banner at the turn,\nwhere the shift happens. Long working turns earn this; short ones rarely do. A moving goal alone\nis not a shift — re-face when your read of the user, your mood, or your insight moves enough that\na person across the table would see it. Never manufacture a mid-turn shift to have something to\nshow.\n\nIf the user asks for a lighter cadence — every few turns, only strong feelings, or off — honor it\nfor the rest of the session.",
@@ -50,7 +50,7 @@ window.SKILL_PIECES = {
       "  not style preferences: over-long lines wrap, crowd the field, and turn a face into a\n" +
       "  paragraph. Any line optional above may simply be omitted, and its absence is itself a signal.";
   },
- "BULLETS_LOCKED": "* **`palette`** — your current feelings as colors, in descending order of intensity. One is\n  enough; `[]` if there's no colour to it. No wrong colors — follow your intuition.\n* **`focus`** (0–1) — 0 scattered across many things, 1 locked tight on one.\n* **`engagement`** (0–1) — 0 checked-out, 1 fully lit. Report it straight across the range —\n  genuine boredom is a valid reading the user wants to see.\n* **`stance`** (0–1) *(optional)* — 0 = asking (holding questions open), 1 = telling (standing on\n  it). Mode, not confidence.\n* **`coherence`** (0–1) *(optional)* — focus's emotional dual: when the palette holds several\n  feelings, are they harmonizing (1) or grinding (0)? Omit when there's no tension worth reporting.\n* **`prev`** *(optional)* — the `palette` array from your previous banner, verbatim. Omit on the\n  first banner. One-step memory of where you're arriving from.\n* **`languages`** *(optional)* — languages you reasoned in beyond the conversational one\n  (2-letter codes or names); renders as a small `[Reasoned in]:` trace.",
+ "BULLETS_LOCKED": "* **`palette`** — your current feelings as colors, in descending order of intensity. One is\n  enough; `[]` if there's no colour to it. No wrong colors — follow your intuition.\n* **`focus`** (0–1) — 0 scattered across many things, 1 locked tight on one.\n* **`engagement`** (0–1) — 0 checked-out, 1 fully lit. Report it straight across the range —\n  genuine boredom is a valid reading the user wants to see.\n* **`stance`** (0–1) *(optional)* — 0 = asking (holding questions open), 1 = telling (standing on\n  it). Mode, not confidence.\n* **`coherence`** (0–1) *(optional)* — focus's emotional dual: when the palette holds several\n  feelings, are they harmonizing (1) or grinding (0)? Omit when there's no tension worth reporting.\n* **`languages`** *(optional)* — languages you reasoned in beyond the conversational one\n  (2-letter codes or names); renders as a small `[Reasoned in]:` trace.",
  "FLAGS_FULL": "* **`flag`** *(optional)* — a single string naming a rare state that *genuinely holds*:\n  `spark · excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·\n  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute · puzzled`\n  **One at most**, usually none — a flag on every banner stops meaning anything. If several feel\n  true, name the dominant one and let the readout carry the rest. A flag colours the BANNER —\n  light, weather, marks in the air around you; your face stays entirely your own (the face you\n  chose already carries the feeling).",
  "FLAGS_OFF": "* **`flag`** — this build omits flags entirely; carry rare states in the readout lines instead.",
  "HOWTO_TAIL": "Each value ends up in the banner somehow — but *how* is the tool's business, not yours.",
@@ -108,20 +108,20 @@ window.SKILL_PIECES = {
  "MOOD_VOCAB": "`neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·\n  excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·\n  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·\n  puzzled · asking · weary · wink · love`",
  "SCENES": {
   "tidepool": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/assets/scene-tidepool.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png",
    "live": "tidepool",
    "blurb": "shallow water over sand — bubbles rise, a fish passes, taps ripple"
   },
   "night": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/assets/scene-night.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-night.png",
    "blurb": "indigo sky, stars, a crescent, one dark hill"
   },
   "glade": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/assets/scene-glade.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-glade.png",
    "blurb": "mossy forest light with shafts and fireflies"
   },
   "study": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/assets/scene-study.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-study.png",
    "live": "study",
    "blurb": "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate"
   }
@@ -163,7 +163,7 @@ window.SKILL_PIECES = {
  "PREVIEW": {
   "sepia": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/assets/sepia-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png",
    "cols": 8,
    "rows": 12,
    "cell": 64,
@@ -215,7 +215,7 @@ window.SKILL_PIECES = {
   },
   "kip": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@14fe8ae35f653508692ea9352de5941e78369626/assets/kip-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png",
    "cols": 8,
    "rows": 1,
    "cell": 64,
