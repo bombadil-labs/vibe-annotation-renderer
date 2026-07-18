@@ -30,13 +30,18 @@ const COLORS = {
 // width profile — rounded crown, widest through the eye band, then a long fluid taper
 // that lands flush on the arm cluster. PROFILE[row] = leftmost column (right mirrors);
 // null = no body. The hem's bottom edge stays open for the renderer-drawn arms.
+// THE DART AND THE BROW (v0.28.0, the maintainer's read): a cuttlefish head scans
+// POINTY — the mantle tip is the point, at the top, widening in a long dart line down
+// into the eye region, where the BROW bulges out beyond the dart to hold the eyes;
+// then a quick tuck beneath them into the arm skirt. The flare was upside down.
 const PROFILE = [
-  null,                                                        // row 0: water
-  13, 10, 8, 6, 5, 4, 4,                                       // rows 1-7: a fast flare — the crown blooms open
-  3, 3, 3, 3, 3, 3, 3, 3,                                      // rows 8-15: the CROWN — drastically wide, built to hold the eyes
-  4, 5, 6,                                                     // rows 16-18: a decisive shoulder-in
-  7, 7, 8, 8, 9, 9,                                            // rows 19-24: the long elongated sweep
-  10                                                           // row 25: a narrow hem — the arms take over from here
+  null,
+  15, 14, 13, 12, 11, 10, 9,                                   // rows 1-7: the DART — a sharp tip, one long widening line
+  7, 5,                                                        // rows 8-9: accelerating into the brow
+  4, 3, 3, 3, 3, 4,                                            // rows 10-15: the BROW — a bulge past the dart line, holding the eyes
+  5, 6, 7,                                                     // rows 16-18: the tuck beneath them
+  8, 8, 9, 9, 9, 10,                                           // rows 19-24: the under-body easing in
+  10                                                           // row 25: the narrow hem — the arms take over
 ];
 const BASE = [];
 for (let y = 0; y < 32; y++) {
