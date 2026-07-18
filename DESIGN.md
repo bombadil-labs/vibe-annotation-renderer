@@ -224,6 +224,21 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   actually arrives (flakes hit water ~1s, plate lands ~0.45s). Text faces get the pulse
   alone. The claudemeal flavor pantry is untouched — the register, not the meal, changed.
 
+- **Props act; the body performs (v0.36.0).** Third pass over the marks, all maintainer
+  notes: emoji sized up across the board; the 💡 gets a little ARC (pops in desaturated
+  near the crown, clicks on, stays lit — `ctx.filter` does the unlit state). Laugh trades
+  the kefka cackle for a deep belly laugh: beat slowed to 0.32s, the body heaves
+  vertically AND swells wide at the chest (the transform grew a separate x-scale), and
+  laughter marks flick off her flanks — the field's yellow asterisk-burst retired (only
+  `laughB`'s gentle field-breathing remains as room weather). Groan became a 40-second
+  WATCHABLE cycle: deadpan open (new base frame), a smoothstep squeeze into frame 1's
+  clenched slits while fins/arms/mantle contract, held ~30s, released; boop or feeding
+  resets it to relaxed (`conReset`). The 💧 rides the squeeze envelope, not a loop.
+  Frustration: V-brows pursed between the eyes, one mouth corner down (`flatdrop`).
+  And the mask, take two: full green Greek theatre mask, bigger than the face, own
+  painted eyes and a fixed toothy grin — covering her entirely IS the joke; the
+  see-through version read as magneto.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
