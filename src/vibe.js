@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@c82c40a82bb36ee95c7fe4e3f8eaa0e36a340d16/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@65cd01e7580ebb63ef707cd2b563be6979a1cfeb/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -536,8 +536,8 @@
       glow.push('<line x1="' + r.x.toFixed(1) + '" y1="' + r.y.toFixed(1) + '" x2="' + (r.x + dx * r.len).toFixed(1) + '" y2="' + (r.y + dy * r.len).toFixed(1) + '" stroke="#4a3c26" stroke-opacity="' + (0.16 * r.op).toFixed(3) + '" stroke-width="1.2"/>');
     });
     if (glow.length) out.push('<g opacity="0.9">' + glow.join("") + '</g>');
-    if (L.rhyme) out.push('<g opacity="0.12" transform="translate(' + g(L.portrait.s + 4) + ',6)">' + L.kaoSVG + '</g>');   // the echo of the face, behind-ish and offset
-    out.push('</g>');                                          // close the right-region boundary
+    out.push('</g>');                                          // close the full-bleed weather clip
+    if (L.rhyme) out.push('<g opacity="0.25" transform="translate(-25,0)" pointer-events="none">' + L.kaoSVG + '</g>');   // the echo: the face's exact replica, 25px left (outside the clip so it shows over the window)
     out.push(L.kaoSVG + L.restSVG + '</svg>');                 // flags never pose the face (v0.31.0) — a flag is banner weather; the face is the avatar's
     return out.join("");
   }
@@ -812,6 +812,27 @@
       };
       mimg.onerror = function () { chromo.style.display = "none"; };
       mimg.src = fm.url;
+    }
+    // THE ECHO (v0.40.0, rhyme): an exact replica of the face, 25 banner-px to the LEFT,
+    // 25% alpha, non-interactive, mirroring every action — transform, sprite frames, and
+    // the fin/chromatophore canvases blitted each frame. A verse and its rhyme.
+    var echoKao = null, echoFeat = null, echoFins = null, echoChromo = null;
+    if (L.rhyme && kaoEl && faceLayerEl) {
+      var echoLayer = document.createElement("div");
+      echoLayer.style.cssText = faceLayerEl.style.cssText;
+      echoLayer.style.left = g((L.portrait.x - 25) / W * 100) + "%";
+      echoLayer.style.opacity = "0.25";
+      echoLayer.style.zIndex = "1";                            // behind the original — an echo never leads
+      echoLayer.style.pointerEvents = "none";
+      echoKao = kaoEl.cloneNode(true);
+      echoKao.style.pointerEvents = "none";
+      echoKao.style.cursor = "";
+      echoLayer.appendChild(echoKao);
+      wrap.insertBefore(echoLayer, faceLayerEl);
+      var eCvs = echoKao.querySelectorAll("canvas");
+      if (finC) echoFins = eCvs[0] || null;                    // children were appended finC → chromo → featEl; the clone preserves order
+      if (chromo) echoChromo = eCvs[finC ? 1 : 0] || null;
+      echoFeat = featEl ? echoKao.querySelector("div") : null;
     }
     // Every banner-generated message carries this prefix so it never reads as typed text —
     // the skill tells the reporter to receive these as gestures, not prompts. Each one also
@@ -1551,6 +1572,21 @@
           if (kx || ky || ks !== 1 || beatKw) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + (ks * (1 + beatKw)).toFixed(3) + "," + ks.toFixed(3) + ")";
           else if (kaoEl.style.transform) kaoEl.style.transform = "";                // rest cleanly
         }
+        if (echoKao) {                                                               // the echo mirrors everything, a beat behind nothing
+          echoKao.style.transform = kaoEl.style.transform;
+          if (kaoEl.style.backgroundPosition) echoKao.style.backgroundPosition = kaoEl.style.backgroundPosition;
+          if (echoFeat && featEl) echoFeat.style.backgroundPosition = featEl.style.backgroundPosition;
+          if (echoFins && finC && finC.width > 0) {
+            if (echoFins.width !== finC.width || echoFins.height !== finC.height) { echoFins.width = finC.width; echoFins.height = finC.height; }
+            var ecx1 = echoFins.getContext("2d");
+            ecx1.clearRect(0, 0, echoFins.width, echoFins.height); ecx1.drawImage(finC, 0, 0);
+          }
+          if (echoChromo && chromo && chromo.width > 0 && chromo.style.display !== "none") {
+            if (echoChromo.width !== chromo.width || echoChromo.height !== chromo.height) { echoChromo.width = chromo.width; echoChromo.height = chromo.height; }
+            var ecx2 = echoChromo.getContext("2d");
+            ecx2.clearRect(0, 0, echoChromo.width, echoChromo.height); ecx2.drawImage(chromo, 0, 0);
+          }
+        }
 
         // --- the field: three columns holding a seeded vertical band set by focus ---
         var arrive = 1;                                                              // prev: one-step trajectory — hue arrives from the last banner's palette
@@ -1675,16 +1711,8 @@
         // (laugh's yellow asterisk-burst left the weather in v0.36.0 — laughter marks are
         // the avatar's own now, flicking off her flanks with each HA; the field's gentle
         // laughB breathing is all the room keeps)
-        if (L.rhyme && kaoEl && !L.faceImg) {                                        // the echo of the face: the kaomoji's own ghost, resting posture, slow fade cycle (text faces only)
-          if (!kaoFont) {
-            var kcs = root.getComputedStyle ? getComputedStyle(kaoEl) : null;
-            kaoFont = g(fm.fs) + "px " + ((kcs && kcs.fontFamily) || "ui-sans-serif, sans-serif");   // banner units — the canvas draws in viewBox space
-          }
-          ctx.globalAlpha = 0.09 + 0.07 * (0.5 + 0.5 * Math.sin(t * 0.45));
-          ctx.font = kaoFont; ctx.fillStyle = "rgb(" + baseFill[0] + "," + baseFill[1] + "," + baseFill[2] + ")";
-          L.kaoLines.forEach(function (ln, li) { ctx.fillText(ln, RX + 10, L.kaoAbs[li] + 6); });   // the echo rests in the margin, beside the window
-          ctx.globalAlpha = 1;
-        }
+        // (rhyme's canvas ghost retired in v0.40.0 — the echo is a live DOM replica now,
+        // 25px left at 25% alpha, mirroring every action; see the echo sync above)
         if (L.resolute) {                                                            // 集中線: ignition flare, then held faint — drawn after washes so it reads inside storms
           var rt = t % 6, flare = rt < 0.7 ? (rt < 0.15 ? rt / 0.15 : 1 - 0.72 * ((rt - 0.15) / 0.55)) : 0.28;
           ctx.lineCap = "round"; ctx.lineWidth = 2;            // bolder — they were barely visible (the maintainer's note)
