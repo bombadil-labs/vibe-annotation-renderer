@@ -71,7 +71,7 @@ const FRILL_OF = {
 // SUB-PIXEL MOUTHS: certain moods trade the chunky block mouth for fine-ink lips drawn
 // in the definition register (like the lashes) — a pressed-thin line reads restraint the
 // 4px grid can't. Table keyed by mood name; add sparingly, the block mouth is the norm.
-const FINE_MOUTH = { groan: "pressed" };
+const FINE_MOUTH = { groan: "pressed", resolute: "tight" };   // tight: a straight pressed line — the set jaw of concentration
 // All feature tables are authored in the ancestral 16-grid and auto-doubled to the
 // 32-grid (pixel-identical rendering) — EXCEPT where the finer grid earns real curves:
 // hand-authored 32-grid overrides below (smile/frown/wavy arcs, curved lids, a true
@@ -112,6 +112,13 @@ function drawEyes(out, lp, rp, blink) {
     }
     for (let x = x0 + 1; x < x1; x++) { out.push([x, y0, "p"], [x, y1, "p"]); }
     for (let y = y0 + 1; y < y1; y++) { out.push([x0, y, "p"], [x1, y, "p"]); }
+    if (preset === "steely") {                                 // resolute: the lid lowers hard — narrowed whites, a fixed dot beneath
+      for (let x = bx; x <= bx + 4; x++) out.push([x, 11, "p"]);
+      for (let y = 12; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
+      const soff = mir ? 3 - POFF[1] : POFF[1];
+      out.push([bx + soff, 13, "p"], [bx + soff + 1, 13, "p"], [bx + soff, 14, "p"], [bx + soff + 1, 14, "p"]);
+      return;
+    }
     for (let y = 10; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
     if (preset === "heart" || preset === "star") {
       (preset === "heart" ? HEARTR : STARR).forEach(q =>
@@ -190,7 +197,7 @@ const MOODS = [
   ["rhyme",      "w",                "sm",    "#9a8fae", X.ghost],
   ["awe",        "uptiny",           "open",  "#5a6a8a"],
   ["vertigo",    "spiral",           "wavy",  "#b79ad0"],
-  ["resolute",   "dot",              "sm",    "#e0994e"],   // headband drawn in the fine pass — a high-res object on a low-res body
+  ["resolute",   "steely",           "sm",    "#e0994e"],   // steely narrowed eyes + tight fine-mouth; headband drawn in the fine pass
   ["puzzled",    ["dot","uptiny"],   "tiny",  "#c0b08a"],
   ["asking",     "uptiny",           "sm",    "#9ac0b0"],
   ["weary",      "down",             "flat",  "#8b93a0"],
@@ -267,6 +274,10 @@ MOODS.forEach((mood, i) => {
       frect(27, 40, 11, 2, COLORS.p);
       fpx(26, 41, COLORS.p); fpx(38, 41, COLORS.p);
       frect(28, 42, 9, 1, "#c8b6c2");
+    }
+    if (FINE_MOUTH[mood[0]] === "tight") {      // tight lips: a straight pressed line, no dips — the set jaw
+      frect(28, 40, 9, 2, COLORS.p);
+      frect(29, 42, 7, 1, "#c8b6c2");
     }
     if (mood[0] === "resolute") {               // the hachimaki: crisp cloth from the high-res world, worn over everything
       const R = "#c04a48", Rd = "#8a3230", Rh = "#e07a70";
