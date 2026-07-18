@@ -569,12 +569,14 @@
       ".vo .fw{font-family:var(--font-voice,Georgia,serif);font-style:italic;font-size:0.95em}" +
       ".vo .fg{font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:0.88em;opacity:0.95}" +
       ".vo-panel{pointer-events:auto;max-height:100%;overflow-y:auto;padding:0.32em 0.7em 0.36em;border-radius:10px;" +
+      "display:flex;flex-direction:column;justify-content:center;justify-content:safe center;" +   // the shorter view centres in the stable box (safe: never clips when it overflows)
       "background:rgba(255,250,240,0.22);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);box-shadow:inset 0 0 0 1px rgba(90,70,50,0.08)}" +
       ".vo-vt{position:absolute;top:-0.72em;left:0.9em;z-index:3;pointer-events:auto;display:flex;border-radius:1em;overflow:hidden;box-shadow:0 0 0 1.5px rgba(36,26,6,0.35)}" +   // ONE pill, two halves, straddling the panel's top edge
       ".vo-vt span{cursor:pointer;font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.68em;padding:0.12em 0.7em 0.16em;background:rgba(48,34,16,0.85);color:rgba(246,234,208,0.7);letter-spacing:0.04em;text-shadow:none}" +
       ".vo-vt span:hover{color:#f6ead0}" +
       ".vo-vt span.on{background:#f6ead0;color:#452f14;cursor:default}" +
       ".vo-stats{pointer-events:auto;padding:0.55em 0.9em 0.6em;border-radius:10px;max-height:100%;overflow-y:auto;" +
+      "display:flex;flex-direction:column;justify-content:center;justify-content:safe center;" +
       "background:rgba(255,250,240,0.22);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);box-shadow:inset 0 0 0 1px rgba(90,70,50,0.08)}" +
       ".vo-stats .srow{display:flex;align-items:center;gap:0.65em;margin:0.4em 0;cursor:help}" +
       ".vo-stats .slbl{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.68em;width:8.2em;flex:none;padding:0.1em 0.6em 0.14em;border-radius:1em;background:rgba(69,49,24,0.58);color:#f6ead0;letter-spacing:0.04em;text-shadow:none}" +
