@@ -250,14 +250,24 @@ function mountTab(tab) {
   MOUNT_QUEUE[tab] = [];
 }
 
+// Build a scene argument the way the docs tell everyone else to: a NAME for a first-party
+// environment, the long form only for a custom image that has no name to use. Every preview on
+// this page goes through here, so the site demonstrates the API it teaches — and exercises the
+// name-resolution path on every mount instead of only in the tests.
+function sceneArg(name, opt) {
+  opt = opt || {};
+  var known = window.SKILL_PIECES && window.SKILL_PIECES.SCENES && window.SKILL_PIECES.SCENES[name];
+  if (known) return opt.opacity == null ? name : { name: name, opacity: opt.opacity };
+  if (opt.url) return { url: opt.url, opacity: opt.opacity };
+  return null;                                               // unknown name → an empty window, deliberately
+}
+
 // The hero is Sepia in the tidepool, fixed. A randomised front door was tried and pulled:
 // the first thing a visitor sees is the one composition that should be *chosen*, and the
 // project's own face in her own habitat is the honest introduction. Variety lives one tab
 // away, in the Gallery, where trying combinations is the actual point.
 (function () {
-  var SP = (window.SKILL_PIECES && window.SKILL_PIECES.SCENES) || {};
-  var avatar = { set: "sepia", item: "content" };
-  if (SP.tidepool) avatar.scene = { url: SP.tidepool.url, opacity: 0.6, live: SP.tidepool.live };
+  var avatar = { set: "sepia", item: "content", scene: sceneArg("tidepool", { opacity: 0.6 }) };
   queueMount("landing", document.getElementById("hero"), {
     avatar: avatar,
     palette: ["#d99a5e", "#7d8fb8"],
@@ -471,10 +481,9 @@ function withFace(p) {
   else if (FACE_CHOICE === "motes") q.face = { set: "motes", item: mood };
   else if (FACE_CHOICE === "kip") q.face = { set: "kip", item: KIP_MAP[mood] || "content" };
   else if (FACE_CHOICE !== "kaomoji") q.face = { set: FACE_CHOICE, item: EMOJI_MOODS[mood] || EMOJI_MOODS.content };
-  var SP = window.SKILL_PIECES && window.SKILL_PIECES.SCENES;
-  if (SCENE_CHOICE !== "none" && SP && SP[SCENE_CHOICE]) {
-    q.scene = { url: SP[SCENE_CHOICE].url, opacity: 0.55 };
-    if (SP[SCENE_CHOICE].live) q.scene.live = SP[SCENE_CHOICE].live;
+  if (SCENE_CHOICE !== "none") {
+    var sa = sceneArg(SCENE_CHOICE, { opacity: 0.55 });
+    if (sa) q.scene = sa;
   }
   return q;
 }
@@ -653,8 +662,8 @@ route();
       var hit = ce.filter(function (e) { return e[0] === mood.m; })[0] || ce[0];
       if (hit) pay.face = hit[1]; else pay.face = mood.k || "( ˘ ᵕ ˘ )";
     } else pay.face = { set: S.face, item: mood.m };
-    var u = sceneUrl();
-    if (u) pay.scene = { url: u, opacity: S.sceneOp, live: (P.SCENES[S.scene] && P.SCENES[S.scene].live) || undefined };
+    var sa = sceneArg(S.scene, { opacity: S.sceneOp, url: sceneUrl() });
+    if (sa) pay.scene = sa;
     try { window.vibe(inner, pay); } catch (e) { }
     return cell;
   }
@@ -793,8 +802,8 @@ route();
       var hit = ce.filter(function (e) { return e[0] === previewMood; })[0] || ce[0];
       if (hit) pay.face = hit[1];
     } else pay.face = { set: S.face, item: previewMood };
-    var su = sceneUrl();
-    if (su) pay.scene = { url: su, opacity: S.sceneOp, live: (P.SCENES[S.scene] && P.SCENES[S.scene].live) || undefined };
+    var sa2 = sceneArg(S.scene, { opacity: S.sceneOp, url: sceneUrl() });
+    if (sa2) pay.scene = sa2;
     try { window.vibe(liveMount, pay); } catch (e) { liveMount.textContent = "(preview failed: " + e.message + ")"; }
   }
   function compositeChip(size) {                               // the window as it will actually render — live, same crop trick as the narrator chips
@@ -1252,8 +1261,7 @@ route();
     var avatar = X.set === "kaomoji" ? { face: kaoIn.value || "( ˘ ᵕ ˘ )" } : { set: X.set, item: X.item };
     // the Explorer ALWAYS shows the square block — populated when an environment is
     // chosen, empty (frame only) when not, so composition is visible either way
-    avatar.scene = su ? { url: su, opacity: X.op } : {};
-    if (su && sc && sc.live) avatar.scene.live = sc.live;
+    avatar.scene = sceneArg(X.scene, { opacity: X.op, url: su }) || {};
     var payload = { avatar: avatar };
     if (pal.length) payload.palette = pal.slice();
     payload.details = details;
@@ -1261,7 +1269,10 @@ route();
     try { vibe(mnt, payload); } catch (e) { mnt.textContent = "err: " + e.message; }
     cap.textContent = sc && sc.blurb ? "the " + X.scene + " — " + sc.blurb : (su ? "custom scene" : "the empty window — pick an environment to fill it");
     var shown = JSON.parse(JSON.stringify(payload));
-    if (shown.scene && shown.scene.url) shown.scene.url = shown.scene.url.replace(/@[0-9a-f]{40}\//, "@…/");
+    // the scene lives under avatar, not at the top level — this guard had been looking in the
+    // wrong place, which only stopped mattering now that first-party scenes are names
+    var shownScene = shown.avatar && shown.avatar.scene;
+    if (shownScene && shownScene.url) shownScene.url = shownScene.url.replace(/@[0-9a-f]{40}\//, "@…/");
     src.textContent = "vibe(el, " + JSON.stringify(shown, null, 1) + ");";
   }
 

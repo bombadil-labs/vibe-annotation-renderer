@@ -514,6 +514,20 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   face's home when you switch faces, until you pick one yourself — after which it stops
   second-guessing you. An unmade choice should not render as a considered one.
 
+- **The site now eats its own dog food (v0.49.1).** v0.48.0 taught `scene: "tidepool"` in the
+  docs while every one of the site's own five mount sites — hero, gallery, both Builder
+  previews, Explorer — kept building `{ url, opacity, live }` by hand from the SCENES table.
+  The maintainer caught it: the "use it as a library" script was still on the old form. That
+  is worse than an inconsistency, because the page is the most-read example of the API and it
+  was demonstrating the shape the release existed to replace. One `sceneArg(name, opt)` helper
+  now feeds all five: a NAME when the environment is first-party, the long form only for a
+  custom image that has no name to use, `null` for unknown. Every preview on the page
+  therefore exercises name-resolution on every mount, so that path is covered by simply
+  looking at the site rather than only by the tests.
+  Found while there: the Explorer's "strip the sha before displaying the payload" guard read
+  `shown.scene`, but the scene has lived under `avatar` since v0.42.0 — it had been a no-op
+  for seven releases and only stopped mattering because names carry no sha.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
