@@ -528,6 +528,32 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   `shown.scene`, but the scene has lived under `avatar` since v0.42.0 — it had been a no-op
   for seven releases and only stopped mattering because names carry no sha.
 
+- **The skill stopped explaining how it renders (v0.50.0).** The maintainer hand-trimmed a
+  generated skill and sent it back as the spec, with the rule stated plainly: *the reporter
+  doesn't need the details of how it's going to render.* Their cuts had one shape — every
+  sentence describing the PICTURE went, every sentence describing the READING stayed. Motes'
+  paragraph about flight paths and question marks; the palette bullet naming Sepia's
+  chromatophores; "the lines beside your face, in order." None of it changes a value the
+  reporter emits, and all of it invites chasing the picture, which is the exact failure the
+  veil exists to prevent. Explaining the render is a small, constant tax on the honesty
+  contract.
+  Also from their pass: American spellings throughout, `2–4 words` softened to "a few words or
+  a short phrase" (a count invites counting), and the duplicated `palette` lead-in dropped —
+  v0.48.0 scaffolding that restated the bullet directly beneath it.
+  Carrying the rule further, as asked: the snippet's per-element rationale (why the script is
+  injected, what `onerror` and `min-height` do) collapsed to "paste it as-is, every part is
+  load-bearing" — the reporter must not restructure it, but *why* is the tool's business. The
+  `[Reasoned in]:` trace, and the claudemeal aside's staging (flakes on water, a heaping plate)
+  went the same way; the flavor-from-your-own-palette line stayed, because that one changes how
+  the gesture is received.
+  One genuine bug surfaced under the cut: the palette bullet described Sepia's chromatophores
+  **in the Motes skill**, and Sepia's face bullet still named `flag`, a key retired in v0.44.0.
+  A shared block that names one pack's rendering is wrong in every other file it lands in.
+  The kaomoji escape hatch is now conditional rather than blanket — it earns its space only
+  where a pack's vocabulary is PARTIAL (Kip's eight moods, a custom pack) and can genuinely
+  fail to fit the moment. A full-vocabulary pack always has a mood, which is why the paragraph
+  read as cuttable in Motes. Net: 1919 → 1599 words, and nothing removed that a reporter uses.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately

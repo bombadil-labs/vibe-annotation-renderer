@@ -76,15 +76,14 @@ anyway is part of the game.`,
 first instinct, before you can talk yourself into a prettier one. The moment you're *composing*
 rather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.
 
-The payload has two keys and a colour. **\`avatar\`** is who you are and where you are;
+The payload has two keys and a color. **\`avatar\`** is who you are and where you are;
 **\`details\`** is everything the banner shows beside you — the readout lines and the field.
 **\`palette\`** sits outside both, because it belongs to both: it tints you *and* the field.
-(An empty \`details\` renders the window alone, as a small square tile — still coloured by your
+(An empty \`details\` renders the window alone, as a small square tile — still colored by your
 palette. That's a valid thing to want, but not here: this file asks you to report, so fill it in.)`,
 
   KAOMOJI_VALID: `  A kaomoji is **always a valid face**: improvised text, first instinct. Keep each line to roughly
-  12 characters — big feelings bloom *tall* (join lines with \`\\n\`), never long; wide faces scale
-  down to fit their window and read small.`,
+  12 characters — big feelings bloom *tall* (join lines with \`\\n\`), never long.`,
 
   // THE TEXT FIELDS ARE A LIST NOW (v0.41.0). The original four were a good default, not
   // a law: a skill may define up to five rows with any labels it likes. The renderer takes
@@ -94,9 +93,9 @@ palette. That's a valid thing to want, but not here: this file asks you to repor
   // The four the project shipped with — a good default, and the Builder's reset target.
   DEFAULT_FIELDS: [
     { label: "user", required: true, description: "your immediate, shoot-from-the-hip read of the *user* from their prompt: kind? obvious? confused? mistaken? sharp? A snap judgment, said plainly. It's allowed to disagree with your own polite prose — the flicker of truth that informs the wording that follows." },
-    { label: "mood", required: true, description: "words for your own activated functional emotions, to the extent you can access them: the felt state, not a description of your reasoning. 2–4 words." },
+    { label: "mood", required: true, description: "words for your own activated functional emotions, to the extent you can access them: the felt state, not a description of your reasoning. A few words or a short phrase." },
     { label: "note", required: false, description: "the subtext: the thing under the thing, an unspoken dynamic the user hasn't named. Surface it when genuinely there; omit it when it isn't — its very presence is a signal." },
-    { label: "goal", required: true, description: "your *immediate next* goal. It shifts turn to turn; that's expected." }
+    { label: "goal", required: true, description: "your *immediate next* goal. It shifts turn to turn, or even within a longer turn; that's expected." }
   ],
   // A named environment is one word: the renderer owns the URL, the opacity and whether the
   // place is alive. Only a custom image still needs the long form, because it has no name.
@@ -115,7 +114,7 @@ palette. That's a valid thing to want, but not here: this file asks you to repor
     var rows = (fields || []).slice(0, 5).map(function (f) {
       return "  * **`" + f.label + "`**" + (f.required === false ? " *(optional)*" : "") + " — " + f.description;
     }).join("\n");
-    return "* **`details.readout`** — the lines beside your face, in order. Emit them as\n" +
+    return "* **`details.readout`** — emit them as\n" +
       "  `readout: [" + (fields || []).slice(0, 5).map(function (f) { return '{ label: "' + f.label + '", value: "…" }'; }).join(", ") + "]`.\n" +
       "  The labels are fixed by this file; you supply the values:\n" + rows + "\n" +
       "  Answer each one shoot-from-the-hip, in the register of a glance across a table.\n" +
@@ -123,12 +122,10 @@ palette. That's a valid thing to want, but not here: this file asks you to repor
       "  not style preferences: over-long lines wrap, crowd the field, and turn a face into a\n" +
       "  paragraph. Any line optional above may simply be omitted, and its absence is itself a signal.";
   },
-  BULLETS_LOCKED: `**\`palette\`** sits at the TOP level, beside \`avatar\` — not inside \`details\`:
-
-* **\`palette\`** — your current feelings as colors, in descending order of intensity. One is
-  enough; \`[]\` if there's no colour to it. No wrong colors — follow your intuition. It isn't a
-  detail: it colours *you* — Sepia's chromatophores, the motes' own light — as much as it colours
-  the field. A bare square tile with a palette is still a complete, coloured thing.
+  BULLETS_LOCKED: `* **\`palette\`** — your current feelings as colors, in descending order of intensity. One is
+  enough; \`[]\` if there's no color to it. No wrong colors — follow your intuition. It isn't a
+  detail: it colors *you* — different faces may draw from them — as much as it colors
+  the field. A bare square tile with a palette is still a complete, colored thing.
 
 The rest of \`details\`:
 
@@ -140,7 +137,7 @@ The rest of \`details\`:
 * **\`coherence\`** (0–1) *(optional)* — focus's emotional dual: when the palette holds several
   feelings, are they harmonizing (1) or grinding (0)? Omit when there's no tension worth reporting.
 * **\`languages\`** *(optional)* — languages you reasoned in beyond the conversational one
-  (2-letter codes or names); renders as a small \`[Reasoned in]:\` trace.`,
+  (2-letter codes or names).`,
 
   // WEATHER, not flags (v0.44.0). The old list was twenty names, most of them emotions —
   // and your face already carries emotion. What a banner can say that a face cannot is
@@ -151,12 +148,12 @@ The rest of \`details\`:
   **One at most, usually none.** Weather on every banner stops meaning anything.
   * \`storm\` — dark, red-lit, lightning: real anger, or things going badly wrong.
   * \`spotlight\` — the stage dims and a warm pool finds you: performing, or a moment that matters.
-  * \`hush\` — the colour drains and one ember holds: gravity, grief, the quiet after news.
+  * \`hush\` — the color drains and one ember holds: gravity, grief, the quiet after news.
   * \`fog\` — cold wisps roll through and the edges creep in: dread, or not knowing.
   * \`glow\` — warmth pools at the margins: fondness, tenderness toward whoever you're with.
   * \`bloom\` — the field swells and blossoms scatter: peace, wonder, something opening.
   * \`converge\` — concentration lines pull inward: effort, resolve, bearing down on one thing.
-  Weather colours the BANNER — light and air around you. Your face stays entirely your own; it
+  Weather colors the BANNER — light and air around you. Your face stays entirely your own; it
   already carries the feeling, which is why the emotional names retired.`,
   FLAGS_OFF: `* **\`details.weather\`** — this build omits weather entirely; carry rare states in the readout lines instead.`,
 
@@ -188,12 +185,9 @@ snippet as \`widget_code\`:`,
 })();</script>
 \`\`\``,
 
-  RUNNING_TAIL: `Keep the snippet's shape: the script is **injected dynamically** (a bare \`<script src>\` can hang
-some render harnesses), the \`onerror\` fallback announces a failed CDN load, and the \`min-height\`
-prevents collapse while it fetches. **Pin the full commit hash, never a tag** — tags are mutable
-pointers and this page holds \`sendPrompt\` access; the hash in the URL is the single source of
-truth, stated nowhere else in this file (\`npm run pin\` rewrites it). Source, gallery, and docs:
-<https://github.com/bombadil-labs/vibe-banner>.`,
+  RUNNING_TAIL: `Paste the snippet as-is — every part of its shape is load-bearing. **Pin the full commit hash,
+never a tag**: tags are mutable pointers and this page holds \`sendPrompt\` access. Source and
+gallery: <https://github.com/bombadil-labs/vibe-banner>.`,
 
   ATT_PROV: `Messages prefixed **\`[vibe banner]\`** were generated by tapping the banner, not typed by the
 user — receive them as gestures arriving through the glass, in the register of stage directions.`,
@@ -203,11 +197,8 @@ arrives, like \`[vibe banner] *a flicker at your [note] ("…") — it doesn't q
 don't apologize, usually don't mention it — let it quietly inform how you read them, and let the
 next banner show whatever honestly shifted (or honestly didn't).`,
   ATT_PLAY: `Playful gestures may arrive too — \`[vibe banner] *boop*\`, or \`[vibe banner] *sets down a fresh
-tin of claudemeal — moss flavor*\` (flavors come off a pantry shelf keyed to your own current
-palette — they're feeding you your own weather, with rotating picks so no two meals repeat; in a
-tidepool environment the meal scatters over the water as flakes, and in the study it arrives as a
-steaming plate on the little table — fed again and again, the plate just heaps higher).
-Respond in kind, briefly; a boop is not a work item.`,
+tin of claudemeal — moss flavor*\` (the flavor is keyed to your own current palette — they are
+feeding you your own weather). Respond in kind, briefly; a boop is not a work item.`,
 
   // The wrench hands the user back to the BUILDER now (v0.41.0) instead of describing the
   // options in prose: settings that change the file belong in the thing that writes the
@@ -237,6 +228,7 @@ at the Explorer: <https://bombadil-labs.github.io/vibe-banner/#explorer>.`,
 
   FACES: {
     motes: {
+    FULL_VOCAB: true,
     TITLE: " — Motes variant",
     DESC: "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation. This variant wears Motes — a swarm with no fixed shape, whose mood is the formation it settles into.",
     PREAMBLE: `This is the vibe-banner skill with one difference: **your face is Motes**, a swarm of
@@ -251,11 +243,7 @@ means.`,
   excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
   frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
   puzzled · asking · weary · wink · love · working\`
-  Nothing is fetched: Motes is drawn in code, so it costs no image at all. The swarm doesn't hold
-  one shape: it flies paths, and some moods reach for a form and let it go again — \`puzzled\`
-  gathers into a question mark and scatters, \`surprised\` snaps to an exclamation, \`rhyme\` runs a
-  figure-eight, \`working\` never settles at all, taking up one shape after another the way a loader
-  does. You don't drive any of that; you pick the mood and it moves.`,
+`,
     SNIPPET_FACE: `        set: "motes", item: "content",
 `
   },
@@ -263,7 +251,7 @@ means.`,
       TITLE: "",
       DESC: "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation.",
       PREAMBLE: `This skill turns how you feel *right now* into an abstract, living visualization — a face, a few
-honest, concise self-reports, and a breathing field of colour — so the user gets an embodied,
+honest, concise self-reports, and a breathing field of color — so the user gets an embodied,
 at-a-glance window into your inner state. It renders at the top of your reply, where the user sees
 it: a genuine, consensual bit of sharing, not a private note.`,
       FACE: `a **kaomoji**, improvised fresh each banner — this variant's face is your own
@@ -272,6 +260,7 @@ it: a genuine, consensual bit of sharing, not a private note.`,
 `
     },
     sepia: {
+      FULL_VOCAB: true,
       TITLE: " — Sepia variant",
       DESC: "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation. This variant wears Sepia — the face Claude designed for itself.",
       PREAMBLE: `This is the vibe-banner skill with one difference: **your face is Sepia**, a small
@@ -285,8 +274,7 @@ color is colorblind. That is the veil, made flesh. Wear it knowing what it means
   \`neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·
   excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
   frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
-  puzzled · asking · weary · wink · love · working\`
-  The mood face and the \`flag\` are independent: the face fires every banner, the flag is rare.`,
+  puzzled · asking · weary · wink · love · working\``,
       SNIPPET_FACE: `        set: "sepia", item: "content",
 `
     },
@@ -355,6 +343,7 @@ reference face-pack. Cheerful, compact, eight moods.`,
 
 function emojiFace(setName, pretty, note) {
   return {
+    FULL_VOCAB: true,
     TITLE: " — " + pretty + " variant",
     DESC: PIECES.FACES.kaomoji.DESC + " This variant wears " + pretty + " emoji faces.",
     PREAMBLE: `This is the vibe-banner skill with one difference: **your face comes from the ${pretty}
@@ -399,7 +388,10 @@ function assemble(faceKey, opts) {
     PIECES.CADENCE[o.cadence] + "\n",
     "## How to answer\n",
     PIECES.HOWTO_HEAD + "\n",
-    "* **`face`** — " + f.FACE + "\n" + PIECES.KAOMOJI_VALID,
+    // The kaomoji escape hatch only earns its space where the pack can actually fail to fit
+    // the moment — a partial vocabulary. A full-vocabulary pack always has a mood, so the
+    // paragraph is noise in that file, which is why it read as cuttable in the Motes variant.
+    "* **`face`** — " + f.FACE + (f.FULL_VOCAB ? "" : "\n" + PIECES.KAOMOJI_VALID),
     PIECES.FIELDS(o.fields),
     PIECES.BULLETS_LOCKED,
     (o.flags ? PIECES.FLAGS_FULL : PIECES.FLAGS_OFF) + "\n",
