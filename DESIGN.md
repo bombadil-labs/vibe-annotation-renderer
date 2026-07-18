@@ -554,6 +554,24 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   fail to fit the moment. A full-vocabulary pack always has a mood, which is why the paragraph
   read as cuttable in Motes. Net: 1919 → 1599 words, and nothing removed that a reporter uses.
 
+- **The window caption names the MOOD now (v0.51.0).** It was built to name the active flag,
+  on the argument that twenty flag gestures had outgrown unaided recognition. The maintainer's
+  observation retires that: flags became seven weathers, and the label would be better spent on
+  the face. The original argument in fact applies far harder to the face than it ever did to
+  the weather — there are 33 moods, they fire on EVERY banner rather than rarely, and a
+  formation of motes or a cuttlefish at 64px is genuinely hard to name. Weather is seven, rare,
+  and visually unmistakable; it does not need naming, and with a mood caption present it would
+  be competing for the same corner.
+  Only a pack whose items ARE moods gets a caption. A kaomoji already names itself, an
+  arbitrary image URL has no mood to report, and a raw twemoji codepoint is not a mood name.
+  Two judgement calls worth recording, since neither was specified:
+  - **Not on a square tile.** That form is documented as the creature alone, deliberately
+    without commentary, and a label is commentary however short. The caption is a banner
+    affordance. (Kept the old behaviour, which fell out of flags being details; now explicit.)
+  - **Mood wins over weather** when both are present, rather than showing both. One label, one
+    job. If naming rare weather turns out to matter, the honest fix is a second affordance,
+    not two things sharing a corner.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately

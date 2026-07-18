@@ -860,8 +860,19 @@
       });
       langSVG = '<text x="' + (W - 12) + '" y="' + g(H - 7) + '" text-anchor="end" class="txt fl">' + parts + '</text>';
     }
-    var flagSVG = activeFlag                                   // caption: inside the window's bottom-left corner
-      ? '<text x="' + (portrait.x + 7) + '" y="' + g(portrait.y + portrait.s - 7) + '" class="txt fl">[' + esc(activeFlag.replace("_", " ")) + ']</text>'
+    // The window's bottom-left caption names the FACE'S MOOD (v0.51.0), not the weather it
+    // used to name. The original argument for a caption was that twenty flag gestures had
+    // outgrown unaided recognition — but that argument applies far harder to the face: there
+    // are 33 moods, they fire on every banner, and a formation of motes or a cuttlefish at
+    // 64px is genuinely hard to name. Weather is seven, rare, and visually unmistakable.
+    // Only a pack whose items ARE moods gets a caption; a kaomoji names itself, and an
+    // arbitrary image URL has no mood to report.
+    // Not on a square tile: that form is the creature ALONE, deliberately without commentary,
+    // and a label is commentary however short. The caption is a banner affordance.
+    var moodName = (!square && fRaw && fRaw.set && FACE_SETS[fRaw.set] && fRaw.item != null &&
+                    MOODS.indexOf(String(fRaw.item)) >= 0) ? String(fRaw.item) : null;
+    var capSVG = moodName
+      ? '<text x="' + (portrait.x + 7) + '" y="' + g(portrait.y + portrait.s - 7) + '" class="txt fl">[' + esc(moodName.replace("_", " ")) + ']</text>'
       : "";
     // the window itself, always: clipped image when a scene is set, else the faint empty
     // interior — either way the frame draws, because the window is the layout
@@ -876,9 +887,9 @@
     }
 
     var L = {
-      H: H, W: Wl, square: square, coreCy: coreCy, blobs: square ? [] : blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
-      restSVG: readSVG + langSVG + flagSVG, sceneSVG: sceneSVG, portrait: portrait,
-      mountSVG: langSVG, faceMeta: faceMeta, oItems: oItems, readout: rows, caption: !!activeFlag, flagName: activeFlag,
+      H: H, W: Wl, square: square, coreCy: coreCy, blobs: square ? [] : blobs, textSVG: kaoSVG + readSVG + langSVG + capSVG,
+      restSVG: readSVG + langSVG + capSVG, sceneSVG: sceneSVG, portrait: portrait,
+      mountSVG: langSVG, faceMeta: faceMeta, oItems: oItems, readout: rows, caption: !!moodName, moodName: moodName, flagName: activeFlag,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, textPivot: textPivot, scene: scene, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
       stance: stance, conson: conson
@@ -1100,12 +1111,12 @@
     });
     pwrap.appendChild(vt);
     var fpill = null;
-    if (L.flagName) {                                          // the flag caption as a pill, tucked into the window's bottom-left corner
+    if (L.moodName) {                                          // the mood caption as a pill, tucked into the window's bottom-left corner
       fpill = document.createElement("div");
       fpill.className = "vo";
       fpill.style.cssText = "position:absolute;z-index:2;pointer-events:none;" +
         "left:" + g((L.portrait.x + 6) / W * 100) + "%;top:" + g((L.portrait.y + L.portrait.s - 21) / L.H * 100) + "%;";
-      fpill.innerHTML = '<span class="pill">' + esc(L.flagName.replace("_", " ")) + '</span>';
+      fpill.innerHTML = '<span class="pill">' + esc(L.moodName.replace("_", " ")) + '</span>';
       wrap.appendChild(fpill);
     }
     // Attunement + play: only where the host injects sendPrompt (Claude surfaces). Absent it
