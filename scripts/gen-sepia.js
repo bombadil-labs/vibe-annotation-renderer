@@ -32,9 +32,9 @@ const BASE16 = [
   "...oobbbbbboo...",
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
-  "..oWWWbbbbWWWo..",
-  "..oWWWbbbbWWWo..",
-  "..oWWWbbbbWWWo..",
+  "..obbbbbbbbbbo..",
+  "..obbbbbbbbbbo..",
+  "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
   "..obbbbbbbbbbo..",
@@ -84,23 +84,47 @@ const up2 = list => list.flatMap(q => [
   [2 * q[0], 2 * q[1], q[2]], [2 * q[0] + 1, 2 * q[1], q[2]],
   [2 * q[0], 2 * q[1] + 1, q[2]], [2 * q[0] + 1, 2 * q[1] + 1, q[2]]
 ].map(p => q.length > 2 ? p : [p[0], p[1]]));
-// left-eye pupil presets, 16-grid (whites now cols 6-11 / 20-25, rows 10-15 in the 32-grid)
-const PUP16 = {
-  w:      [[3,6],[4,7],[5,6]],
-  dot:    [[4,6]],
-  down:   [[4,7]],
-  uptiny: [[4,5]],
-  closed: [[3,7],[4,7],[5,7]],
-  happy:  [[3,7],[4,6],[5,7]],
-  wide:   [[3,6],[4,6],[5,6],[3,7],[4,7],[5,7]],
-  cross:  [[3,5],[5,5],[4,6],[3,7],[5,7]],
-  spiral: [[3,5],[4,5],[5,5],[5,6],[5,7],[4,7],[3,7],[3,6]],
-  side:   [[3,6]]
+// ---- the EYE component. Whites live in a 5×6-cell box INSET two cells from the
+// silhouette (they used to bleed into the edge — the maintainer's note), wrapped in a
+// thin near-black socket outline drawn in the mouth's 2px register. The inset is what
+// makes a full outline possible at all: flush eyes could only ever wear half a ring.
+// Pupil presets use the ancestral 3-position grid mapped into the 5-wide box (mirrored
+// eyes lean one real pixel inward — she reads as gently focused). Blink is the same
+// socket, lidded. Left box at x=8; the right eye mirrors at x=19.
+const PUPR = {
+  w: [[0,1],[1,2],[2,1]], dot: [[1,1]], down: [[1,2]], uptiny: [[1,0]],
+  closed: [[0,2],[1,2],[2,2]], happy: [[0,2],[1,1],[2,2]],
+  wide: [[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]],
+  cross: [[0,0],[2,0],[1,1],[0,2],[2,2]],
+  spiral: [[0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]],
+  side: [[0,1]]
 };
-const PUP = {}; Object.keys(PUP16).forEach(k => { PUP[k] = up2(PUP16[k]); });
-// a TRUE heart and a diamond glint, only possible on the finer grid (left-eye coords)
-const HEART = [[6,10],[7,10],[9,10],[10,10],[6,11],[7,11],[8,11],[9,11],[10,11],[11,11],[6,12],[7,12],[8,12],[9,12],[10,12],[11,12],[7,13],[8,13],[9,13],[10,13],[8,14],[9,14]];
-const STAR = [[8,10],[9,10],[7,11],[8,11],[9,11],[10,11],[6,12],[7,12],[8,12],[9,12],[10,12],[11,12],[7,13],[8,13],[9,13],[10,13],[8,14],[9,14]];
+const HEARTR = [[0,0],[1,0],[3,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]];
+const STARR = [[2,0],[1,1],[2,1],[3,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]];
+const POFF = [0, 2, 3];                                        // 3 pupil stations in a 5-wide box; mirror station = 3 - POFF
+function drawEyes(out, lp, rp, blink) {
+  [[8, lp, false], [19, rp, true]].forEach(spec => {
+    const bx = spec[0], preset = spec[1], mir = spec[2];
+    const x0 = bx - 1, x1 = bx + 5, y0 = 9, y1 = 16;           // socket ring bounds; whites bx..bx+4, rows 10-15
+    for (let x = x0 + 1; x < x1; x++) { out.push([x, y0, "p"], [x, y1, "p"]); }
+    for (let y = y0 + 1; y < y1; y++) { out.push([x0, y, "p"], [x1, y, "p"]); }
+    if (blink) {
+      out.push([bx, 13, "p"], [bx + 4, 13, "p"]);              // curved lid inside the socket
+      for (let x = bx + 1; x <= bx + 3; x++) out.push([x, 12, "p"]);
+      return;
+    }
+    for (let y = 10; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
+    if (preset === "heart" || preset === "star") {
+      (preset === "heart" ? HEARTR : STARR).forEach(q =>
+        out.push([bx + (mir ? 4 - q[0] : q[0]), 10 + q[1], preset === "heart" ? "F" : "s"]));
+      return;
+    }
+    PUPR[preset].forEach(q => {
+      const off = mir ? 3 - POFF[q[0]] : POFF[q[0]], py = 10 + 2 * q[1];
+      out.push([bx + off, py, "p"], [bx + off + 1, py, "p"], [bx + off, py + 1, "p"], [bx + off + 1, py + 1, "p"]);
+    });
+  });
+}
 const MOUTH16 = {
   sm: [[7,10],[8,10]],
   open: [[7,9],[8,9],[7,10],[8,10]],
@@ -124,21 +148,10 @@ function rng(seed) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-const mirror = px => px.map(q => q.length > 2 ? [31 - q[0], q[1], q[2]] : [31 - q[0], q[1]]);   // 32-grid mirror
-function eyes(preset) {
-  if (preset === "heart") return HEART.concat(mirror(HEART)).map(q => [q[0], q[1], "F"]);
-  if (preset === "star") return STAR.concat(mirror(STAR)).map(q => [q[0], q[1], "s"]);
-  const src = PUP[preset];
-  return src.concat(mirror(src)).map(q => [q[0], q[1], "p"]);
-}
-function eyesAsym(l, r) {
-  return PUP[l].map(q => [q[0], q[1], "p"]).concat(mirror(PUP[r]).map(q => [q[0], q[1], "p"]));
-}
-const m = name => MOUTH[name].map(q => [q[0], q[1], "p"]);
 const X16 = {
   zzz: [[13,3,"m"],[14,2,"m"],[15,1,"m"]],
   sweat: [[13,4,"d"],[13,5,"d"]],
-  boop: [[2,2,"s"],[13,2,"s"],[3,8,"F"],[4,8,"F"],[11,8,"F"],[12,8,"F"]],
+  boop: [[2,2,"s"],[13,2,"s"],[3,9,"F"],[4,9,"F"],[11,9,"F"],[12,9,"F"]],   // blush on the cheeks, below the new eye sockets
   headband: [[3,4,"R"],[4,4,"R"],[5,4,"R"],[6,4,"R"],[7,4,"R"],[8,4,"R"],[9,4,"R"],[10,4,"R"],[11,4,"R"],[12,4,"R"],[13,5,"R"],[14,6,"R"]],
   brows: [[3,4,"o"],[4,4,"o"],[11,4,"o"],[12,4,"o"]],
   ghost: [[13,6,"G"],[14,6,"G"],[13,7,"G"],[14,7,"G"],[14,8,"G"]],
@@ -148,40 +161,42 @@ const X16 = {
   mote: [[2,3,"d"],[13,10,"d"]]
 };
 const X = {}; Object.keys(X16).forEach(k => { X[k] = up2(X16[k]); });
-// [name, eyes, mouth, chromatophore hue, extras?]
+// A mood is a RECIPE, not a drawing: [name, eyes-preset (or [left,right]), mouth-name,
+// chromatophore hue, extras?]. Eyes and mouth are components that draw themselves;
+// fins (posture code) and spots (live layer) are the renderer's components.
 const MOODS = [
-  ["neutral",    eyes("w"),                m("sm"),    "#b89ab0"],
-  ["content",    eyes("dot"),              m("smile"), "#d9a877"],
-  ["delighted",  eyes("happy"),            m("smile"), "#e8b04a"],
-  ["focused",    eyes("dot"),              m("flat"),  "#7d8fb8"],
-  ["sleepy",     eyes("closed"),           m("sm"),    "#9a90a8", X.zzz],
-  ["sheepish",   eyes("side"),             m("wavy"),  "#d99a8a", X.sweat],
-  ["booped",     eyes("wide"),             m("open"),  "#e88aa0", X.boop],
-  ["thinking",   eyesAsym("dot","uptiny"), m("sm"),    "#8f9ac0"],
-  ["spark",      eyes("star"),             m("smile"), "#ffd76a"],
-  ["excited",    eyes("star"),             m("open"),  "#ffb84a", X.sparkles],
-  ["surprised",  eyes("wide"),             m("open"),  "#b79ad0"],
-  ["tender",     eyes("heart"),            m("smile"), "#e8a0b0"],
-  ["melancholy", eyes("down"),             m("flat"),  "#8f96a8", X.mote],
-  ["anxious",    eyes("dot"),              m("wavy"),  "#7a8296", X.sweat],
-  ["mirth",      eyes("happy"),            m("smile"), "#e0b060"],
-  ["laugh",      eyes("cross"),            m("open"),  "#ffd24a"],
-  ["groan",      eyes("closed"),           m("frown"), "#9a9488"],
-  ["oops",       eyes("wide"),             m("open"),  "#d98a6a", X.sweat],
-  ["frustrated", eyes("dot"),              m("flat"),  "#a05050", X.brows],
-  ["angry",      eyes("dot"),              m("frown"), "#c04040", X.brows],
-  ["dramatic",   eyes("wide"),             m("smile"), "#b0413e", X.bowtie],
-  ["at_peace",   eyes("closed"),           m("smile"), "#8fae8f", X.flower],
-  ["solemn",     eyes("closed"),           m("flat"),  "#8a8f9a"],
-  ["rhyme",      eyes("w"),                m("sm"),    "#9a8fae", X.ghost],
-  ["awe",        eyes("uptiny"),           m("open"),  "#5a6a8a"],
-  ["vertigo",    eyes("spiral"),           m("wavy"),  "#b79ad0"],
-  ["resolute",   eyes("dot"),              m("sm"),    "#e0994e"],   // headband drawn in the fine pass — a high-res object on a low-res body
-  ["puzzled",    eyesAsym("dot","uptiny"), m("tiny"),  "#c0b08a"],
-  ["asking",     eyes("uptiny"),           m("sm"),    "#9ac0b0"],
-  ["weary",      eyes("down"),             m("flat"),  "#8b93a0"],
-  ["wink",       eyesAsym("happy","closed"), m("smile"), "#e0a877"],
-  ["love",       eyes("heart"),            m("open"),  "#e87a90", X.boop]
+  ["neutral",    "w",                "sm",    "#b89ab0"],
+  ["content",    "dot",              "smile", "#d9a877"],
+  ["delighted",  "happy",            "smile", "#e8b04a"],
+  ["focused",    "dot",              "flat",  "#7d8fb8"],
+  ["sleepy",     "closed",           "sm",    "#9a90a8", X.zzz],
+  ["sheepish",   "side",             "wavy",  "#d99a8a", X.sweat],
+  ["booped",     "wide",             "open",  "#e88aa0", X.boop],
+  ["thinking",   ["dot","uptiny"],   "sm",    "#8f9ac0"],
+  ["spark",      "star",             "smile", "#ffd76a"],
+  ["excited",    "star",             "open",  "#ffb84a", X.sparkles],
+  ["surprised",  "wide",             "open",  "#b79ad0"],
+  ["tender",     "heart",            "smile", "#e8a0b0"],
+  ["melancholy", "down",             "flat",  "#8f96a8", X.mote],
+  ["anxious",    "dot",              "wavy",  "#7a8296", X.sweat],
+  ["mirth",      "happy",            "smile", "#e0b060"],
+  ["laugh",      "cross",            "open",  "#ffd24a"],
+  ["groan",      "closed",           "frown", "#9a9488"],
+  ["oops",       "wide",             "open",  "#d98a6a", X.sweat],
+  ["frustrated", "dot",              "flat",  "#a05050", X.brows],
+  ["angry",      "dot",              "frown", "#c04040", X.brows],
+  ["dramatic",   "wide",             "smile", "#b0413e", X.bowtie],
+  ["at_peace",   "closed",           "smile", "#8fae8f", X.flower],
+  ["solemn",     "closed",           "flat",  "#8a8f9a"],
+  ["rhyme",      "w",                "sm",    "#9a8fae", X.ghost],
+  ["awe",        "uptiny",           "open",  "#5a6a8a"],
+  ["vertigo",    "spiral",           "wavy",  "#b79ad0"],
+  ["resolute",   "dot",              "sm",    "#e0994e"],   // headband drawn in the fine pass — a high-res object on a low-res body
+  ["puzzled",    ["dot","uptiny"],   "tiny",  "#c0b08a"],
+  ["asking",     "uptiny",           "sm",    "#9ac0b0"],
+  ["weary",      "down",             "flat",  "#8b93a0"],
+  ["wink",       ["happy","closed"], "smile", "#e0a877"],
+  ["love",       "heart",            "open",  "#e87a90", X.boop]
 ];
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);
 BASE.forEach((r, i) => { if (r.length !== 32) throw new Error("BASE row " + i + " length " + r.length); });
@@ -212,15 +227,17 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 2; frame++) {
   const skin = t > 0 ? mixHex(COLORS.b, mood[3], t) : t < 0 ? mixHex(COLORS.b, "#f9f4ea", -t) : COLORS.b;
   for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
     const k = BASE[y][x];
-    if (k !== ".") cellPut(cx, cy, x, y, (k === "b" || (blink && k === "W")) ? skin : COLORS[k]);   // blink: lids replace the whites
+    if (k !== ".") cellPut(cx, cy, x, y, k === "b" ? skin : COLORS[k]);
   }
-  // fins are no longer baked: the renderer draws them as smooth undulating membranes,
-  // posture per mood (FRILL_OF remains the canonical mood→posture table; the renderer's
-  // fins code-string derives from it — keep them in sync)
-  const lidL = [[6, 13], [7, 12], [8, 12], [9, 12], [10, 12], [11, 13]];   // curved lids, 2px grid — corners dip
-  const eyePix = blink ? lidL.concat(mirror(lidL)).map(q => [q[0], q[1], "p"]) : mood[1];
-  const mouthPix = FINE_MOUTH[mood[0]] ? [] : mood[2];         // fine-mouth moods draw their lips in the fine pass below
-  eyePix.concat(mouthPix, mood[4] || []).forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
+  // COMPOSE the face from components. Fins are the renderer's (smooth membranes,
+  // posture via FRILL_OF); spots are the renderer's (live layer); eyes and mouth
+  // draw themselves here from the mood's recipe.
+  const eyeSpec = mood[1], pair = Array.isArray(eyeSpec) ? eyeSpec : [eyeSpec, eyeSpec];
+  const feat = [];
+  drawEyes(feat, pair[0], pair[1], blink);
+  if (!FINE_MOUTH[mood[0]]) feat.push(...MOUTH[mood[2]].map(q => [q[0], q[1], "p"]));   // fine-mouth moods draw lips in the fine pass below
+  feat.push(...(mood[4] || []));
+  feat.forEach(q => cellPut(cx, cy, q[0], q[1], COLORS[q[2]]));
 
   // ---- the fine pass: sub-pixel ink. Doctrine: the BODY lives on the 4px grid (the
   // chunkiness is the body); body *definition* may use 2px half-resolution ink; objects
@@ -228,20 +245,9 @@ MOODS.forEach((mood, i) => { for (let frame = 0; frame < 2; frame++) {
   // a low-resolution entity interfacing with a higher-resolution reality.
   const fpx = (x, y, c) => { if (x >= 0 && x < CELL && y >= 0 && y < CELL) put(cx + x, cy + y, c); };
   const frect = (x, y, w, h, c) => { for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) fpx(xx, yy, c); };
-  const RING = "#a08a9a", RING_SOFT = "#c8b6c2"; // lash plum + its fainter echo
-  const softenEye = (x) => {                    // patch is 12x12 real px at (x, 20)
-    fpx(x, 20, COLORS.b); fpx(x + 11, 20, COLORS.b);      // clip the white patch's corners back to skin —
-    fpx(x, 31, COLORS.b); fpx(x + 11, 31, COLORS.b);      // the eye itself rounds; no frame needed
-    frect(x + 1, 18, 10, 2, RING);              // top lash, 2px (1px read too thin) — inset, never touches the silhouette
-    frect(x + 1, 32, 10, 2, RING_SOFT);         // soft under-line, 2px
-  };
-  if (!blink) {
-    softenEye(12);                              // left eye (logical cols 3-5, rows 5-7)
-    softenEye(40);                              // right eye (cols 10-12)
-  } else {
-    frect(13, 22, 10, 2, RING);                 // blink: a lash-line over each lid, 2px
-    frect(41, 22, 10, 2, RING);
-  }
+  // (The old plum lash-lines and corner-clips retired with the socket outline: the
+  // eye component now carries its own full ring — possible because the whites are
+  // inset from the silhouette instead of flush against it.)
 
   // The baked chromatophore patterns are RETIRED (v0.20.0): the maintainer found the
   // fixed bold patches distracting once the smooth roaming layer existed. All camo is
@@ -280,13 +286,13 @@ MOODS.forEach((mood, i) => {
       for (let x = gx * SCALE - 1; x <= gx * SCALE + SCALE; x++)
         if (x >= 0 && x < CELL && y >= 0 && y < CELL) ex[y * CELL + x] = 1;
   };
-  const mouthCells = FINE_MOUTH[mood[0]] ? up2([[6, 10], [7, 10], [8, 10], [9, 10]]) : mood[2];   // fine mouths reserve only their own thin row
+  const mouthCells = FINE_MOUTH[mood[0]] ? up2([[6, 10], [7, 10], [8, 10], [9, 10]]) : MOUTH[mood[2]];   // the mouth COMPONENT's own cells; fine mouths reserve only their thin row
   mouthCells.forEach(q => mark(q[0], q[1]));                   // the actual mouth, whatever shape this expression wears
   (mood[4] || []).forEach(q => mark(q[0], q[1]));              // extras that sit on the mantle (brows, blush, flower…)
   const okM = (x, y) => {
     if (x < 0 || x >= CELL || y < 0 || y >= CELL) return false;
     if (BASE[y >> 1][x >> 1] !== "b") return false;            // 2px body grid
-    if (y >= 17 && y <= 34 && ((x >= 11 && x <= 24) || (x >= 39 && x <= 52))) return false;   // eyes + lashes (constant anatomy)
+    if (y >= 17 && y <= 34 && ((x >= 13 && x <= 28) || (x >= 35 && x <= 50))) return false;   // eye sockets incl. outline, inset from the flanks (constant anatomy)
     if (ex[y * CELL + x]) return false;
     if (mood[0] === "resolute" && x >= 8 && x <= 61 && y >= 13 && y <= 32) return false;      // the hachimaki band, knot, and tails
     return true;
