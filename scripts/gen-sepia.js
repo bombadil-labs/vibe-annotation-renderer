@@ -320,23 +320,26 @@ MOODS.forEach((mood, i) => {
       // white theatre pair. Porcelain WHITE, arched gray brow-creases, ∩-crescent
       // smiling eyeholes, a soft nose shadow, and one huge open grin with upturned
       // corners and crease-lines. Covers her entirely; the dart tip peeks above.
-      const MSPAN = { 3: [10, 21], 4: [7, 24], 5: [5, 26], 6: [4, 27], 7: [3, 28], 8: [2, 29],
-        20: [2, 29], 21: [3, 28], 22: [4, 27], 23: [5, 26], 24: [6, 25], 25: [8, 23], 26: [10, 21], 27: [13, 18] };
-      const spanAt = y => MSPAN[y] || [1, 30];
-      for (let y = 3; y <= 27; y++) {
+      // SMALLER than the body (v0.40.1, the maintainer's note): the mask sits inside the
+      // brow so the mantle edge and the live fins stay visible around it — a mask worn
+      // by a creature, not a mask replacing one.
+      const MSPAN = { 6: [12, 19], 7: [9, 22], 8: [7, 24], 9: [6, 25],
+        19: [6, 25], 20: [7, 24], 21: [8, 23], 22: [10, 21], 23: [12, 19], 24: [14, 17] };
+      const spanAt = y => MSPAN[y] || [5, 26];
+      for (let y = 6; y <= 24; y++) {
         const sp = spanAt(y);
         for (let x = sp[0]; x <= sp[1]; x++)
-          feat.push([x, y, (x === sp[0] || x === sp[1] || y === 3 || y === 27) ? "o" : "W"]);
+          feat.push([x, y, (x === sp[0] || x === sp[1] || y === 6 || y === 24) ? "o" : "W"]);
       }
       [false, true].forEach(mirE => {
         const mx = x => mirE ? 31 - x : x;
-        for (let x = 6; x <= 13; x++) feat.push([mx(x), 8, "m"]);                  // arched brow-creases
-        for (let x = 6; x <= 13; x++) feat.push([mx(x), 10, "p"]);                 // the smiling ∩ eyehole: a full arch…
-        [6, 7, 12, 13].forEach(x => { feat.push([mx(x), 11, "p"], [mx(x), 12, "p"]); });   // …with two legs, the cheek rising through the middle
+        for (let x = 7; x <= 12; x++) feat.push([mx(x), 10, "m"]);                 // arched brow-creases
+        for (let x = 7; x <= 12; x++) feat.push([mx(x), 12, "p"]);                 // the smiling ∩ eyehole: a full arch…
+        [7, 8, 11, 12].forEach(x => feat.push([mx(x), 13, "p"]));                  // …with two legs, the cheek rising through the middle
       });
-      [[15, 12], [16, 12], [15, 13], [16, 13], [15, 14], [16, 14], [14, 15], [17, 15]].forEach(q => feat.push([q[0], q[1], "m"]));   // the nose shadow
-      feat.push([6, 15, "m"], [25, 15, "m"], [5, 14, "m"], [26, 14, "m"]);         // smile creases running up from the grin's corners
-      const GRIN = { 16: [[7, 8], [23, 24]], 17: [[7, 9], [22, 24]], 18: [[7, 24]], 19: [[8, 23]], 20: [[9, 22]], 21: [[11, 20]], 22: [[13, 18]] };
+      [[15, 14], [16, 14], [15, 15], [16, 15], [14, 16], [17, 16]].forEach(q => feat.push([q[0], q[1], "m"]));   // the nose shadow
+      feat.push([7, 16, "m"], [24, 16, "m"]);                                      // smile creases running up from the grin's corners
+      const GRIN = { 17: [[8, 9], [22, 23]], 18: [[8, 10], [21, 23]], 19: [[8, 23]], 20: [[9, 22]], 21: [[11, 20]], 22: [[13, 18]] };
       Object.keys(GRIN).forEach(yy => GRIN[yy].forEach(sp2 => { for (let x = sp2[0]; x <= sp2[1]; x++) feat.push([x, +yy, "p"]); }));
       for (let x = 13; x <= 18; x++) feat.push([x, 23, "m"]);                      // the lower lip's shadow under the grin
     }
