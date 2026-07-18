@@ -1015,10 +1015,11 @@
             [[-1], [1]].forEach(function (fside) {
               var fdir2 = fside[0];
               var edgePts = [], seamPts = [];
-              for (var fy = 12; fy <= 44; fy++) {
+              for (var fy = 12; fy <= 46; fy++) {
                 var axc = (fdir2 < 0 ? flankX(fy) + 1.5 : 64 - flankX(fy) - 1.5) * fsc;
-                var prof = Math.sin((fy - 12) / 32 * Math.PI);                       // tapered ends, widest amidships
-                var sagF = fcode === "d" ? 0.25 + (fy - 12) / 32 * 0.9 : 1;          // drooped: the membrane pools toward the bottom
+                var fu = (fy - 12) / 34;
+                var prof = Math.sin(Math.pow(fu, 1.5) * Math.PI) * (1 + 0.6 * fu);   // skewed: the membrane FLARES toward the bottom — no cape read now the head is a dart
+                var sagF = fcode === "d" ? 0.25 + fu * 0.9 : 1;                      // drooped: the membrane pools toward the bottom
                 // ORGANIC undulation: two travelling waves at incommensurate (golden-
                 // ratio) frequencies plus a slow amplitude breath — the motion never
                 // visibly loops, the way the chromatophore drift never repeats
