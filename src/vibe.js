@@ -585,7 +585,6 @@
       ".vo-stats .smk{position:absolute;top:-0.22em;width:0.42em;height:1.16em;border-radius:0.3em;background:#5c4320;box-shadow:0 0 0 1.5px rgba(246,234,208,0.7)}" +
       ".vo-stats .sval{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.62em;width:2.4em;flex:none;text-align:right;opacity:0.75}" +
       ".vo-stats .send{font-family:var(--font-sans,ui-sans-serif,sans-serif);font-size:0.56em;opacity:0.6;flex:none}" +
-      ".vo-stats .swch{width:1.15em;height:1.15em;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1.5px rgba(40,28,12,0.28)}" +
       "@media (prefers-color-scheme:dark){.vo{color:#f6ead0;text-shadow:0 1px 2px rgba(36,26,6,0.6)}" +
       ".vo .pill{background:rgba(216,197,160,0.24);color:#f6ead0}" +
       ".vo-stats .slbl{background:rgba(216,197,160,0.24)}" +
@@ -646,14 +645,25 @@
         g(sv * 100) + '% - 0.21em)"></span></span><span class="send">telling</span>';
       st.appendChild(r3);
     }
-    if (p.consonance != null) gauge("consonance", num(p.consonance, 1), lerpHex(pal0, "#8fae8f", 0.4),
-      "consonance — when several feelings share the palette: 0 grinding against each other, 1 harmonizing");
-    if (p.palette && p.palette.length) {
+    var palArr = [].concat(p.palette || []).filter(Boolean).slice(0, 6).map(String);
+    if (palArr.length) {                                       // palette and consonance share ONE instrument: the bar interpolates the palette
+      if (palArr.length === 1) palArr = [palArr[0], palArr[0]];// left to right; the filled span is saturated, the remainder washes toward gray —
+      var cv = num(p.consonance, 1);                           // its width IS consonance (unreported → full bar: absence reads as harmony)
+      var stops = function (xf) {
+        return "linear-gradient(90deg," + palArr.map(function (c, i) {
+          return xf(c) + " " + g(i / (palArr.length - 1) * 100) + "%";
+        }).join(",") + ")";
+      };
+      var satG = stops(function (c) { return c; });
+      var dullG = stops(function (c) { return lerpHex(lerpHex(c, grayLum(c), 0.72), "#b8b2a6", 0.2); });
       var r4 = document.createElement("div"); r4.className = "srow";
-      r4.title = "palette — current feelings as colors, in descending order of intensity";
-      var sw = '<span class="slbl">palette</span>';
-      [].concat(p.palette).slice(0, 6).forEach(function (c) { sw += '<span class="swch" style="background:' + c + '" title="' + esc(String(c)) + '"></span>'; });
-      r4.innerHTML = sw;
+      r4.title = (p.consonance != null
+        ? "consonance — the palette's feelings, left to right; the saturated span is how much they harmonize (1) vs grind (0)"
+        : "palette — current feelings as colors, in descending order of intensity");
+      r4.innerHTML = '<span class="slbl">' + (p.consonance != null ? "consonance" : "palette") + '</span>' +
+        '<span class="strk"><span class="sfil" style="width:100%;background:' + dullG + '"></span>' +
+        '<span class="sfil" style="width:100%;background:' + satG + ';clip-path:inset(0 ' + g(100 - cv * 100) + '% 0 0 round 1em)"></span></span>' +
+        (p.consonance != null ? '<span class="sval">' + cv.toFixed(2) + '</span>' : '<span class="sval"></span>');
       st.appendChild(r4);
     }
     st.style.gridArea = "1/1";
