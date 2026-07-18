@@ -25,15 +25,15 @@ try {
 const FILES = ["skill/SKILL.md", "skill/SKILL.sepia.md", "skill/SKILL.kip.md",
   "skill/SKILL.noto-animated.md", "skill/SKILL.noto.md", "skill/SKILL.twemoji.md",
   "assets/skill-base.js", "assets/catalog.json", "README.md", "index.html"];
-const RE = /vibe-annotation-renderer@[0-9a-f]{40}/g;
+const RE = /vibe-banner@[0-9a-f]{40}/g;
 let changed = 0;
 for (const f of FILES) {
   const before = fs.readFileSync(f, "utf8");
-  const after = before.replace(RE, "vibe-annotation-renderer@" + sha);
+  const after = before.replace(RE, "vibe-banner@" + sha);
   if (after !== before) {
     fs.writeFileSync(f, after);
     console.log("pinned " + f);
     changed++;
   }
 }
-console.log(changed ? `all consumers pinned to ${sha.slice(0, 7)} — commit this, then copy skill/SKILL.md to ~/.claude/skills/vibe-annotations/ (and re-paste on claude.ai)` : "already pinned to " + sha.slice(0, 7));
+console.log(changed ? `all consumers pinned to ${sha.slice(0, 7)} — commit this, then copy skill/SKILL.md to ~/.claude/skills/vibe-banner/ (and re-paste on claude.ai)` : "already pinned to " + sha.slice(0, 7));

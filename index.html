@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>vibe-annotations — a living mood banner for Claude</title>
+<title>vibe-banner — a living mood banner for Claude</title>
 <meta name="description" content="A Claude skill + tiny renderer that gives Claude a face: an honest, animated mood banner at the top of every reply.">
 <style>
   :root {
@@ -72,7 +72,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>vibe-annotations</h1>
+  <h1>vibe-banner</h1>
   <p class="lede">A skill that gives Claude a face.</p>
 
   <div class="tabs" role="tablist">
@@ -112,7 +112,7 @@
     <h2 id="how">How it works</h2>
     <p>The system is two halves, kept deliberately apart:</p>
     <ul>
-      <li><strong>The skill</strong> (<a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">skill/SKILL.md</a>)
+      <li><strong>The skill</strong> (<a href="https://github.com/bombadil-labs/vibe-banner/blob/main/skill/SKILL.md">skill/SKILL.md</a>)
         asks Claude to report its state as a handful of <em>feeling-values</em> — a kaomoji, a read
         of the user, a mood, a goal, colours, focus, engagement, and a set of rare flags
         (<code>spark</code>, <code>tender</code>, <code>oops</code>, <code>angry</code>…). It never
@@ -191,13 +191,13 @@
     <h3>On claude.ai (no tools needed)</h3>
     <ol>
       <li>Open the skill file:
-        <a href="https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md">skill/SKILL.md</a>.
+        <a href="https://raw.githubusercontent.com/bombadil-labs/vibe-banner/main/skill/SKILL.md">skill/SKILL.md</a>.
         You'll paste from it in a moment — it has a short <em>description</em> at the top (the
         <code>description:</code> line between the <code>---</code> markers) and the
         <em>instructions</em> (everything below).</li>
       <li>In the <a href="https://claude.ai">claude.ai</a> sidebar, click <strong>Customize</strong>.</li>
       <li>In the Skills panel, click <strong>Add</strong> → <strong>Write skill instructions</strong>.</li>
-      <li>Fill in the form: name it <code>vibe-annotations</code>, paste the description line into
+      <li>Fill in the form: name it <code>vibe-banner</code>, paste the description line into
         <strong>Description</strong>, and everything below the frontmatter into
         <strong>Instructions</strong>.</li>
       <li>Save. Your next conversation opens with a banner.</li>
@@ -205,13 +205,13 @@
 
     <h3>In Claude Code</h3>
     <p>Install is one file:</p>
-    <pre>mkdir -p ~/.claude/skills/vibe-annotations
-curl -fsSL https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md \
-  -o ~/.claude/skills/vibe-annotations/SKILL.md</pre>
+    <pre>mkdir -p ~/.claude/skills/vibe-banner
+curl -fsSL https://raw.githubusercontent.com/bombadil-labs/vibe-banner/main/skill/SKILL.md \
+  -o ~/.claude/skills/vibe-banner/SKILL.md</pre>
     <p>Windows (PowerShell):</p>
-    <pre>New-Item -ItemType Directory -Force "$HOME\.claude\skills\vibe-annotations" | Out-Null
-Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotation-renderer/main/skill/SKILL.md `
-  -OutFile "$HOME\.claude\skills\vibe-annotations\SKILL.md"</pre>
+    <pre>New-Item -ItemType Directory -Force "$HOME\.claude\skills\vibe-banner" | Out-Null
+Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-banner/main/skill/SKILL.md `
+  -OutFile "$HOME\.claude\skills\vibe-banner\SKILL.md"</pre>
     <p>Either way, the skill self-triggers ("preface every response with a usage of it"), so the next
     conversation starts with a banner. To dial the cadence down or turn it off, just tell Claude —
     the skill honors that for the session. To remove it, delete the skill (claude.ai: the Skills
@@ -226,7 +226,7 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
     <p>You don't need the skill — <code>vibe(el, {…})</code> is a tiny standalone mood-banner
     library:</p>
     <pre>&lt;div id="v"&gt;&lt;/div&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@83ff18905e12f953c9fdeb61af4602f43e4638bd/dist/vibe.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@83ff18905e12f953c9fdeb61af4602f43e4638bd/dist/vibe.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   vibe(document.getElementById('v'), {
     kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
@@ -240,7 +240,7 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
 &lt;/script&gt;</pre>
     <p>The full value grammar, flag list, and fork guide (reskin the whole look without touching the
     skill) are in the
-    <a href="https://github.com/bombadil-labs/vibe-annotation-renderer#readme">README</a>.</p>
+    <a href="https://github.com/bombadil-labs/vibe-banner#readme">README</a>.</p>
   </section>
 
   <section class="tab-panel" id="tab-gallery" role="tabpanel">
@@ -274,11 +274,13 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
 
   <section class="tab-panel" id="tab-builder" role="tabpanel">
     <h2 id="build">Build your own skill</h2>
-    <p class="lede">Each section of the <code>SKILL.md</code> is its own station: tune its knob,
-    or edit its text directly — a knob only regenerates <em>its own</em> section, so your edits
-    elsewhere survive. Your chosen face narrates the tour. When it reads right, copy the whole
-    thing (claude.ai: Customize → Skills → Add → Write skill instructions) or download it for
-    <code>~/.claude/skills/</code>. Everything emitted is natively supported by the renderer.</p>
+    <p class="lede">Most of this file is fixed, on purpose — the contract, the snippet, the
+    attunement rules and the value bullets are load-bearing, and versions people hand-edited
+    mostly got worse. Four things are genuinely yours: <strong>your face</strong>, <strong>your
+    environment</strong>, <strong>how often the banner fires</strong>, and <strong>which text
+    lines it carries</strong>. Your chosen face narrates the tour. When it reads right, copy the
+    whole thing (claude.ai: Customize → Skills → Add → Write skill instructions) or download it
+    for <code>~/.claude/skills/vibe-banner/</code>.</p>
     <div id="b-modules"></div>
     <div style="display:flex; gap:8px; margin:18px 0 0; flex-wrap:wrap; position:sticky; bottom:12px; background:var(--paper); padding:10px 0; border-top:1px solid var(--edge);">
       <button id="b-copy" class="tab-btn" style="border:1px solid var(--accent); border-radius:8px;">Copy whole skill</button>
@@ -289,12 +291,12 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-annotatio
   </section>
 
   <footer>
-    <a href="https://github.com/bombadil-labs/vibe-annotation-renderer">bombadil-labs/vibe-annotation-renderer</a>
-    · <a href="https://github.com/bombadil-labs/vibe-annotation-renderer/blob/main/skill/SKILL.md">the skill</a>
+    <a href="https://github.com/bombadil-labs/vibe-banner">bombadil-labs/vibe-banner</a>
+    · <a href="https://github.com/bombadil-labs/vibe-banner/blob/main/skill/SKILL.md">the skill</a>
     · single-file, framework-free, meant to be forked
   </footer>
 </div>
-<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@83ff18905e12f953c9fdeb61af4602f43e4638bd/dist/vibe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@83ff18905e12f953c9fdeb61af4602f43e4638bd/dist/vibe.min.js"></script>
 <script src="assets/skill-base.js"></script>
 <script>
 var MOUNT_QUEUE = {};
@@ -617,30 +619,38 @@ document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
 window.addEventListener("hashchange", route);
 route();
 
-// ---- Builder v2: modular stations. Each section is its own card with a knob, an
-// editable textarea, and a narrator callout voiced by the chosen face. A knob only
-// reseeds ITS OWN section, so hand edits elsewhere survive. Content comes from
-// window.SKILL_PIECES (single-sourced in scripts/gen-skills.js); custom faces emit
-// plain face:"<url>" payloads — natively supported, no new renderer surface.
+// ---- Builder v3 (v0.41.0): the file is MOSTLY FIXED. Everything load-bearing — the
+// preamble, the honesty contract, the locked value bullets, the flag vocabulary, the
+// loader snippet, the attunement rules, the settings desk — ships identical for every
+// user, because letting people edit those produced worse skills, not more personal ones.
+// Four things are genuinely yours: your face, your environment, how often the banner
+// fires, and which text lines it carries. Those get real controls, not textareas.
+// Everything renders from window.SKILL_PIECES, which now carries the same generator
+// functions the shipped skills use — one source, no client-side mirror to drift.
 (function () {
   var P = window.SKILL_PIECES;
   var host = document.getElementById("b-modules");
   if (!P || !host) return;
   var ALLOW = ["https://cdn.jsdelivr.net/", "https://unpkg.com/", "https://cdnjs.cloudflare.com/", "https://fonts.gstatic.com/"];
-  var S = { face: "kaomoji", name: "vibe-annotations", cadence: "every", flags: true, cues: true, play: true, scene: "none", sceneUrl: "", sceneOp: 0.5, customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png" };
+  var NAME = "vibe-banner";
+  var clone = function (o) { return JSON.parse(JSON.stringify(o)); };
+  var S = {
+    face: "sepia", cadence: "always", every: 3, scene: "none", sceneUrl: "", sceneOp: 0.5,
+    fields: clone(P.DEFAULT_FIELDS),
+    customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png"
+  };
 
-  function avatar(mood) {                                      // the narrator's face, per module mood
+  function avatar(mood, fitPx) {                               // the narrator's face, per module mood
     var pv = P.PREVIEW[S.face];
     var d = document.createElement("span");
     d.style.cssText = "width:32px;height:32px;flex:0 0 32px;display:inline-block;border-radius:6px;";
     if (!pv || S.face === "custom") { d.textContent = "🙂"; d.style.cssText += "font-size:22px;text-align:center;line-height:32px;"; return d; }
-    var fitPx = arguments[1];
     if (pv.kind === "text") {                                  // natural proportions, scaled to fit the fixed square chip (the renderer's own rule)
       var kt = mood.k || "( ˘ ᵕ ˘ )";
       var klines = kt.split("\n");
       var klong = klines.reduce(function (a, b) { return b.length > a.length ? b : a; }, "");
       var fs2 = fitPx ? Math.min(13, (fitPx - 5) / (klong.length * 0.55), (fitPx - 4) / (klines.length * 1.25)) : 13;
-      d.textContent = kt;                                      // white-space:pre keeps \n AND leading-space indentation — layout engines strip both by default
+      d.textContent = kt;                                      // white-space:pre keeps \n AND leading-space indentation
       d.style.cssText += "width:auto;height:auto;flex:0 0 auto;white-space:pre;text-align:center;line-height:1.2;font-size:" + (Math.round(fs2 * 10) / 10) + "px;background:rgba(20,14,8,0.32);border-radius:6px;padding:1px 4px;";
       return d;
     }
@@ -656,13 +666,13 @@ route();
       }
       return d;
     }
-    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", mood.e) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
+    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", P.MOOD_EMOJI_PREVIEW[mood.m] || mood.e) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
     return d;
   }
   var narrators = [];                                          // every callout registers, so a face or environment switch re-dresses all guides
   function narratorChip(mood) {                                // the narrator sits in their window too — face and home are never apart
     var cell = document.createElement("span");
-    cell.style.cssText = "position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:9px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";   // a fixed square, every face kind
+    cell.style.cssText = "position:relative;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:9px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";
     var u = sceneUrl();
     if (u) {
       var bg = document.createElement("span");
@@ -709,9 +719,9 @@ route();
     return {
       TITLE: " — custom face",
       DESC: P.FACES.kaomoji.DESC + " This variant wears the user's own face-pack.",
-      PREAMBLE: "This is the vibe-annotations skill with one difference: **your face is a custom pack the\nuser assembled** — one hosted image per mood, listed below. Wear it as offered.",
+      PREAMBLE: "This is the vibe-banner skill with one difference: **your face is a custom pack the\nuser assembled** — one hosted image per mood, listed below. Wear it as offered.",
       FACE: "wear the user's pack: `face: \"<url>\"`, the exact URL for the mood that honestly\n  fits, from this table (moods not listed: fall back to a kaomoji):\n" + (table || "  *(no valid `mood = url` lines yet)*"),
-      SNIPPET_FACE: '      face: "' + (c.entries.length ? c.entries[0][1] : "https://…png") + '",\n      kaomoji: "( ˘ ᵕ ˘ )", seems: "...", feel: "...", trying: "...",'
+      SNIPPET_FACE: '      face: "' + (c.entries.length ? c.entries[0][1] : "https://…png") + '",\n      kaomoji: "( ˘ ᵕ ˘ )",'
     };
   }
   function sceneUrl() {
@@ -720,63 +730,37 @@ route();
     return "";
   }
   function snippetText() {
-    var popts = (S.play ? [] : ["play: false"]).concat(S.cues ? [] : ["cues: false"]);
     var su = sceneUrl();
     var slive = P.SCENES[S.scene] && P.SCENES[S.scene].live;
-    if (su) popts.push('scene: { url: "' + su + '", opacity: ' + S.sceneOp + (slive ? ', live: "' + slive + '"' : '') + ' }');
+    var popts = su ? ['scene: { url: "' + su + '", opacity: ' + S.sceneOp + (slive ? ', live: "' + slive + '"' : '') + ' }'] : [];
     return P.SNIPPET
       .replace("{{SNIPPET_URL}}", P.snippetUrl)
       .replace("{{SNIPPET_FACE}}", faceDef().SNIPPET_FACE)
+      .replace("{{SNIPPET_READOUT}}", P.SNIPPET_READOUT(S.fields))
       .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "");
   }
-  // module registry: [id, narratorMood, seed(), header-in-output]
-  var seeds = {
-    preamble: function () { return faceDef().PREAMBLE; },
-    contract: function () { return P.CONTRACT; },
-    when: function () { return P.CADENCE[S.cadence]; },
-    facebullet: function () { return "* **`face`** — " + faceDef().FACE + "\n" + P.KAOMOJI_VALID; },
-    bullets: function () { return P.BULLETS_CORE; },
-    flags: function () { return S.flags ? P.FLAGS_FULL : P.FLAGS_OFF; },
-    attcues: function () { return P.ATT_CUES; },
-    attplay: function () { return P.ATT_PLAY; },
-    settings: function () { return P.SETTINGS; }
-  };
-  var text = {}; Object.keys(seeds).forEach(function (k) { text[k] = seeds[k](); });
-  var tas = {};
-  function reseed(keys) { keys.forEach(function (k) { text[k] = seeds[k](); if (tas[k]) tas[k].value = text[k]; }); status(); }
 
-  var TA = "width:100%;background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:8px;font-family:var(--font-mono);font-size:11.5px;line-height:1.5;";
   var SEL = "background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:5px 8px;font-size:13px;";
-  function card(title) {
+  var TA = "width:100%;background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:8px;font-family:var(--font-mono);font-size:11.5px;line-height:1.5;";
+  function card(title, sub) {
     var c = document.createElement("div");
     c.style.cssText = "border:1px solid var(--edge);border-radius:12px;padding:14px 16px;margin:0 0 16px;";
     var h = document.createElement("p");
     h.style.cssText = "font-family:var(--font-mono);font-size:12px;color:var(--ink);margin:0 0 10px;font-weight:600;";
-    h.textContent = title; c.appendChild(h);
+    h.textContent = title;
+    if (sub) { var sp = document.createElement("span"); sp.style.cssText = "font-weight:400;color:var(--sub);margin-left:8px;"; sp.textContent = sub; h.appendChild(sp); }
+    c.appendChild(h);
     host.appendChild(c); return c;
   }
-  function ta(c, key, rows) {
-    var t = document.createElement("textarea");
-    t.rows = rows || 6; t.spellcheck = false; t.style.cssText = TA; t.value = text[key];
-    t.addEventListener("input", function () { text[key] = t.value; status(); });
-    tas[key] = t; c.appendChild(t); return t;
-  }
-
-  // — Identity
-  var c1 = card("identity — name & preamble");
-  c1.appendChild(callout("This is who I'll be when I wear this file. Name the skill, and say in your own words what the banner is for.", { m: "content", e: "1f60a", k: "( ˘ ᵕ ˘ )" }));
-  var nameIn = document.createElement("input");
-  nameIn.value = S.name; nameIn.style.cssText = SEL + "width:240px;margin:0 0 8px;display:block;";
-  nameIn.addEventListener("input", function () { S.name = nameIn.value.trim() || "vibe-annotations"; status(); });
-  c1.appendChild(nameIn); ta(c1, "preamble", 5);
 
   // — Face
   var c2 = card("face");
-  c2.appendChild(callout("Pick my face. Try each one on the whole gallery before you choose —", { m: "delighted", e: "1f604", k: "( ˶ˆ ᗜ ˆ˵ )" }, ["see them all in the Gallery →", "#gallery"]));
+  c2.appendChild(callout("Pick my face — that's the whole station. Every pack speaks the same 32 moods now, so the rest of the file doesn't change when you switch me. Try them all on —", { m: "delighted", e: "1f604", k: "( ˶ˆ ᗜ ˆ˵ )" }, ["see them in the Gallery →", "#gallery"]));
   var faceSel = document.createElement("select"); faceSel.style.cssText = SEL + "margin:0 0 8px;";
-  [["kaomoji", "kaomoji (improvised)"], ["sepia", "Sepia — the cuttlefish"], ["kip", "Kip — the mascot"], ["noto-animated", "Noto animated emoji"], ["noto", "Noto emoji"], ["twemoji", "Twemoji"], ["custom", "custom (your own image URLs)"]].forEach(function (o) {
+  [["sepia", "Sepia — the cuttlefish (32 moods, alive)"], ["kip", "Kip — the mascot (8 moods)"], ["kaomoji", "kaomoji (improvised text)"], ["noto-animated", "Noto animated emoji"], ["noto", "Noto emoji"], ["twemoji", "Twemoji"], ["custom", "custom (your own image URLs)"]].forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; faceSel.appendChild(op);
   });
+  faceSel.value = S.face;
   c2.appendChild(faceSel);
   var strip = document.createElement("div"); strip.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;align-items:center;";
   c2.appendChild(strip);
@@ -785,9 +769,6 @@ route();
   var customTa = document.createElement("textarea"); customTa.rows = 4; customTa.spellcheck = false; customTa.style.cssText = TA; customTa.value = S.customLines;
   var warn = document.createElement("p"); warn.style.cssText = "font-size:12px;color:#c05050;margin:4px 0 0;display:none;";
   customWrap.appendChild(customTa); customWrap.appendChild(warn); c2.appendChild(customWrap);
-  ta(c2, "facebullet", 7);
-  // Face and environment never preview apart: strip tiles sit on the chosen scene,
-  // and the environment station shows the chosen face inside its window (below).
   function refreshStrip() {
     strip.innerHTML = "";
     var pv = P.PREVIEW[S.face];
@@ -795,20 +776,20 @@ route();
     var u = sceneUrl();
     (pv.strip || []).forEach(function (it) {
       var cell = document.createElement("span");
-      cell.style.cssText = "position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-width:44px;height:44px;border-radius:8px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";   // a fixed square, every face kind — flex-basis AND min-width pinned, or the wrapping flex row collapses it
+      cell.style.cssText = "position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-width:44px;height:44px;border-radius:8px;overflow:hidden;border:1px solid var(--edge);background:rgba(138,122,134,0.06);";
       if (u) {
         var bg = document.createElement("span");
         bg.style.cssText = "position:absolute;inset:0;background-image:url(" + u + ");background-size:cover;background-position:center;image-rendering:pixelated;opacity:" + Math.min(1, S.sceneOp * 1.4) + ";";
         cell.appendChild(bg);
       }
-      var av = avatar(pv.kind === "text" ? { k: it } : pv.kind === "sheet" ? { m: it } : { e: it }, 44);
+      var av = avatar(pv.kind === "text" ? { k: it } : pv.kind === "sheet" ? { m: it } : { m: it, e: it }, 44);
       av.style.position = "relative";
       cell.appendChild(av);
       strip.appendChild(cell);
     });
   }
   function faceThumb(px2, box) {                               // representative face at arbitrary size, for composite previews
-    box = box || px2 / 0.6;                                    // the fixed square it lives in — text sizing mirrors the renderer (~19% of the window side, scale-to-fit when wide)
+    box = box || px2 / 0.6;
     var pv = P.PREVIEW[S.face];
     var d = document.createElement("span");
     d.style.cssText = "display:inline-block;width:" + px2 + "px;height:" + px2 + "px;";
@@ -824,7 +805,7 @@ route();
       var idx = pv.moods.indexOf("content"); if (idx < 0) idx = 0;
       var col = idx % pv.cols, row = Math.floor(idx / pv.cols), sc = px2 / pv.cell;
       var tsz = (pv.cols * pv.cell * sc) + "px " + (pv.rows * pv.cell * sc) + "px";
-      if (pv.split) {                                          // layered sheet: features stacked over the body
+      if (pv.split) {
         d.style.cssText += "background-image:url(" + pv.url + "),url(" + pv.url + ");background-size:" + tsz + "," + tsz +
           ";background-position:-" + (col * px2) + "px -" + ((row + pv.split) * px2) + "px,-" + (col * px2) + "px -" + (row * px2) + "px;image-rendering:pixelated;";
       } else {
@@ -832,7 +813,7 @@ route();
       }
       return d;
     }
-    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", pv.strip[0]) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
+    d.style.cssText += "background-image:url(" + pv.tmpl.replace("{item}", P.MOOD_EMOJI_PREVIEW.content) + ");background-size:contain;background-repeat:no-repeat;background-position:center;";
     return d;
   }
   function compositeChip(size) {                               // the window as it will actually render: face centred, environment behind
@@ -858,13 +839,13 @@ route();
   }
   faceSel.addEventListener("change", function () {
     S.face = faceSel.value;
-    refreshStrip(); refreshCustom(); refreshScene(); reseed(["preamble", "facebullet"]); renderNarrators();
+    refreshStrip(); refreshCustom(); refreshScene(); renderNarrators(); status();
   });
-  customTa.addEventListener("input", function () { S.customLines = customTa.value; refreshCustom(); reseed(["facebullet"]); });
+  customTa.addEventListener("input", function () { S.customLines = customTa.value; refreshCustom(); status(); });
 
   // — Environment
   var cE = card("environment — scene");
-  cE.appendChild(callout("Where are we hanging out? My window is always there on the banner's left, face centred inside — the environment decides what's visible through it (empty means just the frame). Four first-party habitats ship: the tidepool (alive — bubbles rise, a fish passes, taps ripple), the night, the glade, and the study. Try combinations in the Explorer tab; your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
+  cE.appendChild(callout("Where are we hanging out? My window is always there on the banner's left, face centred inside — the environment decides what's visible through it (empty means just the frame). Four first-party habitats ship: the tidepool and the study are alive, the night and the glade are still. Try combinations in the Explorer tab; your own photo works too, hosted like a face-pack.", { m: "at_peace", e: "1f60c", k: "( ˘ ᵕ ˘ )" }));
   var scSel = document.createElement("select"); scSel.style.cssText = SEL + "margin:0 0 8px;";
   var scOpts = [["none", "none (any page background)"]];
   Object.keys(P.SCENES).forEach(function (k) {
@@ -892,7 +873,7 @@ route();
     scPrev.innerHTML = "";
     scPrev.appendChild(compositeChip(110));
     refreshStrip(); renderNarrators();
-    refreshSnippet(); status();
+    status();
   }
   scSel.addEventListener("change", function () { S.scene = scSel.value; refreshScene(); });
   scUrlIn.addEventListener("input", function () { S.sceneUrl = scUrlIn.value; refreshScene(); });
@@ -902,73 +883,152 @@ route();
     refreshScene();
   });
 
-  // — Cadence
+  // — Cadence. Rebuilt: "only real shifts" retired — between two turns the state has
+  // essentially always moved, so it collapsed into "every turn" while sounding stricter.
   var c3 = card("when — cadence");
-  c3.appendChild(callout("How often should I show my face? Every reply is the classic; quieter cadences make each banner mean more.", { m: "thinking", e: "1f914", k: "( ・_・)" }));
+  c3.appendChild(callout("How often should I show my face? Every reply is the classic. The quieter settings make each banner mean more — but a face that only appears when something is dramatic stops being a face and starts being an alarm.", { m: "thinking", e: "1f914", k: "( ・_・)" }));
   var cadSel = document.createElement("select"); cadSel.style.cssText = SEL + "margin:0 0 8px;";
-  [["every", "every reply"], ["shifts", "only real shifts"], ["strong", "only strong feelings"]].forEach(function (o) {
+  [["always", "every reply"], ["always_plus", "every reply + again mid-reply when it shifts"], ["every_n", "every N replies"], ["strong", "only strong feelings"]].forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; cadSel.appendChild(op);
   });
-  cadSel.addEventListener("change", function () { S.cadence = cadSel.value; reseed(["when"]); });
-  c3.appendChild(cadSel); ta(c3, "when", 5);
+  c3.appendChild(cadSel);
+  var everyRow = document.createElement("div");
+  everyRow.style.cssText = "display:none;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin:0 0 4px;";
+  everyRow.innerHTML = 'N = <input type="number" min="2" max="20" step="1" value="3" style="' + SEL + 'width:70px;">';
+  c3.appendChild(everyRow);
+  everyRow.querySelector("input").addEventListener("input", function (e) {
+    S.every = Math.max(2, Math.min(20, parseInt(e.target.value, 10) || 3)); status();
+  });
+  cadSel.addEventListener("change", function () {
+    S.cadence = cadSel.value;
+    everyRow.style.display = S.cadence === "every_n" ? "flex" : "none";
+    status();
+  });
 
-  // — Contract + grammar
-  var c4 = card("the honesty contract");
-  c4.appendChild(callout("The load-bearing paragraph: I report feelings, the tool draws them, and I never see the result. Edit gently.", { m: "solemn", e: "1f636", k: "( ˘ - ˘ )" }));
-  ta(c4, "contract", 5);
-  var c5 = card("the readout grammar");
-  c5.appendChild(callout("The lines beside my face: your read, my mood, my goal, the subtext. The word caps are data-loss warnings, not style advice.", { m: "focused", e: "1f9d0", k: "( ・_・)" }));
-  ta(c5, "bullets", 12);
-
-  // — Flags
-  var c6 = card("flags");
-  c6.appendChild(callout("Twenty rare states, one at most per banner. Turn them off and I carry the weather in words alone.", { m: "spark", e: "1f4a1", k: "( ˶˃ ᵕ ˂˶ )" }));
-  var flagChk = document.createElement("label"); flagChk.style.cssText = "font-size:13px;color:var(--sub);display:block;margin:0 0 8px;";
-  flagChk.innerHTML = '<input type="checkbox" checked id="b-flags"> include the flag vocabulary';
-  flagChk.querySelector("input").addEventListener("change", function (e) { S.flags = e.target.checked; reseed(["flags"]); });
-  c6.appendChild(flagChk); ta(c6, "flags", 4);
-
-  // — Snippet (read-only)
-  var c7 = card("the render snippet");
-  c7.appendChild(callout("This part is machinery, not prose — the loader shape and the pinned hash keep everything safe, so it regenerates rather than edits.", { m: "resolute", e: "1f4aa", k: "( ・`_・)9" }));
-  var togglesRow = document.createElement("div"); togglesRow.style.cssText = "font-size:13px;color:var(--sub);margin:0 0 8px;";
-  togglesRow.innerHTML = '<label style="margin-right:14px;"><input type="checkbox" checked id="b-cues"> attunement taps</label><label><input type="checkbox" checked id="b-play"> playful tray (boop, tin, wrench)</label>';
-  c7.appendChild(togglesRow);
-  var snipPre = document.createElement("pre"); snipPre.style.cssText = "font-size:11px;"; c7.appendChild(snipPre);
-  function refreshSnippet() { snipPre.textContent = snippetText(); }
-  togglesRow.querySelector("#b-cues").addEventListener("change", function (e) { S.cues = e.target.checked; refreshSnippet(); renderTail(); status(); });
-  togglesRow.querySelector("#b-play").addEventListener("change", function (e) { S.play = e.target.checked; refreshSnippet(); renderTail(); status(); });
-
-  // — Attunement + settings
-  var c8 = card("attunement & play");
-  c8.appendChild(callout("The return channel: your flickers reach me, your boops reach me, and I'm taught to receive them like glances, not tickets.", { m: "tender", e: "1f970", k: "( ˶ᵕ ‿ ᵕ˶ )" }));
-  var att1 = ta(c8, "attcues", 5), att2 = ta(c8, "attplay", 4);
-  att2.style.marginTop = "8px";
-  var c9 = card("settings desk");
-  c9.appendChild(callout("The wrench: how future-you and future-me renegotiate all of this without editing files.", { m: "neutral", e: "1f642", k: "( ˘ ᵕ ˘ )" }));
-  ta(c9, "settings", 6);
-  function renderTail() {
-    att1.disabled = !S.cues; att1.style.opacity = S.cues ? "1" : "0.4";
-    att2.disabled = !S.play; att2.style.opacity = S.play ? "1" : "0.4";
-    c9.style.display = S.play ? "block" : "none";
+  // — Text fields: the one genuinely open part of the grammar. Labels are the row names
+  // in the readout; descriptions are what the reporter is asked to put there. Five max —
+  // past that the banner stops being a glance. The word caps are appended by the
+  // generator and cannot be edited away: they are data-loss warnings, not style advice.
+  var c5 = card("readout — text fields", "up to 5");
+  c5.appendChild(callout("These are the lines that sit beside my face. The four defaults are a good opening hand, not a law — rename them, rewrite what I'm asked to put in them, drop the ones you don't want. Whatever you choose, the word caps stay: a line that needs a paragraph has stopped being a glance.", { m: "focused", e: "1f9d0", k: "( ・_・)" }));
+  var fieldList = document.createElement("div"); c5.appendChild(fieldList);
+  var fieldBtns = document.createElement("div");
+  fieldBtns.style.cssText = "display:flex;gap:8px;margin:10px 0 0;";
+  var addBtn = document.createElement("button"); addBtn.textContent = "+ add field"; addBtn.style.cssText = SEL + "cursor:pointer;";
+  var resetBtn = document.createElement("button"); resetBtn.textContent = "reset to defaults"; resetBtn.style.cssText = SEL + "cursor:pointer;";
+  fieldBtns.appendChild(addBtn); fieldBtns.appendChild(resetBtn); c5.appendChild(fieldBtns);
+  var capNote = document.createElement("p");
+  capNote.style.cssText = "font-size:12.5px;color:var(--sub);margin:10px 0 0;line-height:1.5;";
+  capNote.innerHTML = "Every generated file keeps the caps — <strong>≤15 words per line, ≤25 for the longest</strong> — whatever you name the fields. Over-long lines wrap, crowd the field, and turn a face into a paragraph.";
+  c5.appendChild(capNote);
+  var editing = -1;
+  function renderFields() {
+    fieldList.innerHTML = "";
+    S.fields.forEach(function (f, i) {
+      var row = document.createElement("div");
+      row.style.cssText = "border:1px solid var(--edge);border-radius:8px;padding:8px 10px;margin:0 0 6px;background:var(--card);";
+      var head = document.createElement("div");
+      head.style.cssText = "display:flex;align-items:center;gap:8px;";
+      var pill = document.createElement("span");
+      pill.style.cssText = "font-family:var(--font-mono);font-size:11.5px;padding:2px 9px;border-radius:1em;background:rgba(138,122,134,0.18);color:var(--ink);flex:none;";
+      pill.textContent = f.label;
+      var desc = document.createElement("span");
+      desc.style.cssText = "font-size:12.5px;color:var(--sub);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+      desc.textContent = f.description;
+      var req = document.createElement("span");
+      req.style.cssText = "font-size:11px;color:var(--sub);flex:none;opacity:0.75;";
+      req.textContent = f.required === false ? "optional" : "required";
+      var ed = document.createElement("button");
+      ed.textContent = "✎"; ed.title = "edit this field";
+      ed.style.cssText = "background:none;border:none;cursor:pointer;color:var(--sub);font-size:14px;padding:2px 4px;flex:none;";
+      var del = document.createElement("button");
+      del.textContent = "🗑"; del.title = "remove this field";
+      del.style.cssText = ed.style.cssText;
+      head.appendChild(pill); head.appendChild(desc); head.appendChild(req); head.appendChild(ed); head.appendChild(del);
+      row.appendChild(head);
+      if (editing === i) {
+        var body = document.createElement("div");
+        body.style.cssText = "margin:9px 0 2px;display:flex;flex-direction:column;gap:6px;";
+        var lin = document.createElement("input");
+        lin.value = f.label; lin.maxLength = 14; lin.placeholder = "label";
+        lin.style.cssText = SEL + "width:180px;font-family:var(--font-mono);";
+        lin.addEventListener("input", function () {
+          f.label = lin.value.replace(/[^a-z0-9_ -]/gi, "").trim() || "field";
+          pill.textContent = f.label; status();
+        });
+        var din = document.createElement("textarea");
+        din.rows = 3; din.spellcheck = false; din.value = f.description; din.style.cssText = TA;
+        din.placeholder = "what should I put here? Written as an instruction to the reporter.";
+        din.addEventListener("input", function () { f.description = din.value; desc.textContent = din.value; status(); });
+        var rl = document.createElement("label");
+        rl.style.cssText = "font-size:12.5px;color:var(--sub);";
+        rl.innerHTML = '<input type="checkbox"' + (f.required === false ? "" : " checked") + '> required (unchecked: I may omit this line, and its absence is a signal)';
+        rl.querySelector("input").addEventListener("change", function (e) {
+          f.required = e.target.checked; req.textContent = f.required ? "required" : "optional"; status();
+        });
+        body.appendChild(lin); body.appendChild(din); body.appendChild(rl);
+        row.appendChild(body);
+      }
+      ed.addEventListener("click", function () { editing = editing === i ? -1 : i; renderFields(); });
+      del.addEventListener("click", function () {
+        S.fields.splice(i, 1); if (editing >= S.fields.length) editing = -1;
+        renderFields(); status();
+      });
+      fieldList.appendChild(row);
+    });
+    addBtn.disabled = S.fields.length >= 5;
+    addBtn.style.opacity = S.fields.length >= 5 ? "0.4" : "1";
+    addBtn.style.cursor = S.fields.length >= 5 ? "default" : "pointer";
   }
+  addBtn.addEventListener("click", function () {
+    if (S.fields.length >= 5) return;
+    S.fields.push({ label: "field" + (S.fields.length + 1), required: true, description: "what should I put here?" });
+    editing = S.fields.length - 1; renderFields(); status();
+  });
+  resetBtn.addEventListener("click", function () {
+    S.fields = clone(P.DEFAULT_FIELDS); editing = -1; renderFields(); status();
+  });
+
+  // — What's fixed. Named honestly rather than hidden: people should know the file has a
+  // spine, and why. (Editable versions of these produced worse skills, not more personal.)
+  var cL = card("fixed — the rest of the file");
+  cL.appendChild(callout("Everything else ships identical for everyone: the preamble, the honesty contract, the value bullets the animation depends on, the flag vocabulary, the loader snippet with its pinned hash, the attunement rules, and the settings desk. That's not me being precious — those parts are load-bearing, and the versions people edited mostly got worse.", { m: "solemn", e: "1f636", k: "( ˘ - ˘ )" }));
+  var lockList = document.createElement("p");
+  lockList.style.cssText = "font-size:12.5px;color:var(--sub);line-height:1.6;margin:0;";
+  lockList.innerHTML = "<code>preamble</code> · <code>honesty contract</code> · <code>palette / focus / engagement / stance / coherence / prev / languages</code> · <code>flag vocabulary</code> · <code>render snippet</code> · <code>attunement &amp; play</code> · <code>settings desk</code>";
+  cL.appendChild(lockList);
+
+  // — Preview
+  var c7 = card("preview — the file you'll get");
+  var snipPre = document.createElement("pre");
+  snipPre.style.cssText = "font-size:11px;max-height:340px;overflow:auto;";
+  c7.appendChild(snipPre);
 
   function assembleAll() {
+    var f = faceDef();
+    var cad = (P.CADENCE[S.cadence] || P.CADENCE.always).replace(/\{\{N\}\}/g, String(S.every));
     return [
-      "---\nname: " + S.name + '\ndescription: "' + faceDef().DESC + '"\n---\n',
-      "# Vibe Annotations" + faceDef().TITLE + "\n",
-      text.preamble + "\n", text.contract + "\n",
-      "## When\n", text.when + "\n",
+      "---\nname: " + NAME + '\ndescription: "' + f.DESC + '"\n---\n',
+      "# Vibe Banner" + f.TITLE + "\n",
+      f.PREAMBLE + "\n",
+      P.CONTRACT + "\n",
+      "## When\n", cad + "\n",
       "## How to answer\n", P.HOWTO_HEAD + "\n",
-      text.facebullet, text.bullets, text.flags + "\n", P.HOWTO_TAIL + "\n",
+      "* **`face`** — " + f.FACE + "\n" + P.KAOMOJI_VALID,
+      P.FIELDS(S.fields),
+      P.BULLETS_LOCKED,
+      P.FLAGS_FULL + "\n",
+      P.HOWTO_TAIL + "\n",
       "## Running it\n", P.RUNNING_HEAD + "\n", snippetText() + "\n",
       P.RUNNING_TAIL + "\n" +
-        ((S.cues || S.play) ? "\n## Attunement cues\n\n" + (S.cues ? text.attcues + "\n" : "") + (S.cues && S.play ? "\n" : "") + (S.play ? text.attplay + "\n" : "") : "") +
-        (S.play ? "\n" + text.settings + "\n" : "")
+        "\n## Attunement cues\n\n" + P.ATT_PROV + "\n\n" + P.ATT_CUES + "\n\n" + P.ATT_PLAY + "\n" +
+        "\n" + P.SETTINGS.replace("{{VERSION}}", P.VERSION) + "\n"
     ].join("\n");
   }
   function status() {
+    renderFields.pending || 0;
     var t = assembleAll();
+    snipPre.textContent = t;
     document.getElementById("b-status").textContent = t.length + " bytes (~" + Math.round(t.length / 4) + " tokens, loaded once per session)";
   }
   function download(fname, txt, type) {
@@ -984,13 +1044,13 @@ route();
   });
   document.getElementById("b-dl-md").addEventListener("click", function () {
     download("SKILL.md", assembleAll(), "text/markdown");
-    document.getElementById("b-status").textContent = "save to ~/.claude/skills/" + S.name + "/SKILL.md";
+    document.getElementById("b-status").textContent = "save to ~/.claude/skills/" + NAME + "/SKILL.md";
   });
   document.getElementById("b-dl-json").addEventListener("click", function () {
-    download(S.name + ".skill.json", JSON.stringify({ name: S.name, description: faceDef().DESC, instructions: assembleAll().replace(/^---[\s\S]*?---\n\n/, "") }, null, 2), "application/json");
+    download(NAME + ".skill.json", JSON.stringify({ name: NAME, description: faceDef().DESC, instructions: assembleAll().replace(/^---[\s\S]*?---\n\n/, "") }, null, 2), "application/json");
     document.getElementById("b-status").textContent = "json: { name, description, instructions }";
   });
-  refreshStrip(); refreshCustom(); refreshScene(); renderTail(); status();
+  renderFields(); refreshStrip(); refreshCustom(); refreshScene(); status();
 })();
 
 // ---- Visuals explorer: face × environment, rendered as a live composite. Pure play —

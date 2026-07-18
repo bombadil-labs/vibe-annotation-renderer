@@ -14,6 +14,21 @@ ok(/viewBox="0 0 680 152"/.test(s), "3-row banner is H=152 (v0.39.1: the window 
 ok((s.match(/<text /g) || []).length === 4, "3 readout rows + 1 face = 4 <text>");
 ok(/\[user\]/.test(s) && /\[mood\]/.test(s) && /\[goal\]/.test(s), "labels [user]/[mood]/[goal] present");
 
+console.log("readout is a list (v0.41.0): custom labels, cap of 5, legacy mapping");
+let rd = buildSVG(Object.assign({}, base, { readout: [{ label: "vibe", value: "loose" }, { label: "thread", value: "the builder" }] }));
+ok(/\[vibe\]/.test(rd) && /\[thread\]/.test(rd), "custom labels render as their own rows");
+let rd5 = buildSVG(Object.assign({}, base, { readout: [["a","1"],["b","2"],["c","3"],["d","4"],["e","5"],["f","6"]] }));
+ok(/\[e\]/.test(rd5) && !/\[f\]/.test(rd5), "readout caps at five rows");
+ok(/\[user\]/.test(buildSVG(base)), "legacy seems/feel/trying still map to the default labels");
+let coh = (x) => buildSVG(Object.assign({}, base, x)).replace(/v(?:scn|wr)\d+/g, "vid");
+ok(coh({ coherence: 0.2 }) === coh({ consonance: 0.2 }), "coherence is consonance renamed; both accepted");
+
+console.log("every face pack speaks the 32-mood vocabulary");
+ok(/emoji_u1f604\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "noto", item: "delighted" } }))), "noto: mood name resolves to its emoji");
+ok(/1f643\/512\.gif/.test(buildSVG(Object.assign({}, base, { face: { set: "noto-animated", item: "rhyme" } }))), "noto-animated: rhyme takes the pack-specific override");
+ok(/1f620\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "angry" } }))), "twemoji: mood name resolves");
+ok(/emoji_u1f60a\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "noto", item: "1f60a" } }))), "raw codepoints still pass through");
+
 console.log("optional [note] adds a row");
 let n = buildSVG(Object.assign({}, base, { noticing: "peripheral" }));
 ok(/viewBox="0 0 680 152"/.test(n), "4-row banner is also H=152 — text flexes inside the constant frame");

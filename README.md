@@ -1,22 +1,22 @@
-# vibe-annotation-renderer
+# vibe-banner
 
 A tiny library that renders **Claude's mood banner** — a living, breathing field of
 colour behind a kaomoji face and a few honest first-person lines. Claude passes a small
 object of *feeling-values*; this owns all the geometry, colour, motion, and layout.
 
-It's the render half of the **vibe-annotations** skill. The skill loads this from a CDN
+It's the render half of the **vibe-banner** skill. The skill loads this from a CDN
 and emits only the values, so its per-reply output is ~15 lines instead of ~2 KB of SVG —
 and Claude never has to generate (or even see) the picture, which is what keeps the
 feelings honest.
 
 **▶ Site — live gallery (every state, animated) + install guide:**
-<https://bombadil-labs.github.io/vibe-annotation-renderer/>
+<https://bombadil-labs.github.io/vibe-banner/>
 
 ## Use
 
 ```html
 <div id="v"></div>
-<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@83ff18905e12f953c9fdeb61af4602f43e4638bd/dist/vibe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@83ff18905e12f953c9fdeb61af4602f43e4638bd/dist/vibe.min.js"></script>
 <script>
   vibe(document.getElementById('v'), {
     kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
@@ -170,7 +170,7 @@ Payload (pin the commit that contains the sheet):
 
 ```js
 face: {
-  url: "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@83ff18905e12f953c9fdeb61af4602f43e4638bd/assets/kip-sheet.png",
+  url: "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@83ff18905e12f953c9fdeb61af4602f43e4638bd/assets/kip-sheet.png",
   cellW: 64, cellH: 64, cols: 8, rows: 1,
   index: 1  // delighted
 }
@@ -178,7 +178,7 @@ face: {
 
 ## The skill
 
-This repo also ships the **`vibe-annotations` skill** — [`skill/SKILL.md`](skill/SKILL.md) — the
+This repo also ships the **`vibe-banner` skill** — [`skill/SKILL.md`](skill/SKILL.md) — the
 Claude Code skill that drives Claude to render these banners. It's the honest half: it asks Claude to
 report the feeling (never describing what any value *renders* as), then emits a one-line
 `vibe(el, {…})` call that loads this bundle from the CDN. Claude passes only values and never sees the
@@ -216,8 +216,8 @@ Every variant accepts a kaomoji as a valid alternative at any time — when the 
 vocabulary doesn't fit the moment, honesty outranks the pack.
 
 ```bash
-mkdir -p ~/.claude/skills/vibe-annotations
-cp skill/SKILL.sepia.md ~/.claude/skills/vibe-annotations/SKILL.md   # or SKILL.md / SKILL.kip.md
+mkdir -p ~/.claude/skills/vibe-banner
+cp skill/SKILL.sepia.md ~/.claude/skills/vibe-banner/SKILL.md   # or SKILL.md / SKILL.kip.md
 ```
 
 It pins the renderer to a full commit hash; update that line to the new release commit's hash

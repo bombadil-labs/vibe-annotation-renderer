@@ -1,4 +1,4 @@
-/* vibe-annotation-renderer — Claude's mood banner, brought to life.
+/* vibe-banner — Claude's mood banner, brought to life.
  *
  * Grammar: palette = tone (three columns: left, cycling centre, right),
  * focus = how tight the vertical band of the three columns is,
@@ -90,9 +90,34 @@
   }
   var SCENE_IDS = 0;                                           // unique clipPath ids across multiple banners on one page
 
+  // THE READOUT IS A LIST (v0.41.0, the maintainer's call): the four fields were a good
+  // default, never a law. A payload may carry `readout: [{label, value}, …]` (≤5, any
+  // labels the skill defines); the legacy seems/feel/noticing/trying map onto the
+  // default four, so every deployed skill keeps working untouched.
+  var VOICE = { user: "fr", mood: "fw", note: "fr", goal: "fg" };   // known labels keep their typographic voice; new ones take one by position
+  function readoutOf(p) {
+    var out = [];
+    if (p && Object.prototype.toString.call(p.readout) === "[object Array]") {
+      p.readout.forEach(function (it) {
+        if (!it) return;
+        var lbl = Object.prototype.toString.call(it) === "[object Array]" ? it[0] : (it.label != null ? it.label : it.lbl);
+        var val = Object.prototype.toString.call(it) === "[object Array]" ? it[1] : (it.value != null ? it.value : it.val);
+        if (val == null || String(val) === "") return;
+        out.push({ lbl: String(lbl == null ? "" : lbl).replace(/^\[|\]$/g, ""), val: String(val) });
+      });
+    } else if (p) {
+      if (p.seems != null) out.push({ lbl: "user", val: String(p.seems) });
+      if (p.feel != null) out.push({ lbl: "mood", val: String(p.feel) });
+      if (p.noticing != null && p.noticing !== "") out.push({ lbl: "note", val: String(p.noticing) });
+      if (p.trying != null) out.push({ lbl: "goal", val: String(p.trying) });
+    }
+    out = out.slice(0, 5);                                     // five is the cap: past that the banner stops being a glance
+    out.forEach(function (it, i) { it.cls = VOICE[it.lbl] || (i === 0 ? "fr" : i === 1 ? "fw" : "fg"); });
+    return out;
+  }
   function seedOf(p) {
     var f = p.face ? (typeof p.face === "string" ? p.face : (p.face.set ? p.face.set + ":" + p.face.item : String(p.face.url || ""))) : "";
-    var s = String(p.kaomoji || "") + f + String(p.feel) + String(p.trying), n = 0;
+    var s = String(p.kaomoji || "") + f + readoutOf(p).map(function (r) { return r.val; }).join(""), n = 0;
     for (var i = 0; i < s.length; i++) n += s.codePointAt(i);
     return n;
   }
@@ -136,19 +161,43 @@
 
   // KnownFace registry: face: { set, item } resolves here. Every entry is version-pinned
   // to an allowlisted CDN. "kip" is the repo's own mascot — items are mood names.
-  var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
+  var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
     "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love"];
+  // ONE VOCABULARY FOR EVERY FACE (v0.41.0, the maintainer's call): the emoji packs used
+  // to take raw codepoints, so a skill's face vocabulary changed shape depending on which
+  // pack you picked. Now every pack speaks Sepia's 32 moods — the reporter always names a
+  // FEELING and the pack resolves it. Raw codepoints still pass through untouched, so
+  // older skills and one-off emoji keep working.
+  var MOOD_EMOJI = {
+    neutral: "1f642", content: "1f60a", delighted: "1f604", focused: "1f9d0", sleepy: "1f634",
+    sheepish: "1f605", booped: "1f633", thinking: "1f914", spark: "1f4a1", excited: "1f929",
+    surprised: "1f62e", tender: "1f970", melancholy: "1f61e", anxious: "1f630", mirth: "1f606",
+    laugh: "1f602", groan: "1f62b", oops: "1f62c", frustrated: "1f624", angry: "1f620",
+    dramatic: "1f3ad", at_peace: "1f60c", solemn: "1f636", rhyme: "1f3b5", awe: "1f632",
+    vertigo: "1f635", resolute: "1f4aa", puzzled: "1f615", asking: "2753", weary: "1f629",
+    wink: "1f609", love: "1f60d"
+  };
+  // The animated set is faces-and-a-few-objects only; every mood above resolves there
+  // EXCEPT the musical note, so rhyme borrows whimsy's upside-down face. (Audited by
+  // fetching all 32 against the gstatic set — see DESIGN.md.)
+  var MOOD_EMOJI_OVERRIDE = { "noto-animated": { rhyme: "1f643" } };
+  function emojiFor(item, set) {
+    var k = String(item == null ? "" : item);
+    var ov = set && MOOD_EMOJI_OVERRIDE[set];
+    if (ov && ov[k]) return ov[k];
+    return MOOD_EMOJI[k] || k;                                 // unknown → pass through: raw codepoints still work
+  }
   var FACE_SETS = {
-    "noto-animated": function (item) { return { url: "https://fonts.gstatic.com/s/e/notoemoji/latest/" + encodeURIComponent(item) + "/512.gif" }; },
-    "noto": function (item) { return { url: "https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@v2.047/png/128/emoji_u" + encodeURIComponent(item) + ".png" }; },
-    "twemoji": function (item) { return { url: "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/" + encodeURIComponent(item) + ".png" }; },
+    "noto-animated": function (item) { return { url: "https://fonts.gstatic.com/s/e/notoemoji/latest/" + encodeURIComponent(emojiFor(item, "noto-animated")) + "/512.gif" }; },
+    "noto": function (item) { return { url: "https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji@v2.047/png/128/emoji_u" + encodeURIComponent(emojiFor(item)) + ".png" }; },
+    "twemoji": function (item) { return { url: "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/" + encodeURIComponent(emojiFor(item)) + ".png" }; },
     "kip": function (item) {
       var i = KIP_MOODS[item]; if (i == null) i = Math.max(0, Math.min(7, parseInt(item, 10) || 0));
       return { url: KIP_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 1, index: i };
@@ -258,7 +307,7 @@
     var focus = clamp01(p.focus, 0.5);
     var env = VR_MIN + (VR_MAX - VR_MIN) * (1 - focus);        // vertical band width (focused → narrow, scattered → wide)
     var stance = p.stance == null ? 0 : clamp01(p.stance, 0);  // 0 asking (pure falloff, today's look) → 1 telling (defined edge)
-    var conson = clamp01(p.consonance, 1);                     // 1 integrated (compact, solid) → 0 split (diffuse washes); omitted = 1
+    var conson = clamp01(p.coherence != null ? p.coherence : p.consonance, 1);   // v0.41.0: coherence is the emotional dual of focus; consonance still accepted                     // 1 integrated (compact, solid) → 0 split (diffuse washes); omitted = 1
     var prevFills = null;                                      // one-step trajectory: previous banner's palette, columns lerp in on mount
     if (p.prev != null) prevFills = fieldFromPalette(p.prev).map(function (c) { return c.fill; });
     var activeFlag = null;                                     // the contract: flag?: string — exactly one of FLAG_PRIORITY, or none
@@ -323,14 +372,16 @@
       var head = label ? '<tspan class="lbl">' + esc(label) + '</tspan> ' : '';
       return { x: x, key: key || "", title: fullTitle || String(value), inner: head + '<tspan class="' + cls + '">' + esc(value) + '</tspan>' };
     }
-    var lines = [line("[user]", p.seems, "fr"), line("[mood]", p.feel, "fw")];
-    if (p.noticing) lines.push(line("[note]", p.noticing, "fr", null, "note"));
-    var goal = String(p.trying);
-    if (goal.length > GOAL_CAP) {
-      var cut = goal.lastIndexOf(" ", GOAL_CAP); if (cut <= 0) cut = GOAL_CAP;
-      lines.push(line("[goal]", goal.slice(0, cut), "fg", null, "", goal));
-      lines.push(line("", goal.slice(cut).trim(), "fg", TEXT_X + GOAL_INDENT, "", goal));
-    } else lines.push(line("[goal]", goal, "fg"));
+    var rows = readoutOf(p);
+    var lines = [];
+    rows.forEach(function (r) {                                // the long-form rows wrap once in the static SVG (the overlay wraps natively)
+      if (r.cls === "fg" && r.val.length > GOAL_CAP) {
+        var cut = r.val.lastIndexOf(" ", GOAL_CAP); if (cut <= 0) cut = GOAL_CAP;
+        lines.push(line("[" + r.lbl + "]", r.val.slice(0, cut), r.cls, null, "", r.val));
+        lines.push(line("", r.val.slice(cut).trim(), r.cls, TEXT_X + GOAL_INDENT, "", r.val));
+      } else lines.push(line("[" + r.lbl + "]", r.val, r.cls, null, r.lbl === "note" ? "note" : ""));
+    });
+    if (!lines.length) lines.push(line("", "", "fr"));          // an empty readout still needs a frame
     var nRows = lines.length;
 
     var kaoAscent = multiline ? 14 : 15, kaoDescent = 6;
@@ -341,16 +392,14 @@
     // rows, capped; past the cap the panel scrolls. buildSVG keeps the classic SVG rows.
     var oItems = null;
     if (o && o.overlay) {
-      oItems = [{ lbl: "user", val: String(p.seems), cls: "fr" }, { lbl: "mood", val: String(p.feel), cls: "fw" }];
-      if (p.noticing) oItems.push({ lbl: "note", val: String(p.noticing), cls: "fr", key: "note" });
-      oItems.push({ lbl: "goal", val: goal, cls: "fg" });
+      oItems = rows.map(function (r) { return { lbl: r.lbl, val: r.val, cls: r.cls, key: r.lbl === "note" ? "note" : "" }; });
       var availTxt = W - TEXT_X - 22, estH = 0;
       oItems.forEach(function (it) {
         var fs = it.cls === "fw" ? 13.9 : it.cls === "fr" ? 12.3 : 12.9;
         var rows = Math.max(1, Math.ceil((estW(it.val, fs) + it.lbl.length * 6.2 + 20) / availTxt));
         estH += rows * 18;
       });
-      estH += (oItems.length - 1) * 6 + 14;
+      estH += Math.max(0, oItems.length - 1) * 6 + 14;
       rightH = Math.min(160, Math.max(64, estH));
     }
     var langs = normalizeLangs(p.languages);
@@ -476,7 +525,7 @@
     var L = {
       H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
       restSVG: readSVG + langSVG + flagSVG, sceneSVG: sceneSVG, portrait: portrait,
-      mountSVG: langSVG, faceMeta: faceMeta, oItems: oItems, caption: !!activeFlag, flagName: activeFlag,
+      mountSVG: langSVG, faceMeta: faceMeta, oItems: oItems, readout: rows, caption: !!activeFlag, flagName: activeFlag,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, textPivot: textPivot, scene: scene, hasLangs: langs.length > 0,
       env: env, focus: focus, usesCols: usesCols, seed: seed,
       stance: stance, conson: conson, prevFills: prevFills
@@ -712,7 +761,7 @@
       mini.style.cssText = "position:absolute;right:8px;bottom:" + (L.hasLangs ? 20 : 6) + "px;width:22%;z-index:2;pointer-events:none;opacity:0.92;" +
         "border:1px solid rgba(128,120,104,0.45);border-radius:6px;overflow:hidden";   // framed, so it reads as the banner recurring, not a smudge
       mini.innerHTML = buildSVG({
-        kaomoji: p.kaomoji, face: p.face, seems: p.seems, feel: p.feel, trying: p.trying, noticing: p.noticing,
+        kaomoji: p.kaomoji, face: p.face, readout: L.readout,
         palette: p.palette, field: p.field, focus: p.focus, engagement: p.engagement
       });
       wrap.appendChild(mini);
@@ -908,8 +957,10 @@
     if (typeof root.sendPrompt === "function") {
       // native opt-outs (skill-builder surface): cues:false disables the [note] tap,
       // play:false disables the boop and the hover tray. Defaults stay on.
+      var noteRow = null;
+      L.readout.forEach(function (r) { if (r.lbl === "note") noteRow = r; });   // the tap follows the LABEL, not a fixed payload key
       var row = p.cues === false ? null : wrap.querySelector(".vr-note");
-      if (row && p.noticing != null) {
+      if (row && noteRow) {
         row.style.cursor = "pointer";
         var armed = false, tmr = null;
         row.addEventListener("click", function () {
@@ -918,7 +969,7 @@
             tmr = setTimeout(function () { armed = false; row.style.textDecoration = ""; }, 3500);
           } else {
             clearTimeout(tmr); armed = false; row.style.textDecoration = "";
-            var q = String(p.noticing); if (q.length > 60) q = q.slice(0, 57) + "…";
+            var q = noteRow.val; if (q.length > 60) q = q.slice(0, 57) + "…";
             say('*a flicker at your [note] ("' + q + '") — it doesn\'t quite land*');
           }
         });
