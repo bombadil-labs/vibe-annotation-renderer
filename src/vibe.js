@@ -582,13 +582,14 @@
       ".vo-stats .slbl{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.68em;width:8.2em;flex:none;padding:0.1em 0.6em 0.14em;border-radius:1em;background:rgba(69,49,24,0.58);color:#f6ead0;letter-spacing:0.04em;text-shadow:none}" +
       ".vo-stats .strk{flex:1;height:0.72em;border-radius:1em;background:rgba(90,70,50,0.2);position:relative;box-shadow:inset 0 1px 2px rgba(40,28,12,0.25)}" +
       ".vo-stats .sfil{position:absolute;left:0;top:0;bottom:0;border-radius:1em;min-width:0.72em}" +
-      ".vo-stats .smk{position:absolute;top:-0.22em;width:0.42em;height:1.16em;border-radius:0.3em;background:#5c4320;box-shadow:0 0 0 1.5px rgba(246,234,208,0.7)}" +
+      ".vo-stats .sctr{position:absolute;left:50%;top:-0.18em;bottom:-0.18em;width:2px;margin-left:-1px;border-radius:1px;background:rgba(90,70,50,0.55)}" +   // the centre post of the stance dial
       ".vo-stats .sval{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:0.62em;width:2.4em;flex:none;text-align:right;opacity:0.75}" +
-      ".vo-stats .send{font-family:var(--font-sans,ui-sans-serif,sans-serif);font-size:0.56em;opacity:0.6;flex:none}" +
+      ".vo-stats .send{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--font-sans,ui-sans-serif,sans-serif);font-size:0.54em;letter-spacing:0.04em;opacity:0.55;color:inherit;text-shadow:none}" +
+      ".vo-stats .sendl{left:0.7em}.vo-stats .sendr{right:0.7em}" +
       "@media (prefers-color-scheme:dark){.vo{color:#f6ead0;text-shadow:0 1px 2px rgba(36,26,6,0.6)}" +
       ".vo .pill{background:rgba(216,197,160,0.24);color:#f6ead0}" +
       ".vo-stats .slbl{background:rgba(216,197,160,0.24)}" +
-      ".vo-stats .smk{background:#f6ead0;box-shadow:0 0 0 1.5px rgba(36,26,6,0.6)}" +
+      ".vo-stats .sctr{background:rgba(216,197,160,0.55)}" +
       ".vo-stats{background:rgba(30,24,16,0.22);box-shadow:inset 0 0 0 1px rgba(246,234,208,0.08)}" +
       ".vo-panel{background:rgba(30,24,16,0.22);box-shadow:inset 0 0 0 1px rgba(246,234,208,0.08)}}" +
       ".vdrama .vo{font-family:var(--font-voice,Georgia,serif)}" +
@@ -637,14 +638,6 @@
       "focus — 0: scattered across many things, 1: locked tight on one");
     gauge("engagement", num(p.engagement, 0.7), lerpHex(pal0, "#e0994e", 0.35),
       "engagement — 0: checked out, 1: fully lit. Reported straight; boredom is a valid reading");
-    if (p.stance != null) {                                    // presence is signal: optional params only render when reported
-      var sv = num(p.stance, 0.5);
-      var r3 = document.createElement("div"); r3.className = "srow";
-      r3.title = "stance — a mode, not confidence: 0 asking (holding questions open), 1 telling (standing on it)";
-      r3.innerHTML = '<span class="slbl">stance</span><span class="send">asking</span><span class="strk"><span class="smk" style="left:calc(' +
-        g(sv * 100) + '% - 0.21em)"></span></span><span class="send">telling</span>';
-      st.appendChild(r3);
-    }
     var palArr = [].concat(p.palette || []).filter(Boolean).slice(0, 6).map(String);
     if (palArr.length) {                                       // palette and consonance share ONE instrument: the bar interpolates the palette
       if (palArr.length === 1) palArr = [palArr[0], palArr[0]];// left to right; the filled span is saturated, the remainder washes toward gray —
@@ -665,6 +658,19 @@
         '<span class="sfil" style="width:100%;background:' + satG + ';clip-path:inset(0 ' + g(100 - cv * 100) + '% 0 0 round 1em)"></span></span>' +
         (p.consonance != null ? '<span class="sval">' + cv.toFixed(2) + '</span>' : '<span class="sval"></span>');
       st.appendChild(r4);
+    }
+    if (p.stance != null) {                                    // stance last — it isn't a quantity, it's a LEAN, so it gets its own instrument:
+      var sv = num(p.stance, 0.5);                             // a diverging dial growing from the centre toward asking or telling
+      var lean = Math.abs(sv - 0.5) * 100, sfill = lerpHex(pal0, "#5c4320", 0.25);
+      var r3 = document.createElement("div"); r3.className = "srow";
+      r3.title = "stance — a mode, not confidence: 0 asking (holding questions open), 1 telling (standing on it)";
+      r3.innerHTML = '<span class="slbl">stance</span><span class="strk sdiv">' +
+        '<span class="sfil" style="min-width:0;' + (sv >= 0.5 ? 'left:50%;right:auto' : 'right:50%;left:auto') + ';width:' + g(lean) + '%;background:' + sfill + '"></span>' +
+        '<span class="sctr"></span>' +
+        '<span class="send sendl"' + (sv < 0.5 ? ' style="opacity:1;font-weight:600"' : '') + '>asking</span>' +
+        '<span class="send sendr"' + (sv >= 0.5 ? ' style="opacity:1;font-weight:600"' : '') + '>telling</span></span>' +
+        '<span class="sval">' + sv.toFixed(2) + '</span>';
+      st.appendChild(r3);
     }
     st.style.gridArea = "1/1";
     pwrap.appendChild(st);
@@ -945,9 +951,26 @@
       gr.addColorStop(1, rgba(fill, 0));
       ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 6.2832); ctx.fill(); ctx.restore();
     }
+    // SELF-HEALING MOUNT (v0.39.6): some hosts re-render the DOM after streaming and
+    // replace our tree with a CLONE — the clone keeps everything CSS-painted (body,
+    // features, scene, panels) but the loop's canvas is the detached original, so all
+    // live layers silently die (the "flat Sepia" bug: no fins, no arms, no weather).
+    // The wrap carries a marker; on detach we find the clone and remount into it.
+    var mountId = "vm" + (++SCENE_IDS) + "-" + Math.floor(Math.random() * 1e6);
+    wrap.setAttribute("data-vibe-remount", mountId);
+    var remounts = (p && p.__remounts) | 0;
     var t0 = null;
     function frame(now) {
-      if (!cv.isConnected) { if (ro) ro.disconnect(); if (io) io.disconnect(); return; } // detached -> stop
+      if (!cv.isConnected) {                                   // detached → stop, and remount into the host's clone if one exists
+        if (ro) ro.disconnect(); if (io) io.disconnect();
+        var ghost = root.document && document.querySelector('[data-vibe-remount="' + mountId + '"]');
+        if (ghost && ghost.parentNode && remounts < 3) {
+          var np = {}; for (var pk in p) if (Object.prototype.hasOwnProperty.call(p, pk)) np[pk] = p[pk];
+          np.__remounts = remounts + 1;
+          try { mount(ghost.parentNode, np); } catch (_) { }
+        }
+        return;
+      }
       if (t0 == null) t0 = now; var t = (now - t0) / 1000;
       if (!visible) { requestAnimationFrame(frame); return; }
       try {
