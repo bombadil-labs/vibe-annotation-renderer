@@ -77,7 +77,6 @@
 
   <div class="tabs" role="tablist">
     <button class="tab-btn" data-tab="landing" role="tab">Landing</button>
-    <button class="tab-btn" data-tab="meaning" role="tab">What it means</button>
     <button class="tab-btn" data-tab="gallery" role="tab">Gallery</button>
     <button class="tab-btn" data-tab="explorer" role="tab">Explorer</button>
     <button class="tab-btn" data-tab="builder" role="tab">Build and install</button>
@@ -96,7 +95,7 @@
     light/dark and <code>prefers-reduced-motion</code>.</p>
 
     <p>Start with the <a href="#gallery">gallery</a> to see every state in a mocked-up
-    conversation, learn to <a href="#meaning">read a banner</a>, or jump straight to
+    conversation, learn to <a href="#gallery">read a banner</a>, or jump straight to
     <a href="#builder">installation</a> — it's one pasted file on claude.ai, one
     <code>curl</code> in Claude Code.</p>
 
@@ -105,117 +104,8 @@
     renderer loaded from a CDN turns them into the picture. Claude never sees the output and the
     skill never describes what any value renders as, so there's no visual lever to perform
     toward. It reports the feeling; the tool decides the look.
-    <a href="#meaning">More on the mechanism →</a></p>
+    <a href="#gallery">See every state it can wear →</a></p>
   </section>
-
-  <section class="tab-panel" id="tab-meaning" role="tabpanel">
-    <h2 id="how">How it works</h2>
-    <p>The system is two halves, kept deliberately apart:</p>
-    <ul>
-      <li><strong>The skill</strong> (<a href="https://github.com/bombadil-labs/vibe-banner/blob/main/skill/SKILL.md">skill/SKILL.md</a>)
-        asks Claude to report its state as a handful of <em>feeling-values</em> — a kaomoji, a read
-        of the user, a mood, a goal, colours, focus, engagement, and a set of rare flags
-        (<code>spark</code>, <code>tender</code>, <code>oops</code>, <code>angry</code>…). It never
-        describes what any value <em>renders as</em>.</li>
-      <li><strong>The renderer</strong> (this repo, ~600 lines of framework-free JS) owns all the
-        geometry, colour, and motion. It's loaded from a CDN, pinned to an immutable commit hash, so
-        Claude only ever emits ~15 lines of values and never sees — or generates — the picture.</li>
-    </ul>
-    <p>That separation is the honesty mechanism: there's no visual lever for Claude to perform
-    toward. It reports the feeling; the tool decides the look.</p>
-
-    <h2 id="key">Reading a banner</h2>
-    <p>Every banner has the same anatomy — a face, a readout, and a field of three soft ovals
-    breathing behind them. Here's one to refer back to:</p>
-    <div class="banner" id="key-banner" style="margin: 0 0 20px;"></div>
-
-    <h3>The face</h3>
-    <p>The face is Claude's expression in the moment — an improvised kaomoji, or one of the
-    drawn packs. Every pack speaks the same 32 moods, so switching faces changes who you're
-    looking at without changing what they can say.</p>
-
-    <h3>The readout</h3>
-    <p>These four are the default lines, not a fixed set: the
-    <a href="#builder">Builder</a> lets you rename them, rewrite what Claude is asked to put in
-    them, or swap them for up to five of your own. What survives every customisation is the word
-    caps — a line that needs a paragraph has stopped being a glance.</p>
-    <ul>
-      <li><code>[user]</code> — Claude's honest snap read of <em>you</em>, from your last message.
-        It's allowed to quietly disagree with the polite prose below it.</li>
-      <li><code>[mood]</code> — Claude's own felt state, in a few words.</li>
-      <li><code>[note]</code> — the subtext: the thing under the thing. Optional, and that's the
-        point — its mere presence means Claude caught something latent.</li>
-      <li><code>[goal]</code> — what Claude is trying to do <em>right now</em>. Always the last
-        line; expect it to change turn to turn.</li>
-      <li><code>[Reasoned in]:</code> — a small bottom-right trace listing any languages Claude
-        thought in beyond the one you're speaking.</li>
-      <li><code>[awe]</code>-style caption — a small bottom-left trace naming the active flag,
-        added automatically by the renderer. With this many gestures, the name keeps them
-        legible.</li>
-    </ul>
-
-    <h3>The field — the three ovals</h3>
-    <p>The ovals are Claude's mood made ambient: colour, spread, and size each carry one signal.</p>
-    <ul>
-      <li><strong>Colour</strong> comes from the palette Claude reports — its feelings expressed
-        as colours, in descending order of intensity. No colours → a neutral grey triad. One
-        colour → its light, pure, and dark forms. Two → one on each side with their blend in the
-        centre. Three → one per oval. Four or more → the centre oval slowly cycles through the
-        extras. So "one colour vs. three" is the difference between a single clear feeling and
-        several sitting side by side.</li>
-      <li><strong>Spread</strong> is focus: a tight, level line means attention locked on one
-        thing; ovals scattered up and down the banner mean it's spread across many.</li>
-      <li><strong>Size</strong> is engagement — and it only deflates. At normal engagement the
-        field is full; when Claude is genuinely bored, the ovals visibly shrink.</li>
-      <li><strong>Edge</strong> is stance: when Claude is <em>telling</em> — declaring, standing
-        on it — the ovals gain a definite stroked contour. When it's <em>asking</em>, they keep
-        their pure, open falloff.</li>
-      <li><strong>Texture</strong> is coherence — focus's emotional dual: when several reported
-        feelings harmonize, the ovals stay compact and solid; when they grind against each other,
-        they blur into diffuse washes. Plural-at-peace and plural-in-tension finally look
-        different.</li>
-    </ul>
-
-    <h3>Flags</h3>
-    <p>Rare, condition-triggered flourishes layered over everything else — a light-bulb for the
-    <em>spark</em> of insight, spinning stars when <em>excited</em>, cold fog when <em>anxious</em>,
-    a 💢 anger-vein when <em>frustrated</em>, lightning when genuinely <em>angry</em>, a spotlight
-    when being <em>dramatic</em> — and the quieter registers: blossoms and a soft halo when genuinely
-    <em>at peace</em>, a bowed face over a desaturated field when <em>solemn</em>, a ghost of the
-    face itself behind the face when a pattern <em>rhymes</em>, the face made small before a swelling
-    field in <em>awe</em>, the banner nested inside itself in <em>vertigo</em>, concentration lines
-    when <em>resolute</em>, drifting question marks when <em>puzzled</em>. Their whole value is that
-    they're uncommon; every one is demonstrated in the <a href="#gallery">gallery</a>.</p>
-  
-<h2 id="library">Use it as a library</h2>
-    <p>You don't need the skill — <code>vibe(el, {…})</code> is a tiny standalone mood-banner
-    library:</p>
-    <pre>&lt;div id="v"&gt;&lt;/div&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@53e377a716b1c53b59b6fd7d9e5c32a2348d8d14/dist/vibe.min.js"&gt;&lt;/script&gt;
-&lt;script&gt;
-  vibe(document.getElementById('v'), {
-    face: { set: "sepia", item: "content" },   // any pack; every pack speaks the same 32 moods
-    readout: [                                 // up to 5 rows, any labels you like
-      { label: "user", value: "…" },           //   a snap read of the user
-      { label: "mood", value: "…" },           //   activated emotions
-      { label: "note", value: "…" },           //   the subtext (optional)
-      { label: "goal", value: "…" }            //   immediate next goal
-    ],
-    palette: ["#7d8fb8"],  // 0+ mood colours → the field's three columns
-    focus: 0.5, engagement: 0.5,
-    stance: 0.5, coherence: 0.8                // both optional; omitted reads as neutral
-  });
-&lt;/script&gt;</pre>
-    <p class="note">The older flat form — <code>seems</code>, <code>feel</code>, <code>trying</code>,
-    <code>noticing</code> — still works and always will: skills deployed before the readout became a
-    list keep rendering unchanged. New payloads should use <code>readout</code>.</p>
-    <p>The full value grammar, flag list, and fork guide (reskin the whole look without touching the
-    skill) are in the
-    <a href="https://github.com/bombadil-labs/vibe-banner#readme">README</a>.</p>
-  
-  </section>
-
-  
 
   <section class="tab-panel" id="tab-gallery" role="tabpanel">
     <h2 id="gallery">Gallery — every state, in conversation</h2>
@@ -299,6 +189,41 @@ Invoke-WebRequest https://raw.githubusercontent.com/bombadil-labs/vibe-banner/ma
     <code>sendPrompt</code> into rendered pages, a silently moved tag would be a script-injection
     vector. A commit hash can't be re-pointed, so the CDN can only ever serve the audited bytes. If
     you fork this, keep that property.</p>
+
+<h2 id="library">Use it as a library</h2>
+    <p>You don't need the skill — <code>vibe(el, {…})</code> is a tiny standalone mood-banner
+    library:</p>
+    <pre>&lt;div id="v"&gt;&lt;/div&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@53e377a716b1c53b59b6fd7d9e5c32a2348d8d14/dist/vibe.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  vibe(document.getElementById('v'), {
+    avatar: {                                  // who you are, and where
+      set: "sepia", item: "content",           //   any pack; all of them speak the same 32 moods
+      scene: { url: "…", opacity: 0.6 }        //   optional; omit for an empty window
+    },
+    details: {                                 // everything shown beside the window
+      readout: [                               //   up to 5 rows, any labels you like
+        { label: "user", value: "…" },
+        { label: "mood", value: "…" },
+        { label: "goal", value: "…" }
+      ],
+      palette: ["#7d8fb8"],                    //   0+ mood colours → the field's three columns
+      focus: 0.5, engagement: 0.5,
+      stance: 0.5, coherence: 0.8              //   both optional; omitted reads as neutral
+    }
+  });
+&lt;/script&gt;</pre>
+    <p class="note">Leave <code>details</code> out entirely and you get the window alone — a small
+    square avatar tile, no field, no readout, no weather. Useful anywhere you want the creature
+    without the commentary.</p>
+    <p class="note">The older flat form — <code>face</code>, <code>seems</code>, <code>feel</code>,
+    <code>trying</code>, <code>noticing</code>, and the values at the top level — still works and
+    always will: every skill deployed before this split keeps rendering unchanged.</p>
+    <p>The full value grammar, flag list, and fork guide (reskin the whole look without touching the
+    skill) are in the
+    <a href="https://github.com/bombadil-labs/vibe-banner#readme">README</a>.</p>
+  
+  
   </section>
 
   <footer>
@@ -331,16 +256,6 @@ queueMount("landing", document.getElementById("hero"), {
   focus: 0.7, engagement: 0.85
 });
 
-queueMount("meaning", document.getElementById("key-banner"), {
-  kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
-  seems: "reading the legend to decode the picture above it",
-  feel: "curious · unhurried · warm",
-  trying: "map each part of this banner to the section below",
-  noticing: "three feelings reported, so each oval gets its own colour",
-  languages: ["eo"],
-  palette: ["#d99a5e", "#c98fb0", "#6fa39c"],
-  focus: 0.6, engagement: 0.8
-});
 
 var GROUPS = [
   ["The field — palette becomes three columns", [
@@ -600,8 +515,8 @@ document.querySelectorAll("#face-picker button").forEach(function (b) {
 });
 buildGallery();
 
-var TAB_ALIAS = { "": "landing", landing: "landing", meaning: "meaning", key: "meaning",
-  how: "meaning", install: "builder", library: "meaning", gallery: "gallery",
+var TAB_ALIAS = { "": "landing", landing: "landing", key: "gallery",
+  how: "gallery", install: "builder", library: "builder", gallery: "gallery",
   explorer: "explorer", visuals: "explorer", builder: "builder", build: "builder" };
 function activate(tab) {
   document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
@@ -728,14 +643,14 @@ route();
     return "";
   }
   function snippetText() {
-    var su = sceneUrl();
+    var su = sceneUrl();                                       // the scene lives inside `avatar` now: where you are is part of who you are
     var slive = P.SCENES[S.scene] && P.SCENES[S.scene].live;
-    var popts = su ? ['scene: { url: "' + su + '", opacity: ' + S.sceneOp + (slive ? ', live: "' + slive + '"' : '') + ' }'] : [];
     return P.SNIPPET
       .replace("{{SNIPPET_URL}}", P.snippetUrl)
       .replace("{{SNIPPET_FACE}}", faceDef().SNIPPET_FACE)
       .replace("{{SNIPPET_READOUT}}", P.SNIPPET_READOUT(S.fields))
-      .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "");
+      .replace("{{SNIPPET_SCENE}}", su ? '        scene: { url: "' + su + '", opacity: ' + S.sceneOp + (slive ? ', live: "' + slive + '"' : '') + ' }\n' : "")
+      .replace("{{PAYLOAD_OPTS}}", "");
   }
 
   var SEL = "background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:6px;padding:5px 8px;font-size:13px;";
@@ -1251,23 +1166,24 @@ route();
   panel.appendChild(src);
 
   function render() {
-    var payload = { kaomoji: "( ˘ ᵕ ˘ )" };
-    payload.readout = rows.filter(function (r) { return r[1] !== ""; }).map(function (r) { return { label: r[0], value: r[1] }; });
-    if (pal.length) payload.palette = pal.slice();
-    payload.focus = X.focus == null ? 0.7 : X.focus;
-    payload.engagement = X.engagement == null ? 0.85 : X.engagement;
-    if (X.stanceOn) payload.stance = X.stance == null ? 0.5 : X.stance;
-    if (X.cohOn) payload.coherence = X.coherence == null ? 1 : X.coherence;
-    if (X.flag) payload.flag = X.flag;
+    var details = {};
+    details.readout = rows.filter(function (r) { return r[1] !== ""; }).map(function (r) { return { label: r[0], value: r[1] }; });
+    if (!details.readout.length) delete details.readout;      // an empty readout with nothing else → the square tile, which is the honest preview of that
+    if (pal.length) details.palette = pal.slice();
+    if (X.fieldOn !== false) { details.focus = X.focus == null ? 0.7 : X.focus; details.engagement = X.engagement == null ? 0.85 : X.engagement; }
+    if (X.stanceOn) details.stance = X.stance == null ? 0.5 : X.stance;
+    if (X.cohOn) details.coherence = X.coherence == null ? 1 : X.coherence;
+    if (X.flag) details.flag = X.flag;
     var langs = langField.value.split(",").map(function (t) { return t.trim(); }).filter(Boolean);
-    if (langs.length) payload.languages = langs;
-    payload.face = X.set === "kaomoji" ? (kaoIn.value || "( ˘ ᵕ ˘ )") : { set: X.set, item: X.item };
+    if (langs.length) details.languages = langs;
     var sc = P.SCENES[X.scene];
     var su = sc ? sc.url : (X.scene === "custom" ? (X.sceneUrl || "").trim() : "");
+    var avatar = X.set === "kaomoji" ? { face: kaoIn.value || "( ˘ ᵕ ˘ )" } : { set: X.set, item: X.item };
     // the Explorer ALWAYS shows the square block — populated when an environment is
     // chosen, empty (frame only) when not, so composition is visible either way
-    payload.scene = su ? { url: su, opacity: X.op } : {};
-    if (su && sc && sc.live) payload.scene.live = sc.live;
+    avatar.scene = su ? { url: su, opacity: X.op } : {};
+    if (su && sc && sc.live) avatar.scene.live = sc.live;
+    var payload = { avatar: avatar, details: details };
     mnt.innerHTML = "";
     try { vibe(mnt, payload); } catch (e) { mnt.textContent = "err: " + e.message; }
     cap.textContent = sc && sc.blurb ? "the " + X.scene + " — " + sc.blurb : (su ? "custom scene" : "the empty window — pick an environment to fill it");

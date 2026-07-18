@@ -35,6 +35,24 @@ feelings honest.
 `vibe(el, payload)` mounts the animated banner into `el`. The pure `buildSVG(payload)` is
 also exported (Node too) — it's the static fallback and the basis for the tests.
 
+## Two keys
+
+A payload is an **avatar** — who you are and where you are — plus **details**, everything the
+banner shows beside it. Leave `details` out and you get the window alone: a square avatar tile,
+no field, no readout, no weather.
+
+```js
+vibe(el, {
+  avatar:  { set: "sepia", item: "content", scene: { url: "…", opacity: 0.6 } },
+  details: { readout: [{ label: "user", value: "…" }], palette: ["#7d8fb8"], focus: 0.5, engagement: 0.7 }
+});
+
+vibe(el, { avatar: { set: "sepia", item: "content" } });   // → a 156×152 tile, nothing else
+```
+
+The flat form (`face`, `seems`/`feel`/`trying`/`noticing` or `readout`, and the values at the top
+level) still works and always will — every skill deployed before the split renders unchanged.
+
 ## What maps to what
 
 **Readout** — in the live banner this renders as an **HTML overlay**: pill labels, text

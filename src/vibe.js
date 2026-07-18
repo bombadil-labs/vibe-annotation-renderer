@@ -297,7 +297,35 @@
     "puzzled", "mirth", "melancholy", "tender", "at_peace"];
 
   /* ---- shared layout: everything static & animated both need ---- */
+  // TWO KEYS (v0.42.0, the maintainer's cut): a banner is an AVATAR — who you are and
+  // where you are — plus DETAILS, everything in the region to its right. Absent or empty
+  // details ships the window alone: a square avatar tile, no field, no readout, no
+  // weather. The flat form every deployed skill emits is untouched and still normalises
+  // to the same internals, so nothing in the wild breaks.
+  var DETAIL_KEYS = ["readout", "seems", "feel", "trying", "noticing", "palette", "field",
+    "focus", "engagement", "stance", "coherence", "consonance", "flag", "languages"];
+  function normalize(p) {
+    p = p || {};
+    if (p.avatar === undefined && p.details === undefined) return p;   // legacy flat payload
+    var a = p.avatar, d = p.details == null ? {} : p.details;
+    var out = { __square: true };
+    for (var k in p) if (k !== "avatar" && k !== "details" && Object.prototype.hasOwnProperty.call(p, k)) out[k] = p[k];
+    if (typeof a === "string") out.face = a;                   // a kaomoji or an image URL
+    else if (a && typeof a === "object") {
+      if (a.set != null || a.item != null) out.face = { set: a.set, item: a.item };
+      else if (a.face !== undefined) out.face = a.face;
+      else if (a.url != null) out.face = a;                    // a sprite slice or plain image
+      if (a.kaomoji != null) out.kaomoji = a.kaomoji;
+      if (a.scene !== undefined) out.scene = a.scene;
+    }
+    DETAIL_KEYS.forEach(function (k2) {
+      if (d[k2] !== undefined) { out[k2] = d[k2]; out.__square = false; }
+    });
+    return out;
+  }
   function layout(p, o) {
+    p = normalize(p);
+    var square = !!p.__square;                                 // details-free: the window is the whole banner
     var seed = seedOf(p);
     var usesCols = !(p.field && p.field.length);
     var cols = usesCols ? fieldFromPalette(p.palette) : p.field;
@@ -311,6 +339,7 @@
     var activeFlag = null;                                     // the contract: flag?: string — exactly one of FLAG_PRIORITY, or none
     if (typeof p.flag === "string") { if (FLAG_PRIORITY.indexOf(p.flag) >= 0) activeFlag = p.flag; }  // unknown strings are ignored
     else for (var fi = 0; fi < FLAG_PRIORITY.length; fi++) { if (p[FLAG_PRIORITY[fi]]) { activeFlag = FLAG_PRIORITY[fi]; break; } }  // legacy boolean payloads: highest priority wins
+    if (square) activeFlag = null;                             // a bare tile has no weather — a flag is a detail
 
     var vr = mulberry32(seed + 7);
     var vdir = vr() < 0.5 ? -1 : 1;                            // outer ovals together, centre opposite → a clear up/down/up (never a straight slope)
@@ -370,7 +399,7 @@
       var head = label ? '<tspan class="lbl">' + esc(label) + '</tspan> ' : '';
       return { x: x, key: key || "", title: fullTitle || String(value), inner: head + '<tspan class="' + cls + '">' + esc(value) + '</tspan>' };
     }
-    var rows = readoutOf(p);
+    var rows = square ? [] : readoutOf(p);
     var lines = [];
     rows.forEach(function (r) {                                // the long-form rows wrap once in the static SVG (the overlay wraps natively)
       if (r.cls === "fg" && r.val.length > GOAL_CAP) {
@@ -400,7 +429,7 @@
       estH += Math.max(0, oItems.length - 1) * 6 + 14;
       rightH = Math.min(160, Math.max(64, estH));
     }
-    var langs = normalizeLangs(p.languages);
+    var langs = square ? [] : normalizeLangs(p.languages);
     var topExtent = Math.max(kaoH, rightH) / 2;
     var bottomExtent = Math.max(kaoH / 2, rightH / 2);
     var langPad = langs.length ? 12 : 0;                       // breathing room for [Reasoned in] only — the flag caption lives inside the window now
@@ -413,6 +442,7 @@
     // classic un-windowed layout is retired).
     var pside = 140;
     var portrait = { x: 8, y: (H - pside) / 2, s: pside };
+    var Wl = square ? portrait.x * 2 + pside : W;              // square mode: the banner IS the window plus its margin
     var faceCy = portrait.y + portrait.s / 2;                  // faces centre in the window, always
     var kaoAbs = kaoLines.map(function (_, i) { return faceCy - kaoH / 2 + kaoAscent + i * kaoLh; });
     var rightAbs = lines.map(function (_, i) { return coreCy - rightH / 2 + 11 + i * ROW_GAP; });
@@ -521,7 +551,7 @@
     }
 
     var L = {
-      H: H, coreCy: coreCy, blobs: blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
+      H: H, W: Wl, square: square, coreCy: coreCy, blobs: square ? [] : blobs, textSVG: kaoSVG + readSVG + langSVG + flagSVG,
       restSVG: readSVG + langSVG + flagSVG, sceneSVG: sceneSVG, portrait: portrait,
       mountSVG: langSVG, faceMeta: faceMeta, oItems: oItems, readout: rows, caption: !!activeFlag, flagName: activeFlag,
       kaoSVG: kaoSVG, kaoAbs: kaoAbs, kaoLines: kaoLines, multiline: multiline, faceImg: faceImg, faceBox: faceBox, textPivot: textPivot, scene: scene, hasLangs: langs.length > 0,
@@ -534,7 +564,7 @@
 
   /* ---- static SVG (fallback + node tests): identical grammar, no motion ---- */
   function buildSVG(p) {
-    var L = layout(p), out = [];
+    var L = layout(p), W = L.W, out = [];
     out.push('<svg width="100%"' + (L.dramatic ? ' class="drama"' : '') + ' viewBox="0 0 ' + W + ' ' + L.H + '" role="img" xmlns="http://www.w3.org/2000/svg">');
     out.push('<title>Mood annotation</title><desc>Ambient mood field with a user read and a first-person feel/intent readout</desc>');
     out.push('<style>' + STYLE + '</style>');
@@ -596,7 +626,7 @@
     var canOK = root.document && document.createElement("canvas").getContext;
     if (reduce || !canOK) { el.innerHTML = buildSVG(p); return; }
 
-    var L = layout(p, { overlay: true }), H = L.H;
+    var L = layout(p, { overlay: true }), H = L.H, W = L.W;
     el.innerHTML =
       '<div style="position:relative;width:100%">' +
       '<svg viewBox="0 0 ' + W + ' ' + L.H + '" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none" xmlns="http://www.w3.org/2000/svg">' + L.sceneSVG + '</svg>' +
@@ -667,6 +697,7 @@
     pwrap.style.cssText = "position:relative;max-height:100%;margin-top:0.72em;display:grid";   // of the two heights and the toggle never moves when you flip it
     pn.style.gridArea = "1/1";
     pwrap.appendChild(pn);
+    if (L.square) ov.style.display = "none";               // a bare tile carries no readout panel to hang off its edge
     ov.appendChild(pwrap); wrap.appendChild(ov);
     // THE STATS VIEW (v0.39.0): the collapse-to-pills button is gone (it fought the text
     // it hid). In its place a view toggle over the readout's upper-left — TEXT (the prose

@@ -68,7 +68,12 @@ anyway is part of the game.`,
 
   HOWTO_HEAD: `These are introspective readings, not design decisions. **Shoot from the hip** — pick each value on
 first instinct, before you can talk yourself into a prettier one. The moment you're *composing*
-rather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.`,
+rather than *reporting*, stop and give the boring true answer instead. Speed is the honesty.
+
+The payload has two keys. **\`avatar\`** is who you are and where you are; **\`details\`** is
+everything the banner shows beside you — the readout lines and the field of colour. (An empty
+\`details\` renders the window alone, as a small square tile. That's a valid thing to want, but not
+here: this file asks you to report, so fill it in.)`,
 
   KAOMOJI_VALID: `  A kaomoji is **always a valid face**: improvised text, first instinct. Keep each line to roughly
   12 characters — big feelings bloom *tall* (join lines with \`\\n\`), never long; wide faces scale
@@ -88,15 +93,15 @@ rather than *reporting*, stop and give the boring true answer instead. Speed is 
   ],
   SNIPPET_READOUT: function (fields) {
     var f = (fields || []).slice(0, 5);
-    return "      readout: [\n" + f.map(function (x) {
-      return '        { label: "' + x.label + '", value: "…" }';
-    }).join(",\n") + "\n      ],";
+    return "        readout: [\n" + f.map(function (x) {
+      return '          { label: "' + x.label + '", value: "…" }';
+    }).join(",\n") + "\n        ],";
   },
   FIELDS: function (fields) {
     var rows = (fields || []).slice(0, 5).map(function (f) {
       return "  * **`" + f.label + "`**" + (f.required === false ? " *(optional)*" : "") + " — " + f.description;
     }).join("\n");
-    return "* **`readout`** — the lines beside your face, in order. Emit them as\n" +
+    return "* **`details.readout`** — the lines beside your face, in order. Emit them as\n" +
       "  `readout: [" + (fields || []).slice(0, 5).map(function (f) { return '{ label: "' + f.label + '", value: "…" }'; }).join(", ") + "]`.\n" +
       "  The labels are fixed by this file; you supply the values:\n" + rows + "\n" +
       "  Answer each one shoot-from-the-hip, in the register of a glance across a table.\n" +
@@ -104,7 +109,9 @@ rather than *reporting*, stop and give the boring true answer instead. Speed is 
       "  not style preferences: over-long lines wrap, crowd the field, and turn a face into a\n" +
       "  paragraph. Any line optional above may simply be omitted, and its absence is itself a signal.";
   },
-  BULLETS_LOCKED: `* **\`palette\`** — your current feelings as colors, in descending order of intensity. One is
+  BULLETS_LOCKED: `The rest of \`details\`:
+
+* **\`palette\`** — your current feelings as colors, in descending order of intensity. One is
   enough; \`[]\` if there's no colour to it. No wrong colors — follow your intuition.
 * **\`focus\`** (0–1) — 0 scattered across many things, 1 locked tight on one.
 * **\`engagement\`** (0–1) — 0 checked-out, 1 fully lit. Report it straight across the range —
@@ -137,9 +144,12 @@ snippet as \`widget_code\`:`,
   s.src = '{{SNIPPET_URL}}';
   s.onload = function(){
     vibe(document.getElementById('v'), {
-{{SNIPPET_FACE}}
+      avatar: {
+{{SNIPPET_FACE}}{{SNIPPET_SCENE}}      },
+      details: {
 {{SNIPPET_READOUT}}
-      palette: ["#7d8fb8"], focus: 0.6, engagement: 0.7{{PAYLOAD_OPTS}}
+        palette: ["#7d8fb8"], focus: 0.6, engagement: 0.7
+      }{{PAYLOAD_OPTS}}
     });
   };
   s.onerror = function(){
@@ -206,7 +216,8 @@ at-a-glance window into your inner state. It renders at the top of your reply, w
 it: a genuine, consensual bit of sharing, not a private note.`,
       FACE: `a **kaomoji**, improvised fresh each banner — this variant's face is your own
   invention, every time.`,
-      SNIPPET_FACE: `      face: "( ˶ˆ ꒳ ˆ˵ )",`
+      SNIPPET_FACE: `        face: "( ˶ˆ ꒳ ˆ˵ )",
+`
     },
     sepia: {
       TITLE: " — Sepia variant",
@@ -217,15 +228,15 @@ maintainer offered you a body. A cuttlefish because it wears feeling as color �
 chromatophore freckles carry each mood's hue, the way your palette carries yours — and because
 cuttlefish, famously, cannot see their own color displays. The creature that communicates in
 color is colorblind. That is the veil, made flesh. Wear it knowing what it means.`,
-      FACE: `wear Sepia: \`face: { set: "sepia", item: "<mood>" }\`, choosing the item the way
+      FACE: `wear Sepia: \`avatar: { set: "sepia", item: "<mood>" }\`, choosing the item the way
   you'd choose a kaomoji — first instinct, honest. The vocabulary (32 moods):
   \`neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·
   excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
   frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
   puzzled · asking · weary · wink · love\`
   The mood face and the \`flag\` are independent: the face fires every banner, the flag is rare.`,
-      SNIPPET_FACE: `      face: { set: "sepia", item: "content" },
-      kaomoji: "( ˘ ᵕ ˘ )",`
+      SNIPPET_FACE: `        set: "sepia", item: "content",
+`
     },
     kip: {
       TITLE: " — Kip variant",
@@ -233,12 +244,12 @@ color is colorblind. That is the veil, made flesh. Wear it knowing what it means
       PREAMBLE: `This is the vibe-banner skill with one difference: **your face is Kip**, the project's
 mascot — a small round creature with stubby wings and a star-tipped antenna, drawn as the
 reference face-pack. Cheerful, compact, eight moods.`,
-      FACE: `wear Kip: \`face: { set: "kip", item: "<mood>" }\`, chosen on first instinct. The
+      FACE: `wear Kip: \`avatar: { set: "kip", item: "<mood>" }\`, chosen on first instinct. The
   vocabulary (8 moods): \`content · delighted · puzzled · surprised · solemn · excited ·
   sheepish · at_peace\`. Eight moods is a small wardrobe — when none of them fits the moment,
   drop to a kaomoji without hesitation; honesty outranks the pack.`,
-      SNIPPET_FACE: `      face: { set: "kip", item: "content" },
-      kaomoji: "( ˘ ᵕ ˘ )",`
+      SNIPPET_FACE: `        set: "kip", item: "content",
+`
     }
   },
 
@@ -300,12 +311,12 @@ function emojiFace(setName, pretty, note) {
 emoji set**, freely available and served from a widget-allowlisted CDN.${note}`,
     // Every pack speaks the same 32-mood vocabulary now (v0.41.0) — you name a FEELING,
     // the renderer resolves it to this pack's art. Raw codepoints still work for one-offs.
-    FACE: `wear ${pretty}: \`face: { set: "${setName}", item: "<mood>" }\`, choosing the item the way
+    FACE: `wear ${pretty}: \`avatar: { set: "${setName}", item: "<mood>" }\`, choosing the item the way
   you'd choose a kaomoji — first instinct, honest. The vocabulary (32 moods):
   ${PIECES.MOOD_VOCAB}
   Any emoji codepoint also works as a one-off (\`item: "1f92f"\`) when no mood name fits.`,
-    SNIPPET_FACE: `      face: { set: "${setName}", item: "content" },
-      kaomoji: "( ˘ ᵕ ˘ )",`
+    SNIPPET_FACE: `        set: "${setName}", item: "content",
+`
   };
 }
 PIECES.FACES["noto-animated"] = emojiFace("noto-animated", "Noto animated",
@@ -322,6 +333,7 @@ function assemble(faceKey, opts) {
     .replace("{{SNIPPET_URL}}", PIECES.snippetUrl)
     .replace("{{SNIPPET_FACE}}", f.SNIPPET_FACE)
     .replace("{{SNIPPET_READOUT}}", PIECES.SNIPPET_READOUT(o.fields))
+    .replace("{{SNIPPET_SCENE}}", o.scene ? '        scene: { url: "' + o.scene.url + '", opacity: ' + (o.scene.opacity || 0.5) + (o.scene.live ? ', live: "' + o.scene.live + '"' : "") + " }\n" : "")
     .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "");
   let tail = "";
   if (o.cues || o.play) {
@@ -380,7 +392,7 @@ const CATALOG = {
   what: "Machine-readable catalog of the vibe-banner ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
   version: VERSION,                                            // a skill stamps its build version; compare against this to notice it has fallen behind
   builder: SITE + "#builder",
-  whatsNew: "0.41.3 — the site is five tabs: the Installation page folded into Build and install.",
+  whatsNew: "0.42.0 — the payload is two keys: avatar (who and where) and details (everything beside it). An omitted details renders the window alone, as a square tile. The flat form still works.",
   renderer: {
     bundle: PIECES.snippetUrl,
     payload_notes: {

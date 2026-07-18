@@ -29,6 +29,23 @@ ok(/1f643\/512\.gif/.test(buildSVG(Object.assign({}, base, { face: { set: "noto-
 ok(/1f620\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "angry" } }))), "twemoji: mood name resolves");
 ok(/emoji_u1f60a\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "noto", item: "1f60a" } }))), "raw codepoints still pass through");
 
+console.log("two keys (v0.42.0): avatar + details; empty details ships a square tile");
+let sq = buildSVG({ avatar: { set: "sepia", item: "content" } });
+ok(/viewBox="0 0 156 152"/.test(sq), "avatar alone → the window IS the banner (156x152)");
+ok(!/<ellipse/.test(sq), "square tile has no field");
+ok(!/\[user\]/.test(sq), "square tile has no readout");
+ok(/sepia-sheet\.png/.test(sq), "square tile still draws its avatar");
+ok(/viewBox="0 0 156 152"/.test(buildSVG({ avatar: { set: "sepia", item: "content" }, details: {} })), "details:{} is the same square");
+let nested = buildSVG({ avatar: { set: "sepia", item: "content" }, details: { readout: [{ label: "user", value: "hi" }], palette: ["#e0994e"] } });
+ok(/viewBox="0 0 680 152"/.test(nested) && /\[user\]/.test(nested) && /<ellipse/.test(nested), "details present → the full banner returns");
+ok(/viewBox="0 0 680 152"/.test(buildSVG(base)), "the flat legacy payload is untouched by the split");
+let sqFlag = buildSVG({ avatar: { set: "sepia", item: "content" }, details: {} , flag: "angry" });
+ok(!/class="txt fl"/.test(sqFlag), "a square tile carries no weather — flags are details");
+let av = buildSVG({ avatar: "( ˘ ᵕ ˘ )" });
+ok(/class="txt fk vk"/.test(av), "avatar as a bare string → kaomoji");
+let avScene = buildSVG({ avatar: { set: "sepia", item: "content", scene: { url: "https://cdn.jsdelivr.net/gh/u/r@abc/p.png" } } });
+ok(/vscn\d+/.test(avScene), "avatar.scene fills the window");
+
 console.log("optional [note] adds a row");
 let n = buildSVG(Object.assign({}, base, { noticing: "peripheral" }));
 ok(/viewBox="0 0 680 152"/.test(n), "4-row banner is also H=152 — text flexes inside the constant frame");
