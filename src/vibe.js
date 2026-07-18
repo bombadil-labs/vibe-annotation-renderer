@@ -356,12 +356,14 @@
     var topExtent = Math.max(kaoH, rightH) / 2;
     var bottomExtent = Math.max(kaoH / 2, rightH / 2);
     var langPad = langs.length ? 12 : 0;                       // breathing room for [Reasoned in] only — the flag caption lives inside the window now
-    var H = Math.round(PAD + topExtent + bottomExtent + PAD) + langPad;
+    var Hraw = Math.round(PAD + topExtent + bottomExtent + PAD) + langPad;
+    var H = Math.max(Hraw, 152 + langPad);                     // the window is a CONSTANT (v0.39.1): the banner grows to fit its text, but never shrinks the stage
+    if (H > Hraw) topExtent += (H - Hraw) / 2;                 // …and short readouts recentre in the taller frame
     var coreCy = PAD + topExtent, dyField = coreCy - DEFAULT_MID;
     // THE WINDOW IS THE LAYOUT: every face lives in a framed square block on the left,
     // scene or no scene. A scene just decides what's visible through it (v0.16.0 — the
     // classic un-windowed layout is retired).
-    var pside = Math.min(H - 12, 140);
+    var pside = 140;
     var portrait = { x: 8, y: (H - pside) / 2, s: pside };
     var faceCy = portrait.y + portrait.s / 2;                  // faces centre in the window, always
     var kaoAbs = kaoLines.map(function (_, i) { return faceCy - kaoH / 2 + kaoAscent + i * kaoLh; });
