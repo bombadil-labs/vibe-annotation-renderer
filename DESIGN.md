@@ -239,6 +239,13 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   painted eyes and a fixed toothy grin — covering her entirely IS the joke; the
   see-through version read as magneto.
 
+- **Anger lives in the face (v0.37.0).** The maintainer, looking at angry: the eyes and
+  mouth weren't giving anger. New "fury" eye preset (lids slash diagonally toward the
+  nose, pupils burn low — one step past frustrated's flat-lidded glower), V-brows shared
+  with frustrated, and a gritted-teeth snarl (GRIT extras overwrite the placeholder block
+  mouth). Grawlix sized to 9.5 units, centred higher so the curses climb above the crown.
+  The escalation frustrated → angry is now legible in the face alone.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
