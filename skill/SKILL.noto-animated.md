@@ -87,7 +87,7 @@ snippet as `widget_code`:
 <div id="v" style="min-height: 80px;"></div>
 <script>(function(){
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@dc0e4def5d1bfd12971e0531ec2c56de20fd31d0/dist/vibe.min.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@46a40a4eaa3e25b049b97108f759832fc209c517/dist/vibe.min.js';
   s.onload = function(){
     vibe(document.getElementById('v'), {
       face: { set: "noto-animated", item: "1f60a" },
