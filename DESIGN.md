@@ -369,7 +369,7 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   soul and threw out the body: a swarm of glowing motes, which has no silhouette to get
   wrong. That forced the general affordance this project needed anyway — a face may be
   PROCEDURAL. Sepia and Kip are spritesheets (art, hash-pinned, birth-SHA rotated on
-  every redraw); Motes resolves to  and the renderer hands it a canvas.
+  every redraw); Motes resolves to `{ proc: "motes" }` and the renderer hands it a canvas.
   It ships ZERO BYTES of art. The static path evaluates the same formation at t=0 and
   emits circles, so one source of truth serves both renders.
 
@@ -377,19 +377,19 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   nine hardcoded formations in a switch. The maintainer proposed paths: a curve the motes
   trace, with a share of the swarm, an alignment, a clustering. Every one of my nine
   formations turned out to BE that primitive wearing different numbers. The full spec:
-   (ring/arc/line/point/spiral),  (may sum below 1 — the remainder drift free,
-  which reads as a creature not entirely made up yet),  (0 suggesting → 1 locked),
-   (0 spread along the curve → 1 converged on one point of it),  (speed
-  ALONG the curve, which is what makes a path a *flight*), . Because paths compose,
+  `p` (ring/arc/line/point/spiral), `share` (may sum below 1 — the remainder drift free,
+  which reads as a creature not entirely made up yet), `align` (0 suggesting → 1 locked),
+  `cluster` (0 spread along the curve → 1 converged on one point of it), `flow` (speed
+  ALONG the curve, which is what makes a path a *flight*), `spin`. Because paths compose,
   a face is three of them — two rings and an arc — so a smile is a temporary flight path
-  rather than a special case: the  field swaps a path set in briefly and lets it
-  go. A face that keeps almost-happening.  drives the physics directly (spring
+  rather than a special case: the `flash` field swaps a path set in briefly and lets it
+  go. A face that keeps almost-happening. `align` drives the physics directly (spring
   constant up, wander down), so it is genuinely independent of shape.
 
 - **Weather replaces flags (v0.44.0).** Twenty flag names, most of them EMOTIONS — and
   emotion is the avatar's job now that avatars are properly expressive. What a banner can
   say that a face cannot is what the ROOM is doing. Seven remain, named for the
-  phenomenon: . Retired with the
+  phenomenon: `storm · spotlight · hush · fog · glow · bloom · converge`. Retired with the
   other thirteen: excited sparkles, the surprised halo, melancholy motes, mirth bubbles,
   the laugh field-bounce, groan's sag, oops's jolt, frustrated's red pulse, the rhyme
   echo, and the vertigo droste. Each duplicated avatar expression. The last two were the
