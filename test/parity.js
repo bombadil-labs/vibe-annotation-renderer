@@ -10,13 +10,13 @@ const base = { kaomoji: "( ˶ˆ ꒳ ˆ˵ )", seems: "a", feel: "b", trying: "c",
 console.log("structure");
 let s = buildSVG(base);
 ok(s.startsWith("<svg") && s.endsWith("</svg>"), "well-formed <svg>…</svg>");
-ok(/viewBox="0 0 680 107"/.test(s), "3-row banner is H=107");
+ok(/viewBox="0 0 680 152"/.test(s), "3-row banner is H=152 (v0.39.1: the window is a constant 140; the banner never shrinks below it)");
 ok((s.match(/<text /g) || []).length === 4, "3 readout rows + 1 face = 4 <text>");
 ok(/\[user\]/.test(s) && /\[mood\]/.test(s) && /\[goal\]/.test(s), "labels [user]/[mood]/[goal] present");
 
 console.log("optional [note] adds a row");
 let n = buildSVG(Object.assign({}, base, { noticing: "peripheral" }));
-ok(/viewBox="0 0 680 132"/.test(n), "4-row banner is H=132");
+ok(/viewBox="0 0 680 152"/.test(n), "4-row banner is also H=152 — text flexes inside the constant frame");
 ok(/\[note\]/.test(n) && (n.match(/<text /g) || []).length === 5, "[note] present, 5 <text>");
 
 console.log("text faces carry a backdrop plate; sprites do not");
@@ -63,7 +63,7 @@ ok(/viewBox="448 192 64 64"/.test(buildSVG(Object.assign({}, base, { face: { set
 ok(/class="txt fk vk"/.test(buildSVG(Object.assign({}, base, { face: { set: "unknown-set", item: "x" } }))), "unknown set → falls back to kaomoji");
 ok(buildSVG(Object.assign({}, base, { face: { nope: true } })).indexOf("vk") > 0, "malformed face → falls back to kaomoji, no crash");
 let ctr = +/(?:<image class="vk" x=")([0-9.]+)/.exec(fp1)[1];
-ok(ctr === 27.5, "image faces centre in the window (x=" + ctr + " → centre 55.5 in the 95px window at x=8)");
+ok(ctr === 50, "image faces centre in the window (x=" + ctr + " → centre 78 in the constant 140px window at x=8)");
 
 console.log("scene: a framed portrait window on the left");
 let sc = buildSVG(Object.assign({}, base, { scene: "https://cdn.jsdelivr.net/gh/u/r@abc/pool.png" }));
@@ -169,7 +169,7 @@ let ft = buildSVG(Object.assign({}, base, { flag: "solemn" }));
 ok(/>\[solemn\]<\/text>/.test(ft), "solemn → '[solemn]' bottom-left");
 ok(/>\[at peace\]<\/text>/.test(buildSVG(Object.assign({}, base, { flag: "at_peace" }))), "at_peace displays as '[at peace]'");
 ok(/>\[angry\]<\/text>/.test(buildSVG(Object.assign({}, base, { angry: true, puzzled: true }))), "legacy multi-flag payload captions the winner");
-ok(/viewBox="0 0 680 107"/.test(ft), "flag caption lives in the window — no bottom padding (H=107)");
+ok(/viewBox="0 0 680 152"/.test(ft), "flag caption lives in the window — no bottom padding (H=152)");
 
 console.log("new-flag static markers");
 ok(/🌸|🌼|✿|❀|🌷/.test(buildSVG(Object.assign({}, base, { at_peace: true }))), "at_peace scatters blossoms");
