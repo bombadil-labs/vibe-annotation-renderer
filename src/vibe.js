@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@c57794f0ef9761ef9aace21c2074749b4af4ae7a/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@81aded341b18a6d5f606800367de649977a58ca3/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -1307,14 +1307,14 @@
                 for (var gpi = 0; gpi < 7; gpi++) {
                   var gpr = mulberry32(L.seed + gpi * 131 + 61);
                   var gbirth = gpr() * 2.0, gword = gwds[Math.floor(gpr() * gwds.length) % gwds.length];
-                  var gang = gpr() * 6.2832, grad = 10 + gpr() * 12;
+                  var gang = gpr() * 6.2832, grad = 11 + gpr() * 14;
                   var gage = (((t - gbirth) % 2.0) + 2.0) % 2.0;
                   if (gage > 1.3) continue;
                   var gu2 = gage / 1.3;
                   var gfall = gu2 < 0.2 ? -3 * (gu2 / 0.2) : -3 + 10 * ((gu2 - 0.2) / 0.8);
-                  var gpx = 32 * fsc + Math.cos(gang) * grad * fsc, gpy = 9 * fsc + Math.sin(gang) * grad * 0.6 * fsc + gfall * fsc;
+                  var gpx = 32 * fsc + Math.cos(gang) * grad * fsc, gpy = 7 * fsc + Math.sin(gang) * grad * 0.65 * fsc + gfall * fsc;   // centred higher — the curses climb clear above her crown
                   fx2.globalAlpha = gu2 < 0.14 ? gu2 / 0.14 : Math.max(0, 1 - (gu2 - 0.14) / 0.86);
-                  fx2.font = "700 " + (7 * (1.05 - 0.4 * gu2) * fsc).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
+                  fx2.font = "700 " + (9.5 * (1.05 - 0.4 * gu2) * fsc).toFixed(1) + "px ui-monospace, Menlo, Consolas, monospace";
                   fx2.fillStyle = gpi % 3 === 0 ? "#ffd24a" : "#ff5a4a";
                   fx2.fillText(gword, gpx, gpy);
                 }
