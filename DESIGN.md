@@ -212,6 +212,18 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   `bounce` (laugh's kefka cackle: guffaw frame chattered at 140ms while the body jounces)
   and `contract` (groan: fins/arms hauled in, mantle sunk and squashed, breathing).
 
+- **The study lives; feeding thrills (v0.35.0, cozy-core).** Second live habitat:
+  `live: "study"` flickers the lantern on three incommensurate flames (candle physics,
+  never a loop), steams the tea on a new little pedestal table (baked steam pixels
+  removed — animation is code), and serves feedings as a steaming plate beside the cup.
+  The easter egg: every additional feeding heaps the plate higher, and past twelve the
+  tower starts to sway. Structure: the live block clips once, then branches per kind —
+  taps/ripples stay tidepool-only. And feeding now gets a REACTION everywhere: a
+  `thrill` registry cell (laugh's frame 1, which went wide-eyed for double duty) flashes
+  over any mood's features for ~1.1s with a hop-and-swell pulse, delayed until the food
+  actually arrives (flakes hit water ~1s, plate lands ~0.45s). Text faces get the pulse
+  alone. The claudemeal flavor pantry is untouched — the register, not the meal, changed.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately
