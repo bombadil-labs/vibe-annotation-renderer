@@ -140,7 +140,7 @@
   var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@93aee550643209820576bd415f92c83f8fc40216/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-annotation-renderer@352a942b427b9d7d83dfa8d4d0ed7c580e2e12c8/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   var SEPIA_MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
@@ -675,7 +675,7 @@
     var FINP = { r: [4, 1.8, 1.1], f: [5.5, 2.9, 3.0], d: [3, 1.1, 0.45], c: [3.5, 1.0, 0.4], t: [1.6, 0.5, 0.6] };   // [baseW, amp, rate] in 64-cell units
     if (kaoEl && fm && fm.kind === "sprite" && fm.anim && fm.anim.fins) {
       finC = document.createElement("canvas");
-      finC.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
+      finC.style.cssText = "position:absolute;left:0;top:0;width:100%;height:118%;pointer-events:none";   // taller than the face box: the longer arms trail into the window below
       kaoEl.style.position = "relative";
       kaoEl.appendChild(finC);
     }
@@ -998,7 +998,7 @@
         if (finC) {
           var fcw = kaoEl.clientWidth, fch = kaoEl.clientHeight;
           if (fcw > 4) {
-            if (finC.width !== fcw) { finC.width = fcw; finC.height = fch; }
+            if (finC.width !== fcw) { finC.width = fcw; finC.height = Math.round(fch * 1.18); }   // matches the 118% CSS height — cell y-space runs 0..75
             var fx2 = finC.getContext("2d");
             fx2.clearRect(0, 0, fcw, fch);
             var fcode = fm.anim.fins.charAt(fm.index) || "r";
@@ -1008,7 +1008,9 @@
             // the fins ATTACH ALONG THE MANTLE'S CURVE (mirrors gen-sepia's PROFILE):
             // the flank bows out to the eye band and tapers away below — the membrane
             // follows it, so the fin reads as grown from the body line, not pinned to a wall
-            var flankX = function (fy2) { return 8 + 6 * Math.pow(Math.abs(fy2 - 28) / 16, 1.6); };
+            var flankX = function (fy2) {                                            // mirrors gen-sepia's bold PROFILE: crown flare, wide eye band, long taper
+              return fy2 <= 16 ? 6 + (16 - fy2) * 0.8 : fy2 <= 31 ? 6 : 6 + (fy2 - 31) * 0.72;
+            };
             [[-1], [1]].forEach(function (fside) {
               var fdir2 = fside[0];
               var edgePts = [], seamPts = [];
@@ -1016,7 +1018,12 @@
                 var axc = (fdir2 < 0 ? flankX(fy) + 1.5 : 64 - flankX(fy) - 1.5) * fsc;
                 var prof = Math.sin((fy - 12) / 32 * Math.PI);                       // tapered ends, widest amidships
                 var sagF = fcode === "d" ? 0.25 + (fy - 12) / 32 * 0.9 : 1;          // drooped: the membrane pools toward the bottom
-                var wv = famp * Math.sin(fy * 0.32 - t * frate * 6.283 * fdir2) * prof;
+                // ORGANIC undulation: two travelling waves at incommensurate (golden-
+                // ratio) frequencies plus a slow amplitude breath — the motion never
+                // visibly loops, the way the chromatophore drift never repeats
+                var wv = prof * (0.75 + 0.25 * Math.sin(t * 0.13 + fy * 0.05)) *
+                  (famp * 0.65 * Math.sin(fy * 0.32 - t * frate * 6.283 * fdir2) +
+                   famp * 0.45 * Math.sin(fy * 0.21 * 1.618 - t * frate * 6.283 * 0.618 * fdir2 + 2.1));
                 var wdt = Math.max(0, baseW * prof * sagF + wv);
                 seamPts.push([axc, fy * fsc]);
                 edgePts.push([axc + fdir2 * wdt, fy * fsc]);
@@ -1040,14 +1047,14 @@
             // Posture follows the fins' mood params at reduced amplitude — tucked moods
             // hold their arms close too.
             if (fm.anim.arms) {
-              // five arms in a TIGHT cluster spanning exactly the tapered hem — the
-              // outermost continue the mantle's taper line, so body flows into skirt
-              [[17.5, 0, 12], [24.5, 1, 15], [32, 2, 16], [39.5, 3, 15], [46.5, 4, 12]].forEach(function (armS) {
+              // five LONGER arms tiling the narrow hem edge-to-edge — the skirt IS the
+              // bottom of the body; the outermost continue the elongated taper line
+              [[22.7, 0, 15], [27.35, 1, 18], [32, 2, 20], [36.65, 3, 18], [41.3, 4, 15]].forEach(function (armS) {
                 var acx = armS[0], ai2 = armS[1];
                 var arr2 = mulberry32(L.seed + ai2 * 3671 + 17);
                 var aph = arr2() * 6.28, arate = (0.5 + arr2() * 0.5) * (0.4 + fp2[2] * 0.35);
                 var aamp = (1.2 + fp2[1] * 0.9) * fsc, alen = armS[2], ay0 = 49;   // roots tuck up under the open hem — one flesh, no seam
-                var aw0 = 2.6 * fsc;
+                var aw0 = 2.3 * fsc;
                 var lEdge = [], rEdge = [];
                 for (var ayy = 0; ayy <= alen; ayy++) {
                   var au = ayy / alen;
@@ -1071,12 +1078,8 @@
                 for (var ri3 = rEdge.length - 1; ri3 >= 0; ri3--) fx2.lineTo(rEdge[ri3][0], rEdge[ri3][1]);
                 fx2.stroke();
               });
-              // the hem's boundary line lives ONLY in the gaps between arm roots — the
-              // silhouette runs flank → hem-gap → down an arm and back, one continuous line
-              fx2.fillStyle = rgba("#5a4a52", 0.85);
-              [[20.1, 21.9], [27.1, 29.4], [34.6, 36.9], [42.1, 43.9]].forEach(function (gseg) {
-                fx2.fillRect(gseg[0] * fsc, 51 * fsc, (gseg[1] - gseg[0]) * fsc, Math.max(1, fsc));
-              });
+              // (no hem gap segments anymore: the arms tile the narrow hem edge-to-edge,
+              // and their own side strokes are the grooves — one continuous boundary)
             }
             if (boopFx && boopFx.t0 != null) {                                       // the poke: a soft impact FLASH absorbed at the spot — deliberately nothing like a water ripple
               var bAge2 = t - boopFx.t0;
@@ -1105,7 +1108,7 @@
             // creeps (~0.3x); fully lit streams (1x = the high-energy rate). The fluid
             // layer's tempo now reports the same thing the field's size does.
             var cEng = Math.max(0, Math.min(1, p.engagement == null ? 0.7 : +p.engagement || 0));
-            var cSpd = 0.15 + 0.35 * cEng;                     // half the old rate: same refresh, less drastic travel
+            var cSpd = 0.1 + 0.25 * cEng;                      // unhurried by default — nobody's rushing in a tidepool
             for (var ci = 0; ci < 7; ci++) {                   // seven roamers — the only camo there is, now that the baked patterns retired
               var crr = mulberry32(L.seed + ci * 7717 + 5);
               var sw1 = (0.11 + crr() * 0.11) * cSpd, sw2 = (0.09 + crr() * 0.1) * cSpd;   // fast enough to SEE at full energy: a body-crossing in seconds
