@@ -392,7 +392,7 @@ const CATALOG = {
   what: "Machine-readable catalog of the vibe-banner ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
   version: VERSION,                                            // a skill stamps its build version; compare against this to notice it has fallen behind
   builder: SITE + "#builder",
-  whatsNew: "0.42.1 — the gallery gains a habitat selector: dress all forty exchanges in any shipped scene.",
+  whatsNew: "0.42.2 — the landing hero rolls a face and a habitat on every visit.",
   renderer: {
     bundle: PIECES.snippetUrl,
     payload_notes: {

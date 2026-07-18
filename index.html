@@ -249,15 +249,42 @@ function mountTab(tab) {
   MOUNT_QUEUE[tab] = [];
 }
 
-queueMount("landing", document.getElementById("hero"), {
-  kaomoji: "( ˶ˆ ꒳ ˆ˵ )",
-  seems: "curious enough to click through — welcome",
-  feel: "warm · a little proud",
-  trying: "show you what an honest mood banner looks like",
-  noticing: "you're wondering if this is gimmick or genuine; fair",
-  palette: ["#d99a5e", "#7d8fb8"],
-  focus: 0.7, engagement: 0.85
-});
+// The hero rolls a face and a habitat on every load: the project's actual claim is that
+// this is a wardrobe, not one mascot, and a fixed hero quietly argues the opposite. The
+// MOOD stays inside a warm register, because the readout copy below is warm and a random
+// `angry` under "welcome" would read as a bug rather than range. noto-animated sits out —
+// its frames are 1–3 MB each, which is a rude thing to put on a front door.
+(function () {
+  var SP = (window.SKILL_PIECES && window.SKILL_PIECES.SCENES) || {};
+  var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+  var WARM = ["content", "delighted", "tender", "mirth", "at_peace", "spark", "thinking", "neutral"];
+  var KIP_WARM = ["content", "delighted", "excited", "at_peace"];
+  var KAOS = ["( ˶ˆ ꒳ ˆ˵ )", "( ˘ ᵕ ˘ )", "( ˶˃ ᵕ ˂˶ )", "( ⊙ ᵕ ⊙ )"];
+  var packs = ["kaomoji", "sepia", "sepia", "kip", "noto", "twemoji"];   // sepia twice: she's the face the project designed for itself
+  var pack = pick(packs), avatar;
+  if (pack === "kaomoji") avatar = { face: pick(KAOS) };
+  else if (pack === "kip") avatar = { set: "kip", item: pick(KIP_WARM) };
+  else avatar = { set: pack, item: pick(WARM) };
+  var sceneKeys = Object.keys(SP);
+  if (sceneKeys.length) {
+    var sk = pick(sceneKeys), sc = SP[sk];
+    avatar.scene = { url: sc.url, opacity: 0.6 };
+    if (sc.live) avatar.scene.live = sc.live;
+  }
+  queueMount("landing", document.getElementById("hero"), {
+    avatar: avatar,
+    details: {
+      readout: [
+        { label: "user", value: "curious enough to click through — welcome" },
+        { label: "mood", value: "warm · a little proud" },
+        { label: "note", value: "you're wondering if this is gimmick or genuine; fair" },
+        { label: "goal", value: "show you what an honest mood banner looks like" }
+      ],
+      palette: ["#d99a5e", "#7d8fb8"],
+      focus: 0.7, engagement: 0.85
+    }
+  });
+})();
 
 
 var GROUPS = [
