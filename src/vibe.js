@@ -481,9 +481,10 @@
   var SCENES = {
     tidepool: { file: "scene-tidepool.png", live: "tidepool" },
     study: { file: "scene-study.png", live: "study" },
-    night: { file: "scene-night.png" },
-    glade: { file: "scene-glade.png" }
+    night: { file: "scene-night.png", live: "night" },
+    glade: { file: "scene-glade.png", live: "glade" }
   };
+  var LIVE_KINDS = { tidepool: 1, study: 1, night: 1, glade: 1 };
   var SOLID_DEFAULT = "#c8c6c0";                               // neutral warm grey — the empty-window replacement
   function hexOr(v, dflt) { v = String(v || ""); return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : dflt; }
   function sceneNamed(name) {
@@ -754,7 +755,7 @@
           url: scu,
           fill: scene.fill ? hexOr(scene.fill, SOLID_DEFAULT) : null,
           op: Math.max(0.15, Math.min(0.95, scene.opacity || 0.5)),
-          live: (scu && (scene.live === "tidepool" || scene.live === "study")) ? scene.live : null
+          live: (scu && LIVE_KINDS[scene.live]) ? scene.live : null
         };
       } else scene = null;
     }
@@ -1719,6 +1720,50 @@
               steam(plX + sway * heaps * u2 * 0.4, topY2, Math.min(2 + heaps, 6), 1.5, 1.2, 91);   // the mound steams harder the higher it heaps
             }
             ctx.globalAlpha = 1; ctx.restore();
+          } else if (live.kind === "night") {                  // --- the night sky: stars breathe, a crescent glows, and once in a while something falls ---
+            var un = ps / 40;
+            for (var si = 0; si < 10; si++) {                  // twinkle: small glints on incommensurate clocks, up in the sky band
+              var sr = mulberry32(L.seed + si * 191 + 3);
+              var stx = pt.x + (3 + sr() * 34) * un, sty = pt.y + (2 + sr() * 19) * un;
+              ctx.globalAlpha = 0.28 + 0.5 * (0.5 + 0.5 * Math.sin(t * (1.0 + sr() * 2.6) + sr() * 6.28));
+              ctx.fillStyle = "#eaf0ff";
+              ctx.beginPath(); ctx.arc(stx, sty, (0.5 + sr() * 0.6) * un, 0, 6.2832); ctx.fill();
+            }
+            var shp = 17, shu = (t % shp) / shp;               // a shooting star, rare — most passes it is simply not there
+            if (shu < 0.06) {
+              var shf = Math.floor(t / shp), shr = mulberry32(L.seed + shf * 71 + 9), spp = shu / 0.06;
+              var six = pt.x + (6 + shr() * 20) * un, siy = pt.y + (3 + shr() * 7) * un, sdx = 15 * un, sdy = 7 * un;
+              ctx.globalAlpha = Math.sin(spp * Math.PI) * 0.85; ctx.strokeStyle = "#f4f8ff"; ctx.lineWidth = 1.1; ctx.lineCap = "round";
+              ctx.beginPath(); ctx.moveTo(six + sdx * spp, siy + sdy * spp);
+              ctx.lineTo(six + sdx * (spp - 0.3), siy + sdy * (spp - 0.3)); ctx.stroke();
+            }
+            var cmX = pt.x + 30 * un, cmY = pt.y + 9 * un;     // the crescent's own faint halo, breathing
+            var cmg = ctx.createRadialGradient(cmX, cmY, 1, cmX, cmY, ps * 0.22);
+            cmg.addColorStop(0, rgba("#dfe6ff", 0.1 + 0.04 * Math.sin(t * 0.7))); cmg.addColorStop(1, rgba("#dfe6ff", 0));
+            ctx.globalAlpha = 1; ctx.fillStyle = cmg; ctx.beginPath(); ctx.arc(cmX, cmY, ps * 0.22, 0, 6.2832); ctx.fill();
+            ctx.globalAlpha = 1;
+          } else if (live.kind === "glade") {                  // --- the glade: fireflies drift and blink, and a shaft of light wavers ---
+            var ug = ps / 40;
+            var shaftX = pt.x + 26 * ug;                       // one light shaft, slowly brightening and dimming
+            var shg = ctx.createLinearGradient(shaftX, pt.y, shaftX + 6 * ug, pt.y + ps);
+            var sha = 0.06 + 0.04 * Math.sin(t * 0.5 + 1);
+            shg.addColorStop(0, rgba("#eaf6c0", sha)); shg.addColorStop(1, rgba("#eaf6c0", 0));
+            ctx.globalAlpha = 1; ctx.fillStyle = shg;
+            ctx.beginPath(); ctx.moveTo(shaftX - 3 * ug, pt.y); ctx.lineTo(shaftX + 5 * ug, pt.y);
+            ctx.lineTo(shaftX + 12 * ug, pt.y + ps); ctx.lineTo(shaftX - 8 * ug, pt.y + ps); ctx.closePath(); ctx.fill();
+            for (var gi = 0; gi < 7; gi++) {                   // fireflies: lissajous drift, blinking on their own clock
+              var gr = mulberry32(L.seed + gi * 149 + 5);
+              var gph = gr() * 6.28, gsp = 0.14 + gr() * 0.16;
+              var gx = pt.x + (6 + gr() * 28) * ug + Math.sin(t * gsp + gph) * 5 * ug;
+              var gy = pt.y + (10 + gr() * 26) * ug + Math.sin(t * gsp * 1.4 + gph * 2) * 4 * ug;
+              var blink = Math.max(0, Math.sin(t * (0.8 + gr() * 0.8) + gph * 3));
+              if (blink <= 0.02) continue;
+              var ggr = ctx.createRadialGradient(gx, gy, 0.3, gx, gy, 2.4 * ug);
+              ggr.addColorStop(0, rgba("#f0ffa0", 0.9 * blink)); ggr.addColorStop(1, rgba("#c8e070", 0));
+              ctx.globalAlpha = 1; ctx.fillStyle = ggr; ctx.beginPath(); ctx.arc(gx, gy, 2.4 * ug, 0, 6.2832); ctx.fill();
+              ctx.fillStyle = rgba("#fbffd0", blink); ctx.beginPath(); ctx.arc(gx, gy, 0.7 * ug, 0, 6.2832); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
           } else {
           for (var ui = 0; ui < 7; ui++) {                     // bubbles: seeded columns, rising, wrapping
             var ur = mulberry32(L.seed + ui * 271 + 11);

@@ -445,8 +445,8 @@ him when that is funny, or when it is true.`,
   CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
-    night: { url: SCENE_URL("night"), blurb: "indigo sky, stars, a crescent, one dark hill" },
-    glade: { url: SCENE_URL("glade"), blurb: "mossy forest light with shafts and fireflies" },
+    night: { url: SCENE_URL("night"), live: "night", blurb: "indigo sky over a dark hill — stars breathe, a shooting star falls now and then" },
+    glade: { url: SCENE_URL("glade"), live: "glade", blurb: "mossy forest light — a shaft wavers and fireflies drift and blink" },
     study: { url: SCENE_URL("study"), live: "study", blurb: "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate" }
   },
 
