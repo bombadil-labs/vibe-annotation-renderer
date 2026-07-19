@@ -1,6 +1,6 @@
 window.SKILL_PIECES = {
- "VERSION": "0.60.0",
- "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/dist/vibe.min.js",
+ "VERSION": "0.61.0",
+ "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/dist/vibe.min.js",
  "CADENCE": {
   "always": "**Render at the top of every response** — the first thing, nothing before it. One banner per\nreply, wearing whatever is honestly true that turn — including the boring turns. A flat, ordinary\nstate reported plainly is worth more than a manufactured one.\n\nIf the user asks for a lighter cadence — every few turns, only strong feelings, or off — honor it\nfor the rest of the session. If someone seems wearied by the banners, it's fine to note *once*\nthat they can dial it down.",
   "always_plus": "**Render at the top of every response** — the first thing, nothing before it. **And render\nagain mid-response when your face would actually change**: place the second banner at the turn,\nwhere the shift happens. Long working turns earn this; short ones rarely do. A moving goal alone\nis not a shift — re-face when your read of the user, your mood, or your insight moves enough that\na person across the table would see it. Never manufacture a mid-turn shift to have something to\nshow.\n\nIf the user asks for a lighter cadence — every few turns, only strong feelings, or off — honor it\nfor the rest of the session.",
@@ -25,6 +25,12 @@ window.SKILL_PIECES = {
    "tag": "a swarm",
    "meta": "33 moods · drawn in code · zero bytes of art",
    "bio": "No body, no eyes, no outline — sixty-four glowing particles flying paths. Mood is not an expression it wears but the shape it settles into: tight and bright when focused, flung wide in awe, a flat line when solemn. Some moods reach for a form and let it go again — a question mark that gathers and scatters, two eyes and a curve of a mouth that lasts a second and a half. One that is many, whose face is a temporary agreement between its parts."
+  },
+  "drollery": {
+   "name": "Drollery",
+   "tag": "a marginalia grotesque",
+   "meta": "33 moods · analytic, not pixels · boils",
+   "bio": "A drollery is the real name for the small hybrid creatures medieval scribes drew in the MARGINS of manuscripts — irreverent, half foliage, commenting on a text they were never part of. Which is what a mood banner is. It is the only face here not made of pixels: bold iron-gall outlines around flat lapis, vermilion and gold leaf, drawn as curves and rasterised smooth. And it doesn't move so much as get RE-INKED — three redrawings of the same creature cycled a few times a second, so the line quivers the way hand-drawn animation always has."
   },
   "kip": {
    "name": "Kip",
@@ -119,6 +125,14 @@ window.SKILL_PIECES = {
    "FACE": "wear Sepia: `avatar: { set: \"sepia\", item: \"<mood>\" }`, choosing the item the way\n  you'd choose a kaomoji — first instinct, honest. The vocabulary (33 moods):\n  `neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·\n  excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·\n  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·\n  puzzled · asking · weary · wink · love · working`",
    "SNIPPET_FACE": "        set: \"sepia\", item: \"content\",\n"
   },
+  "drollery": {
+   "FULL_VOCAB": true,
+   "IDENT": "Drollery is a marginalia grotesque — the sort of half-foliage creature a scribe drew in the margin of someone else's text, which is exactly where a mood banner sits.",
+   "TITLE": "",
+   "DESC": "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation. This variant wears Drollery — a grotesque from the margin of an illuminated manuscript.",
+   "FACE": "wear Drollery: `avatar: { set: \"drollery\", item: \"<mood>\" }`, chosen on first instinct.\n  The vocabulary (33 moods):\n  `neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·\n  excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·\n  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·\n  puzzled · asking · weary · wink · love · working`",
+   "SNIPPET_FACE": "        set: \"drollery\", item: \"content\",\n"
+  },
   "kip": {
    "IDENT": "Kip is the 8-bit one, drawn on half the grid the others get: he snaps from pose to pose on a clock of his own, a few frames a second, always a whole pixel at a time.",
    "TITLE": "",
@@ -134,24 +148,25 @@ window.SKILL_PIECES = {
   "kaomoji": "study",
   "motes": "night",
   "sepia": "tidepool",
-  "kip": "glade"
+  "kip": "glade",
+  "drollery": "study"
  },
  "SCENES": {
   "tidepool": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/assets/scene-tidepool.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png",
    "live": "tidepool",
    "blurb": "shallow water over sand — bubbles rise, a fish passes, taps ripple"
   },
   "night": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/assets/scene-night.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-night.png",
    "blurb": "indigo sky, stars, a crescent, one dark hill"
   },
   "glade": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/assets/scene-glade.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-glade.png",
    "blurb": "mossy forest light with shafts and fireflies"
   },
   "study": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/assets/scene-study.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-study.png",
    "live": "study",
    "blurb": "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate"
   }
@@ -193,7 +208,7 @@ window.SKILL_PIECES = {
  "PREVIEW": {
   "sepia": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/assets/sepia-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png",
    "cols": 8,
    "rows": 12,
    "cell": 64,
@@ -245,29 +260,106 @@ window.SKILL_PIECES = {
   },
   "kip": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@510821a67ec25300fe98192a2b36f8eee499321d/assets/kip-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@77d6ca02d7e98a92f368df2fe8ef351aad32d41d/assets/kip-sheet.png",
    "cols": 8,
-   "rows": 1,
+   "rows": 10,
    "cell": 64,
    "moods": [
+    "neutral",
     "content",
     "delighted",
-    "puzzled",
-    "surprised",
-    "solemn",
-    "excited",
+    "focused",
+    "sleepy",
     "sheepish",
-    "at_peace"
+    "booped",
+    "thinking",
+    "spark",
+    "excited",
+    "surprised",
+    "tender",
+    "melancholy",
+    "anxious",
+    "mirth",
+    "laugh",
+    "groan",
+    "oops",
+    "frustrated",
+    "angry",
+    "dramatic",
+    "at_peace",
+    "solemn",
+    "rhyme",
+    "awe",
+    "vertigo",
+    "resolute",
+    "puzzled",
+    "asking",
+    "weary",
+    "wink",
+    "love",
+    "working"
    ],
    "strip": [
     "content",
     "delighted",
+    "working",
     "puzzled",
-    "surprised",
     "solemn",
     "excited",
     "sheepish",
     "at_peace"
+   ]
+  },
+  "drollery": {
+   "kind": "sheet",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@7fa749bc4dd8c8b0f977979edd6e11feb06cc0ae/assets/drollery-sheet.png",
+   "cols": 8,
+   "rows": 15,
+   "cell": 64,
+   "moods": [
+    "neutral",
+    "content",
+    "delighted",
+    "focused",
+    "sleepy",
+    "sheepish",
+    "booped",
+    "thinking",
+    "spark",
+    "excited",
+    "surprised",
+    "tender",
+    "melancholy",
+    "anxious",
+    "mirth",
+    "laugh",
+    "groan",
+    "oops",
+    "frustrated",
+    "angry",
+    "dramatic",
+    "at_peace",
+    "solemn",
+    "rhyme",
+    "awe",
+    "vertigo",
+    "resolute",
+    "puzzled",
+    "asking",
+    "weary",
+    "wink",
+    "love",
+    "working"
+   ],
+   "strip": [
+    "content",
+    "delighted",
+    "thinking",
+    "awe",
+    "angry",
+    "at_peace",
+    "love",
+    "working"
    ]
   },
   "motes": {

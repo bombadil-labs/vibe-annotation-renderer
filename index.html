@@ -139,6 +139,7 @@
           <button class="tab-btn" data-face="kaomoji">kaomoji</button>
           <button class="tab-btn" data-face="sepia">sepia</button>
           <button class="tab-btn" data-face="motes">motes</button>
+          <button class="tab-btn" data-face="drollery">drollery</button>
           <button class="tab-btn" data-face="kip">kip</button>
         </div>
       </div>
@@ -483,7 +484,8 @@ function withFace(p) {
   if (STATE_WEATHER[mood]) q.weather = STATE_WEATHER[mood];
   if (use === "sepia") q.face = { set: "sepia", item: mood };
   else if (use === "motes") q.face = { set: "motes", item: mood };
-  else if (use === "kip") q.face = { set: "kip", item: mood };   // Kip speaks all 33 now; no mapping
+  else if (use === "kip") q.face = { set: "kip", item: mood };
+  else if (use === "drollery") q.face = { set: "drollery", item: mood };   // Kip speaks all 33 now; no mapping
   else delete q.face;                                           // kaomoji: drop any baked-in face, or it survives the picker
   if (SCENE_CHOICE !== "none") {
     var sa = sceneArg(SCENE_CHOICE, { opacity: 0.55 });
@@ -779,7 +781,7 @@ route();
   var c2 = card("face");
   c2.appendChild(callout("Pick my face — that's the whole station. Every pack speaks the same 33 moods now, so the rest of the file doesn't change when you switch me. Try them all on —", { m: "delighted", e: "1f604", k: "( ˶ˆ ᗜ ˆ˵ )" }, ["see them in the Gallery →", "#gallery"]));
   var faceSel = document.createElement("select"); faceSel.style.cssText = SEL + "margin:0 0 8px;";
-  [["sepia", "Sepia — the cuttlefish (33 moods, alive)"], ["motes", "Motes — a swarm, drawn in code (33 moods)"], ["kip", "Kip — the mascot (33 moods, 8-bit and stepped)"], ["kaomoji", "kaomoji (improvised text)"]].forEach(function (o) {
+  [["sepia", "Sepia — the cuttlefish (33 moods, alive)"], ["motes", "Motes — a swarm, drawn in code (33 moods)"], ["drollery", "Drollery — a marginalia grotesque (33 moods, inked and boiling)"], ["kip", "Kip — the mascot (33 moods, 8-bit and stepped)"], ["kaomoji", "kaomoji (improvised text)"]].forEach(function (o) {
     var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; faceSel.appendChild(op);
   });
   faceSel.value = S.face;
@@ -857,7 +859,7 @@ route();
   faceSel.addEventListener("change", function () {
     S.face = faceSel.value;
     renderBio(document.getElementById("b-bio"), S.face, false);
-    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade" };
+    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" };
     if (!S.scenePicked && homes[S.face]) { S.scene = homes[S.face]; scSel.value = S.scene; }   // each face has a place it reads best in
     refreshLive(); refreshCustom(); refreshScene(); renderNarrators(); status();
   });
@@ -1095,7 +1097,7 @@ route();
     return s;
   }
 
-  var faceSel = mkSel("face", [["kaomoji", "kaomoji"], ["sepia", "sepia"], ["motes", "motes"], ["kip", "kip"]], X.set,
+  var faceSel = mkSel("face", [["kaomoji", "kaomoji"], ["sepia", "sepia"], ["motes", "motes"], ["drollery", "drollery"], ["kip", "kip"]], X.set,
     function (v) { X.set = v; refreshItems(); render(); renderBio(document.getElementById("x-bio"), v, false); });
 
   var itemSel = mkSel("mood", [["content", "content"]], X.item, function (v) { X.item = v; render(); });

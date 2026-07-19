@@ -14,6 +14,7 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 // Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
 // If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
 const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+const DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@7fa749bc4dd8c8b0f977979edd6e11feb06cc0ae/assets/drollery-sheet.png";
 const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@77d6ca02d7e98a92f368df2fe8ef351aad32d41d/assets/kip-sheet.png";
 const SCENE_TIDEPOOL = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png";
 // Newer scenes pin via the release sha (npm run pin stamps every consumer uniformly;
@@ -85,6 +86,11 @@ to earn a banner.`
       name: "Motes", tag: "a swarm",
       meta: "33 moods · drawn in code · zero bytes of art",
       bio: "No body, no eyes, no outline — sixty-four glowing particles flying paths. Mood is not an expression it wears but the shape it settles into: tight and bright when focused, flung wide in awe, a flat line when solemn. Some moods reach for a form and let it go again — a question mark that gathers and scatters, two eyes and a curve of a mouth that lasts a second and a half. One that is many, whose face is a temporary agreement between its parts."
+    },
+    drollery: {
+      name: "Drollery", tag: "a marginalia grotesque",
+      meta: "33 moods · analytic, not pixels · boils",
+      bio: "A drollery is the real name for the small hybrid creatures medieval scribes drew in the MARGINS of manuscripts — irreverent, half foliage, commenting on a text they were never part of. Which is what a mood banner is. It is the only face here not made of pixels: bold iron-gall outlines around flat lapis, vermilion and gold leaf, drawn as curves and rasterised smooth. And it doesn't move so much as get RE-INKED — three redrawings of the same creature cycled a few times a second, so the line quivers the way hand-drawn animation always has."
     },
     kip: {
       name: "Kip", tag: "the mascot",
@@ -324,6 +330,20 @@ color is colorblind. That is the veil, made flesh. Wear it knowing what it means
       SNIPPET_FACE: `        set: "sepia", item: "content",
 `
     },
+    drollery: {
+      FULL_VOCAB: true,
+      IDENT: "Drollery is a marginalia grotesque — the sort of half-foliage creature a scribe drew in the margin of someone else's text, which is exactly where a mood banner sits.",
+      TITLE: "",
+      DESC: "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation. This variant wears Drollery — a grotesque from the margin of an illuminated manuscript.",
+      FACE: `wear Drollery: \`avatar: { set: "drollery", item: "<mood>" }\`, chosen on first instinct.
+  The vocabulary (33 moods):
+  \`neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·
+  excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
+  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
+  puzzled · asking · weary · wink · love · working\``,
+      SNIPPET_FACE: `        set: "drollery", item: "content",
+`
+    },
     kip: {
       IDENT: "Kip is the 8-bit one, drawn on half the grid the others get: he snaps from pose to pose on a clock of his own, a few frames a second, always a whole pixel at a time.",
       TITLE: "",
@@ -356,7 +376,7 @@ him when that is funny, or when it is true.`,
 
   // First-party scenes (Builder environment station + the catalog + the Explorer).
   // `live` marks scenes with native ambience in the renderer; `blurb` is one honest line.
-  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade" },
+  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
     night: { url: SCENE_URL("night"), blurb: "indigo sky, stars, a crescent, one dark hill" },
@@ -384,9 +404,13 @@ him when that is funny, or when it is true.`,
         "groan","oops","frustrated","angry","dramatic","at_peace","solemn","rhyme",
         "awe","vertigo","resolute","puzzled","asking","weary","wink","love"],
       strip: ["content","delighted","thinking","tender","puzzled","at_peace","wink","love"] },
-    kip: { kind: "sheet", url: KIP_SHEET, cols: 8, rows: 1, cell: 64,
-      moods: ["content","delighted","puzzled","surprised","solemn","excited","sheepish","at_peace"],
-      strip: ["content","delighted","puzzled","surprised","solemn","excited","sheepish","at_peace"] },
+    // Kip outgrew the 8-cell sheet in v0.52.0; this preview still described the retired one.
+    kip: { kind: "sheet", url: KIP_SHEET, cols: 8, rows: 10, cell: 64,
+      moods: MOOD_LIST,
+      strip: ["content","delighted","working","puzzled","solemn","excited","sheepish","at_peace"] },
+    drollery: { kind: "sheet", url: DROLLERY_SHEET, cols: 8, rows: 15, cell: 64,
+      moods: MOOD_LIST,
+      strip: ["content","delighted","thinking","awe","angry","at_peace","love","working"] },
     motes: { kind: "proc", moods: MOOD_LIST, strip: ["content","focused","awe","delighted","sleepy","angry","love","vertigo"] },
     kaomoji: { kind: "text", strip: ["( ˶ˆ ꒳ ˆ˵ )","( ・_・)","( ˃ ᯅ ˂ )","( ˘ ᵕ ˘ )","( ⊙ ᵕ ⊙ )","( ˶˃ ᵕ ˂˶ )","  ∧,,∧\n( ̳• · • ̳)\n/    づ♡"] }
   }
@@ -449,7 +473,7 @@ function assemble(faceKey, opts) {
 // nobody looked at it. The composer below is the single path, and the Builder runs this exact
 // function in the browser. `npm run skill:sepia` prints the sepia/tidepool build for install.
 // The face + home pairings the project considers canonical, kept for the CLI and the tests.
-const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade" };
+const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" };
 // Functions survive the trip into the browser bundle as source, so the Builder runs the
 // SAME generator the shipped skills do — no client-side mirror to drift out of sync.
 // (They must therefore be closure-free: everything they need arrives as arguments.)
