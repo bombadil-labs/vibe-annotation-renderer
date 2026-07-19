@@ -18,8 +18,12 @@ const cases = [
   ["kaomoji / no scene", "kaomoji", {}]
 ];
 cases.forEach(([label, face, opts]) => {
-  const cli = G.assemble(face, opts);
-  const browser = P.ASSEMBLE(face, Object.assign({ name: "vibe-banner" }, opts), P);
+  // Normalise the renderer pin: the committed bundle carries a real sha while a freshly
+  // regenerated one carries the placeholder, and that timing difference is not drift. What
+  // must match is the STRUCTURE the two assemblers produce.
+  const pin = (t) => t.replace(/vibe-banner@[0-9a-f]{40}/g, "vibe-banner@PIN");
+  const cli = pin(G.assemble(face, opts));
+  const browser = pin(P.ASSEMBLE(face, Object.assign({ name: "vibe-banner" }, opts), P));
   const same = cli === browser;
   if (!same) {
     fails++;
