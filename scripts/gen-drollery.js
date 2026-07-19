@@ -44,6 +44,13 @@ const C = {
   rose:   [216, 138, 150, 255]
 };
 
+// How hard the pen is pressed, per mood. Default 1; below 1 the creature is drawn faintly
+// and reads as fading, above 1 it is bitten into the page. Sepia and Kip cannot do this.
+const INKW = {
+  sleepy: 0.66, weary: 0.70, melancholy: 0.74, at_peace: 0.82, tender: 0.88, sheepish: 0.9,
+  groan: 0.92, anxious: 0.94, focused: 1.16, working: 1.12, solemn: 1.26, resolute: 1.32,
+  frustrated: 1.28, angry: 1.40, dramatic: 1.18, awe: 1.1
+};
 const CELL = 64, SS = 4;                       // 4x4 supersampling -> smooth bold strokes
 const COLS = 8, FRAMES = 3;
 
@@ -119,7 +126,8 @@ const EYES = {
   heart:  { heart: true },
   wink:   { winkL: true, rx: 4.6, ry: 5.0, pupil: 2.2 },
   glare:  { rx: 4.8, ry: 3.0, pupil: 2.3, py: -0.4, brow: 1 },
-  wrath:  { rx: 5.6, ry: 4.2, pupil: 1.5, wedge: 1, brow: 1 }   // angular, not round: the whole point
+  wrath:  { rx: 5.6, ry: 4.2, pupil: 1.5, wedge: 1, brow: 1 },  // angular, not round: the whole point
+  blown:  { rx: 5.8, ry: 6.4, pupil: 4.9, py: 0 }               // the pupil eats the eye: awe, not surprise
 };
 const MOUTHS = {
   line:   { kind: "arc", w: 1.9, span: 0.30, bend: 0.0 },
@@ -169,7 +177,7 @@ const M = {
   at_peace:   ["shut", "smile", 0.1, 0.3, 0, 0, 1, 0.3, "fold", "grip", 0],
   solemn:     ["narrow", "flat", -0.1, -0.1, 0, 0, 0, 0.4, "fold", "grip", 0],
   rhyme:      ["side", "smile", 0.1, 0.6, -0.05, 0, 1, 0.9, "fold", "one", "note"],
-  awe:        ["wide", "open", 0.35, 0.7, -0.06, 0, 1, 0.8, "spread", "up", "star"],
+  awe:        ["blown", "open", 0.35, 0.7, -0.06, 0, 1, 0.8, "spread", "up", "star"],
   vertigo:    ["spiral", "wave", 0.2, -0.6, 0.12, 0, 0, 2.2, "droop", "grip", 0],
   resolute:   ["narrow", "flat", -0.35, 0.4, 0, 0, 0, 0.6, "raise", "grip", 0],
   puzzled:    ["side", "wave", -0.25, 0.1, 0.07, 0, 0, 1.0, "fold", "one", 0],
@@ -183,6 +191,7 @@ const M = {
 function build(mood, frame) {
   const [eyeK, mouthK, brow, tail, tilt, blush, gild, boil, wingK, handK, prop] = M[mood];
   const R = rng(mood.length * 9173 + frame * 7717 + mood.charCodeAt(0) * 131);
+  const iw = INKW[mood] || 1;                              // the pen's pressure this mood
   const J = 0.55 * boil;                                   // the hand's own steadiness, per mood                                          // the boil: sub-pixel wobble, per frame
   const jx = () => (R() - 0.5) * J, jy = () => (R() - 0.5) * J;
   const S = [];
@@ -222,7 +231,7 @@ function build(mood, frame) {
   S.push(ell(tx, ty, 4.6, 2.4, tDir * 0.7, C.verd));
 
   // ── folded wings, lapis, behind the shoulders — the one place the blue survives
-  const WG = { fold: [25, 2, 20, 22], spread: [33, -4, 26, 20], raise: [28, -10, 22, 14], droop: [22, 12, 18, 26] }[wingK];
+  const WG = { fold: [25, 2, 20, 22], spread: [29, -4, 24, 20], raise: [27, -10, 21, 14], droop: [22, 12, 18, 26] }[wingK];
   [-1, 1].forEach((sd) => {
     const w1 = P(hx + sd * 15, hy + 12), w2 = P(hx + sd * WG[0], hy + WG[1]), w3 = P(hx + sd * WG[2], hy + WG[3]);
     S.push(poly([[w1[0], w1[1]], [w2[0], w2[1]], [w3[0], w3[1]]], C.ink));
@@ -231,7 +240,7 @@ function build(mood, frame) {
   });
 
   // ── the crouching body
-  S.push(ell(hx, 45 + jy(), 14.5, 12.5, 0, C.ink));
+  S.push(ell(hx, 45 + jy(), 12.6 + 1.9 * iw, 10.8 + 1.7 * iw, 0, C.ink));
   S.push(ell(hx, 45 + jy(), 12.6, 10.8, 0, C.body));
   S.push(ell(hx - 4, 41.5 + jy(), 5.5, 4.2, -0.4, C.bodyL));
 
@@ -260,7 +269,13 @@ function build(mood, frame) {
   });
 
   // ── head
-  S.push(disc(hx, hy, HR + 2.1, C.ink));
+  if (mood === "vertigo") {                                // the drawing refuses to settle on one outline
+    [[-4.5, 2.5], [4.5, -2.5]].forEach((off) => {
+      S.push(disc(hx + off[0], hy + off[1], HR + 1.4, [86, 44, 36, 255]));
+      S.push(disc(hx + off[0], hy + off[1], HR - 0.8, [150, 66, 54, 255]));
+    });
+  }
+  S.push(disc(hx, hy, HR + 2.1 * iw, C.ink));
   S.push(disc(hx, hy, HR, C.body));
   S.push(ell(hx - 7, hy - 7, 9.5, 7.5, -0.5, C.bodyL));
   if (gild) arcStroke(hx, hy, HR - 1.4, 3.5, 5.9, 1.8, C.goldL, S, 1);
@@ -333,7 +348,7 @@ function build(mood, frame) {
   // ── THE UNDERBITE. A jutting lower jaw with two fangs pointing up — impudent, unmistakably
   // gargoyle, and the single feature neither Sepia nor Kip has anywhere in their vocabulary.
   const jw = P(hx, hy + 13.5);
-  S.push(ell(jw[0], jw[1], 11.5, 7.4, 0, C.ink));
+  S.push(ell(jw[0], jw[1], 10.0 + 1.5 * iw, 6.0 + 1.4 * iw, 0, C.ink));
   S.push(ell(jw[0], jw[1], 10.0, 6.0, 0, C.bodyD));
   const mo = MOUTHS[mouthK], my = hy + 11.5;
   if (mo.kind === "arc") {
@@ -395,12 +410,26 @@ function drawProp(S, kind, hx, hy, P, C, disc, ell, capsule, poly) {
     S.push(ell(f[0], f[1] + 0.6, 3.2, 4.8, 0, C.gold));
     S.push(ell(f[0], f[1] + 1.6, 1.6, 2.4, 0, C.goldL));
   } else if (kind === "scroll") {
-    const c = P(hx + 21, hy + 16);
-    S.push(ell(c[0], c[1], 10.5, 5.2, -0.28, C.ink));
-    S.push(ell(c[0], c[1], 9.0, 3.8, -0.28, C.parch));
-    for (let k = -1; k <= 1; k++) {
-      const l0 = P(hx + 15 + k * 5, hy + 15 + k * 1.4), l1 = P(hx + 19 + k * 5, hy + 16 + k * 1.4);
-      S.push(capsule(l0[0], l0[1], l1[0], l1[1], 0.9, C.ink));
+    const seg = [];
+    for (let k = 0; k <= 8; k++) {
+      const u = k / 8;
+      seg.push(P(hx + 5 + u * 19, hy + 15 + Math.sin(u * Math.PI * 1.6) * 2.6));
+    }
+    for (let k = 1; k < seg.length; k++) {                   // the ribbon itself
+      S.push(capsule(seg[k - 1][0], seg[k - 1][1], seg[k][0], seg[k][1], 7.0, C.ink));
+    }
+    for (let k = 1; k < seg.length; k++) {
+      S.push(capsule(seg[k - 1][0], seg[k - 1][1], seg[k][0], seg[k][1], 5.2, C.parch));
+    }
+    [seg[0], seg[seg.length - 1]].forEach((e, ei) => {       // curled ends — the tell
+      const d = ei === 0 ? -1 : 1;
+      S.push(disc(e[0] + d * 1.8, e[1] + 2.0, 3.9, C.ink));
+      S.push(disc(e[0] + d * 1.8, e[1] + 2.0, 2.8, C.parch));
+      S.push(disc(e[0] + d * 1.8, e[1] + 2.0, 1.1, C.ink));
+    });
+    for (let k = 0; k < 3; k++) {                            // ruled writing
+      const a = seg[2 + k * 2], b = seg[3 + k * 2];
+      if (a && b) S.push(capsule(a[0] - 1.6, a[1], b[0] - 1.6, b[1], 0.9, C.ink));
     }
   } else if (kind === "note") {
     const n0 = P(hx + 22, hy - 14), n1 = P(hx + 22, hy - 3);
