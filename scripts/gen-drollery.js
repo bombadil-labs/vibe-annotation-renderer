@@ -32,15 +32,16 @@ const zlib = require("zlib");
 
 const C = {
   ink:    [26, 20, 16, 255],      // iron gall — warm near-black, the outline of everything
-  lapis:  [44, 74, 154, 255],     // ultramarine body
-  lapisL: [74, 107, 196, 255],    // its lit side
-  verm:   [200, 52, 42, 255],     // vermilion — mouth, tongue, accents
-  vermD:  [150, 34, 30, 255],
-  gold:   [212, 165, 42, 255],    // gold leaf — horns, vine
+  body:   [193, 58, 44, 255],     // vermilion — the BODY now, not an accent
+  bodyL:  [224, 96, 74, 255],     // its lit side
+  bodyD:  [140, 34, 26, 255],     // its shade
+  wing:   [44, 74, 154, 255],     // lapis — wings and ear-backs only
+  wingL:  [74, 107, 196, 255],
+  gold:   [212, 165, 42, 255],    // gold leaf — horns, claws, tail
   goldL:  [240, 216, 120, 255],
-  verd:   [63, 122, 92, 255],     // verdigris — leaves
-  parch:  [239, 227, 200, 255],   // parchment — eye whites, highlights
-  rose:   [216, 138, 150, 255]    // a blush the illuminator could not resist
+  verd:   [63, 122, 92, 255],     // verdigris — the tail tuft
+  parch:  [239, 227, 200, 255],   // parchment — eye whites, fangs
+  rose:   [216, 138, 150, 255]
 };
 
 const CELL = 64, SS = 4;                       // 4x4 supersampling -> smooth bold strokes
@@ -170,137 +171,171 @@ const M = {
 };
 
 function build(mood, frame) {
-  const [eyeK, mouthK, brow, vine, tilt, blush, gild] = M[mood];
+  const [eyeK, mouthK, brow, tail, tilt, blush, gild] = M[mood];
   const R = rng(mood.length * 9173 + frame * 7717 + mood.charCodeAt(0) * 131);
   const J = 0.55;                                          // the boil: sub-pixel wobble, per frame
   const jx = () => (R() - 0.5) * J, jy = () => (R() - 0.5) * J;
   const S = [];
-  const hx = HEAD.x + jx(), hy = HEAD.y + jy();
-  const rot = (px, py, a) => {                             // head tilt, about the head centre
-    const dx = px - hx, dy = py - hy, c = Math.cos(a), s = Math.sin(a);
-    return [hx + dx * c - dy * s, hy + dx * s + dy * c];
+  // v1 sat small and polite in the middle of its cell. A gargoyle CROUCHES, filling its
+  // niche — so the whole figure grew ~35% and dropped to sit on the bottom edge.
+  const hx = 32 + jx(), hy = 25 + jy(), HR = 21;
+  const rot = (px, py, a) => {
+    const dx = px - hx, dy = py - hy, c = Math.cos(a), s2 = Math.sin(a);
+    return [hx + dx * c - dy * s2, hy + dx * s2 + dy * c];
   };
   const P = (px, py) => rot(px + jx(), py + jy(), tilt);
 
-  // ── the vine: the creature grows out of the margin's foliage, always
-  const vDir = vine >= 0 ? 1 : -1, vMag = 5 + Math.abs(vine) * 7;
-  arcStroke(hx + vDir * 6, 52 + jy(), 11 + Math.abs(vine) * 3, vine >= 0 ? 2.6 : 0.5,
-            vine >= 0 ? 5.4 : 3.3, 3.4, C.ink, S, 0.75);
-  arcStroke(hx + vDir * 6, 52 + jy(), 11 + Math.abs(vine) * 3, vine >= 0 ? 2.6 : 0.5,
-            vine >= 0 ? 5.4 : 3.3, 2.0, C.gold, S, 0.75);
-  const lf = [hx + vDir * (13 + vMag * 0.3) + jx(), 46 + jy()];
-  S.push(ell(lf[0], lf[1], 5.4, 3.0, vDir * 0.5, C.ink));
-  S.push(ell(lf[0], lf[1], 4.2, 2.1, vDir * 0.5, C.verd));
+  // ── TAIL. The maintainer read v1's vine as a tail and was right to — so it IS one now:
+  // always visible, sweeping wide, tuft on the end. Its curl is a real expression channel
+  // rather than a decoration that vanished in most moods.
+  // It has to CLEAR the body or it is just a lump behind a hip: v2's first pass started the
+  // curl at x±9, well inside a body of radius 12.6, so six of its seven segments were buried.
+  // Aim the TIP first, then curve to it. Tuning the sweep parametrically kept throwing the
+  // tuft into the body or off the canvas for extreme values — half the moods lost the one
+  // channel meant to tell them apart. A tip placed in a band known to clear the body
+  // (|dx| > 14 from centre, y in 34..54) cannot do that, whatever the mood asks for.
+  const tDir = tail >= 0 ? 1 : -1;
+  const tipX = hx + tDir * (19 + Math.abs(tail) * 5);
+  const tipY = 46 - tail * 9;
+  const hipX = hx + tDir * 10, hipY = 50 + jy();
+  const ctlX = hx + tDir * 19, ctlY = 54 + tail * 3;            // bows the curve out and under
+  let tx = hipX, ty = hipY;
+  for (let i = 1; i <= 8; i++) {
+    const u = i / 8, iu = 1 - u;
+    const nx = iu * iu * hipX + 2 * iu * u * ctlX + u * u * tipX;
+    const ny = iu * iu * hipY + 2 * iu * u * ctlY + u * u * tipY;
+    S.push(capsule(tx, ty, nx, ny, 5.4 - i * 0.42, C.ink));
+    S.push(capsule(tx, ty, nx, ny, 3.6 - i * 0.32, C.gold));
+    tx = nx; ty = ny;
+  }
+  S.push(ell(tx, ty, 6.0, 3.6, tDir * 0.7, C.ink));
+  S.push(ell(tx, ty, 4.6, 2.4, tDir * 0.7, C.verd));
 
-  // ── body: a small bulb under the head, dissolving into the vine
-  S.push(ell(hx, 45 + jy(), 11.5, 10.0, 0, C.ink));
-  S.push(ell(hx, 45 + jy(), 9.6, 8.2, 0, C.lapis));
-  S.push(ell(hx - 3.4, 42.4 + jy(), 4.4, 3.4, -0.4, C.lapisL));
-
-  // ── horns: gold curls, the grotesque's hybrid tell
+  // ── folded wings, lapis, behind the shoulders — the one place the blue survives
   [-1, 1].forEach((sd) => {
-    const b = P(hx + sd * 11, hy - 12.5), tp = P(hx + sd * 15.5, hy - 19);
-    S.push(capsule(b[0], b[1], tp[0], tp[1], 5.0, C.ink));
-    S.push(capsule(b[0], b[1], tp[0], tp[1], 3.0, C.gold));
-    S.push(disc(tp[0], tp[1], 2.6, C.ink));
-    S.push(disc(tp[0], tp[1], 1.6, C.goldL));
+    const w1 = P(hx + sd * 15, hy + 12), w2 = P(hx + sd * 25, hy + 2), w3 = P(hx + sd * 20, hy + 22);
+    S.push(poly([[w1[0], w1[1]], [w2[0], w2[1]], [w3[0], w3[1]]], C.ink));
+    const i1 = P(hx + sd * 16, hy + 13), i2 = P(hx + sd * 22.5, hy + 5), i3 = P(hx + sd * 19, hy + 19.5);
+    S.push(poly([[i1[0], i1[1]], [i2[0], i2[1]], [i3[0], i3[1]]], sd < 0 ? C.wing : C.wingL));
+  });
+
+  // ── the crouching body
+  S.push(ell(hx, 45 + jy(), 14.5, 12.5, 0, C.ink));
+  S.push(ell(hx, 45 + jy(), 12.6, 10.8, 0, C.body));
+  S.push(ell(hx - 4, 41.5 + jy(), 5.5, 4.2, -0.4, C.bodyL));
+
+  // ── CLAWED HANDS gripping the ledge. Nothing else on the roster has hands, and a thing
+  // that grips reads as perched rather than floating — the most gargoyle detail available.
+  [-1, 1].forEach((sd) => {
+    const g0 = P(hx + sd * 11.5, 54 + jy());
+    S.push(ell(g0[0], g0[1], 5.4, 4.0, 0, C.ink));
+    S.push(ell(g0[0], g0[1], 4.0, 2.7, 0, C.bodyD));
+    for (let k = -1; k <= 1; k++) {
+      const c0 = P(hx + sd * (11.5 + k * 3.2), 57.5 + jy());
+      S.push(disc(c0[0], c0[1], 1.9, C.ink));
+      S.push(disc(c0[0], c0[1] - 0.3, 1.1, C.gold));
+    }
+  });
+
+  // ── back-swept gold horns
+  [-1, 1].forEach((sd) => {
+    const b0 = P(hx + sd * 12, hy - 15), b1 = P(hx + sd * 20, hy - 24);
+    S.push(capsule(b0[0], b0[1], b1[0], b1[1], 5.6, C.ink));
+    S.push(capsule(b0[0], b0[1], b1[0], b1[1], 3.4, C.gold));
+    S.push(disc(b1[0], b1[1], 2.8, C.ink));
+    S.push(disc(b1[0], b1[1], 1.7, C.goldL));
   });
 
   // ── head
-  S.push(disc(hx, hy, HEAD.r + 1.9, C.ink));
-  S.push(disc(hx, hy, HEAD.r, C.lapis));
-  S.push(ell(hx - 5.5, hy - 5.5, 7.5, 6.0, -0.5, C.lapisL));   // the lit side
-  if (gild) { arcStroke(hx, hy, HEAD.r - 1.2, 3.5, 5.9, 1.6, C.goldL, S, 1); }
+  S.push(disc(hx, hy, HR + 2.1, C.ink));
+  S.push(disc(hx, hy, HR, C.body));
+  S.push(ell(hx - 7, hy - 7, 9.5, 7.5, -0.5, C.bodyL));
+  if (gild) arcStroke(hx, hy, HR - 1.4, 3.5, 5.9, 1.8, C.goldL, S, 1);
 
-  // ── leaf-ears: the grotesque is half foliage, so its ears are leaves. (v1 gave it solid
-  // vermilion slabs wider than its own face — the loudest shape in the frame, saying nothing.)
+  // ── pointed, back-swept ears, lapis inside
   [-1, 1].forEach((sd) => {
-    const e = P(hx + sd * 13.6, hy + 3.5);
-    S.push(ell(e[0], e[1], 5.6, 3.0, sd * -0.75, C.ink));
-    S.push(ell(e[0], e[1], 4.4, 2.0, sd * -0.75, C.verd));
-    const t1 = P(hx + sd * 9.5, hy + 5.5), t2 = P(hx + sd * 17.5, hy + 1.5);
-    S.push(capsule(t1[0], t1[1], t2[0], t2[1], 1.0, C.ink));   // the midrib
+    const e1 = P(hx + sd * 15, hy - 6), e2 = P(hx + sd * 26, hy - 12), e3 = P(hx + sd * 17, hy + 4);
+    S.push(poly([[e1[0], e1[1]], [e2[0], e2[1]], [e3[0], e3[1]]], C.ink));
+    const f1 = P(hx + sd * 16.5, hy - 5.5), f2 = P(hx + sd * 23, hy - 10.5), f3 = P(hx + sd * 17.5, hy + 1);
+    S.push(poly([[f1[0], f1[1]], [f2[0], f2[1]], [f3[0], f3[1]]], C.wing));
   });
 
   // ── eyes
-  const E = EYES[eyeK], ey = hy - 1.5;
+  const E = EYES[eyeK], ey = hy - 2;
   [-1, 1].forEach((sd) => {
-    const c = P(hx + sd * 6.6, ey);
+    const c = P(hx + sd * 8, ey);
     const winking = E.winkL && sd === -1;
     if (E.shut || E.lid || winking) {
-      const a = P(hx + sd * 6.6 - 4.6, ey), b = P(hx + sd * 6.6 + 4.6, ey);
-      S.push(capsule(a[0], a[1], b[0], b[1], 2.3, C.ink));
+      const a = P(hx + sd * 8 - 5.6, ey), b = P(hx + sd * 8 + 5.6, ey);
+      S.push(capsule(a[0], a[1], b[0], b[1], 2.6, C.ink));
       return;
     }
     if (E.heart) {
-      S.push(disc(c[0] - 2.0, c[1] - 1.4, 3.0, C.ink)); S.push(disc(c[0] + 2.0, c[1] - 1.4, 3.0, C.ink));
-      S.push(poly([[c[0] - 4.7, c[1] - 1.0], [c[0] + 4.7, c[1] - 1.0], [c[0], c[1] + 5.2]], C.ink));
-      S.push(disc(c[0] - 1.8, c[1] - 1.5, 2.1, C.verm)); S.push(disc(c[0] + 1.8, c[1] - 1.5, 2.1, C.verm));
-      S.push(poly([[c[0] - 3.6, c[1] - 1.1], [c[0] + 3.6, c[1] - 1.1], [c[0], c[1] + 3.7]], C.verm));
+      S.push(disc(c[0] - 2.4, c[1] - 1.7, 3.6, C.ink)); S.push(disc(c[0] + 2.4, c[1] - 1.7, 3.6, C.ink));
+      S.push(poly([[c[0] - 5.6, c[1] - 1.2], [c[0] + 5.6, c[1] - 1.2], [c[0], c[1] + 6.2]], C.ink));
+      S.push(disc(c[0] - 2.1, c[1] - 1.8, 2.5, C.rose)); S.push(disc(c[0] + 2.1, c[1] - 1.8, 2.5, C.rose));
+      S.push(poly([[c[0] - 4.3, c[1] - 1.3], [c[0] + 4.3, c[1] - 1.3], [c[0], c[1] + 4.4]], C.rose));
       return;
     }
-    S.push(ell(c[0], c[1], E.rx + 1.4, E.ry + 1.4, 0, C.ink));
-    S.push(ell(c[0], c[1], E.rx, E.ry, 0, C.parch));
-    if (E.spiral) {                                        // a drawn spiral, not a pupil
-      for (let i = 0; i < 14; i++) {
-        const a = i * 0.62, rr = 0.5 + i * 0.30;
-        S.push(disc(c[0] + Math.cos(a) * rr, c[1] + Math.sin(a) * rr, 0.85, C.ink));
+    S.push(ell(c[0], c[1], E.rx * 1.22 + 1.5, E.ry * 1.22 + 1.5, 0, C.ink));
+    S.push(ell(c[0], c[1], E.rx * 1.22, E.ry * 1.22, 0, C.parch));
+    if (E.spiral) {
+      for (let i = 0; i < 16; i++) {
+        const a = i * 0.62, rr = 0.5 + i * 0.36;
+        S.push(disc(c[0] + Math.cos(a) * rr, c[1] + Math.sin(a) * rr, 1.0, C.ink));
       }
       return;
     }
     const pxo = (E.px || 0) * (E.inward ? -sd : 1), pyo = E.py || 0;
-    S.push(disc(c[0] + pxo, c[1] + pyo, E.pupil, C.ink));
-    S.push(disc(c[0] + pxo - 0.9, c[1] + pyo - 1.0, 0.75, C.parch));   // the glint
+    S.push(disc(c[0] + pxo, c[1] + pyo, E.pupil * 1.2, C.ink));
+    S.push(disc(c[0] + pxo - 1.1, c[1] + pyo - 1.2, 0.9, C.parch));
     if (E.lidTop) {
-      const a = P(hx + sd * 6.6 - 5.2, ey - 2.6), b = P(hx + sd * 6.6 + 5.2, ey - 1.4);
-      S.push(capsule(a[0], a[1], b[0], b[1], 2.4, C.ink));
+      const a = P(hx + sd * 8 - 6.2, ey - 3.2), b = P(hx + sd * 8 + 6.2, ey - 1.7);
+      S.push(capsule(a[0], a[1], b[0], b[1], 2.8, C.ink));
     }
   });
 
-  // ── brows: bold ink strokes, the loudest expression channel at this size
   if (brow !== 0 || EYES[eyeK].brow) {
     [-1, 1].forEach((sd) => {
-      const inner = P(hx + sd * 2.6, ey - 7.4 + brow * 3.2 * sd * -1);
-      const outer = P(hx + sd * 11.0, ey - 8.6 - brow * 2.2 * sd * -1);
-      S.push(capsule(inner[0], inner[1], outer[0], outer[1], 2.5, C.ink));
+      const inner = P(hx + sd * 3.2, ey - 9.2 + brow * 3.8 * sd * -1);
+      const outer = P(hx + sd * 13.5, ey - 10.6 - brow * 2.6 * sd * -1);
+      S.push(capsule(inner[0], inner[1], outer[0], outer[1], 2.9, C.ink));
     });
   }
 
-  // ── the snout: gives the profile something to be, and the mouth something to sit on
-  const sn = P(hx, hy + 7.8);
-  S.push(ell(sn[0], sn[1], 8.6, 6.6, 0, C.ink));
-  S.push(ell(sn[0], sn[1], 7.2, 5.4, 0, C.lapisL));
-  const nb = P(hx, hy + 3.4);
-  S.push(ell(nb[0], nb[1], 2.6, 1.9, 0, C.ink));               // a small dark nose where it meets the brow
-
-  // ── mouth
-  const mo = MOUTHS[mouthK], my = hy + 9.4;
+  // ── THE UNDERBITE. A jutting lower jaw with two fangs pointing up — impudent, unmistakably
+  // gargoyle, and the single feature neither Sepia nor Kip has anywhere in their vocabulary.
+  const jw = P(hx, hy + 13.5);
+  S.push(ell(jw[0], jw[1], 11.5, 7.4, 0, C.ink));
+  S.push(ell(jw[0], jw[1], 10.0, 6.0, 0, C.bodyD));
+  const mo = MOUTHS[mouthK], my = hy + 11.5;
   if (mo.kind === "arc") {
     const n = 9, pts = [];
     for (let i = 0; i <= n; i++) {
-      const u = i / n, x = hx + (u - 0.5) * (HEAD.r * 2 * mo.span * 2);
-      const y = my + Math.sin(u * Math.PI) * -mo.bend * 3.4;
+      const u = i / n, x = hx + (u - 0.5) * (HR * 2 * mo.span * 1.9);
+      const y = my + Math.sin(u * Math.PI) * -mo.bend * 3.8;
       pts.push(P(x, y));
     }
-    for (let i = 1; i < pts.length; i++) S.push(capsule(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], mo.w, C.ink));
+    for (let i = 1; i < pts.length; i++) S.push(capsule(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], mo.w * 1.15, C.ink));
   } else if (mo.kind === "wave") {
     const n = 12, pts = [];
-    for (let i = 0; i <= n; i++) {
-      const u = i / n;
-      pts.push(P(hx + (u - 0.5) * 13, my + Math.sin(u * Math.PI * 3) * 1.7));
-    }
-    for (let i = 1; i < pts.length; i++) S.push(capsule(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], mo.w, C.ink));
+    for (let i = 0; i <= n; i++) { const u = i / n; pts.push(P(hx + (u - 0.5) * 15, my + Math.sin(u * Math.PI * 3) * 1.9)); }
+    for (let i = 1; i < pts.length; i++) S.push(capsule(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], mo.w * 1.15, C.ink));
   } else {
-    const c = P(hx, my);
-    S.push(ell(c[0], c[1], mo.rx + 1.5, mo.ry + 1.5, 0, C.ink));
-    S.push(ell(c[0], c[1], mo.rx, mo.ry, 0, C.vermD));
-    if (mo.tongue) S.push(ell(c[0], c[1] + mo.ry * 0.42, mo.rx * 0.55, mo.ry * 0.42, 0, C.verm));
-    if (mo.teeth) S.push(ell(c[0], c[1] - mo.ry * 0.62, mo.rx * 0.78, mo.ry * 0.26, 0, C.parch));
+    const c = P(hx, my + 0.6);
+    S.push(ell(c[0], c[1], mo.rx * 1.15 + 1.6, mo.ry * 1.15 + 1.6, 0, C.ink));
+    S.push(ell(c[0], c[1], mo.rx * 1.15, mo.ry * 1.15, 0, [110, 24, 20, 255]));
+    if (mo.tongue) S.push(ell(c[0], c[1] + mo.ry * 0.5, mo.rx * 0.6, mo.ry * 0.46, 0, C.body));
   }
+  [-1, 1].forEach((sd) => {                                 // the fangs, always
+    const t0 = P(hx + sd * 5.2, hy + 9.2), t1 = P(hx + sd * 4.2, hy + 13.4);
+    S.push(poly([[t0[0] - 1.9, t0[1]], [t0[0] + 1.9, t0[1]], [t1[0], t1[1]]], C.parch));
+  });
 
-  if (blush) [-1, 1].forEach((sd) => { const b = P(hx + sd * 11.5, hy + 5.5); S.push(ell(b[0], b[1], 3.2, 2.0, 0, C.rose)); });
+  if (blush) [-1, 1].forEach((sd) => { const b = P(hx + sd * 14.5, hy + 5); S.push(ell(b[0], b[1], 3.8, 2.4, 0, C.rose)); });
   return S;
 }
+
 
 // ── raster ──────────────────────────────────────────────────────────────────────────
 const px = Buffer.alloc(W * H * 4);
