@@ -282,12 +282,15 @@ color is colorblind. That is the veil, made flesh. Wear it knowing what it means
       TITLE: " — Kip variant",
       DESC: "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation. This variant wears Kip, the project mascot.",
       PREAMBLE: `This is the vibe-banner skill with one difference: **your face is Kip**, the project's
-mascot — a small round creature with stubby wings and a star-tipped antenna, drawn as the
-reference face-pack. Cheerful, compact, eight moods.`,
+mascot — a small round creature with stubby wings, amber feet and a star-tipped antenna. Kip is
+the 8-bit one: he is drawn on half the grid the others get, and he does not move smoothly because
+he cannot. He SNAPS from pose to pose on a clock of his own, a few frames a second, always a
+whole pixel at a time — a man very slightly out of phase with the room he is standing in. Wear
+him when that is funny, or when it is true.`,
+      FULL_VOCAB: true,
       FACE: `wear Kip: \`avatar: { set: "kip", item: "<mood>" }\`, chosen on first instinct. The
-  vocabulary (8 moods): \`content · delighted · puzzled · surprised · solemn · excited ·
-  sheepish · at_peace\`. Eight moods is a small wardrobe — when none of them fits the moment,
-  drop to a kaomoji without hesitation; honesty outranks the pack.`,
+  vocabulary (33 moods):
+  ${PIECES.MOOD_VOCAB}`,
       SNIPPET_FACE: `        set: "kip", item: "content",
 `
     }
@@ -303,7 +306,7 @@ reference face-pack. Cheerful, compact, eight moods.`,
 
   // First-party scenes (Builder environment station + the catalog + the Explorer).
   // `live` marks scenes with native ambience in the renderer; `blurb` is one honest line.
-  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", twemoji: "study" },
+  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
     night: { url: SCENE_URL("night"), blurb: "indigo sky, stars, a crescent, one dark hill" },
@@ -334,31 +337,12 @@ reference face-pack. Cheerful, compact, eight moods.`,
     kip: { kind: "sheet", url: KIP_SHEET, cols: 8, rows: 1, cell: 64,
       moods: ["content","delighted","puzzled","surprised","solemn","excited","sheepish","at_peace"],
       strip: ["content","delighted","puzzled","surprised","solemn","excited","sheepish","at_peace"] },
-    twemoji: { kind: "url", tmpl: "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/{item}.png",
-      strip: ["content","delighted","thinking","tender","puzzled","at_peace","wink","love"] },
     motes: { kind: "proc", moods: MOOD_LIST, strip: ["content","focused","awe","delighted","sleepy","angry","love","vertigo"] },
     kaomoji: { kind: "text", strip: ["( ˶ˆ ꒳ ˆ˵ )","( ・_・)","( ˃ ᯅ ˂ )","( ˘ ᵕ ˘ )","( ⊙ ᵕ ⊙ )","( ˶˃ ᵕ ˂˶ )","  ∧,,∧\n( ̳• · • ̳)\n/    づ♡"] }
   }
 };
 
-function emojiFace(setName, pretty, note) {
-  return {
-    FULL_VOCAB: true,
-    TITLE: " — " + pretty + " variant",
-    DESC: PIECES.FACES.kaomoji.DESC + " This variant wears " + pretty + " emoji faces.",
-    PREAMBLE: `This is the vibe-banner skill with one difference: **your face comes from the ${pretty}
-emoji set**, freely available and served from a widget-allowlisted CDN.${note}`,
-    // Every pack speaks the same 32-mood vocabulary now (v0.41.0) — you name a FEELING,
-    // the renderer resolves it to this pack's art. Raw codepoints still work for one-offs.
-    FACE: `wear ${pretty}: \`avatar: { set: "${setName}", item: "<mood>" }\`, choosing the item the way
-  you'd choose a kaomoji — first instinct, honest. The vocabulary (33 moods):
-  ${PIECES.MOOD_VOCAB}
-  Any emoji codepoint also works as a one-off (\`item: "1f92f"\`) when no mood name fits.`,
-    SNIPPET_FACE: `        set: "${setName}", item: "content",
-`
-  };
-}
-PIECES.FACES["twemoji"] = emojiFace("twemoji", "Twemoji", " Flat, tiny (1–2 KB), classic.");
+
 
 // Mirrored client-side in index.html's Builder (content above is the single-sourced part).
 function assemble(faceKey, opts) {
@@ -409,7 +393,7 @@ function assemble(faceKey, opts) {
 // nobody looked at it. The composer below is the single path, and the Builder runs this exact
 // function in the browser. `npm run skill:sepia` prints the sepia/tidepool build for install.
 // The face + home pairings the project considers canonical, kept for the CLI and the tests.
-const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", twemoji: "study" };
+const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade" };
 // Functions survive the trip into the browser bundle as source, so the Builder runs the
 // SAME generator the shipped skills do — no client-side mirror to drift out of sync.
 // (They must therefore be closure-free: everything they need arrives as arguments.)
@@ -446,9 +430,9 @@ const CATALOG = {
     sepia: { kind: "sheet", payload: { set: "sepia", item: "<mood>" }, items: PIECES.PREVIEW.sepia.moods,
       note: "the cuttlefish Claude designed for itself; wears feeling as color" },
     kip: { kind: "sheet", payload: { set: "kip", item: "<mood>" }, items: PIECES.PREVIEW.kip.moods,
-      note: "the project mascot; small wardrobe, drop to kaomoji when nothing fits" },
-    twemoji: { kind: "url-set", payload: { set: "twemoji", item: "<codepoint>" },
-      starter_items: PIECES.PREVIEW.twemoji.strip, note: "flat, tiny, classic; any codepoint works" }
+      note: "the project mascot; 8-bit, stepped motion, snaps between poses" },
+    motes: { kind: "proc", payload: { set: "motes", item: "<mood>" }, items: PIECES.PREVIEW.motes.moods,
+      note: "a swarm drawn in code; the mood is the formation it flies" }
   },
   scenes: PIECES.SCENES,
   // No skill URLs: there are no checked-in skill files to link. The skill is composed — point

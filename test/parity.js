@@ -24,9 +24,9 @@ let coh = (x) => buildSVG(Object.assign({}, base, x)).replace(/v(?:scn|wr)\d+/g,
 ok(coh({ coherence: 0.2 }) === coh({ consonance: 0.2 }), "coherence is consonance renamed; both accepted");
 
 console.log("every face pack speaks the 32-mood vocabulary");
-ok(/1f604\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "delighted" } }))), "twemoji: mood name resolves to its emoji");
-ok(/1f620\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "angry" } }))), "twemoji: a second mood name resolves");
-ok(/1f60a\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "1f60a" } }))), "raw codepoints still pass through");
+ok(/kip-sheet\.png/.test(buildSVG(Object.assign({}, base, { face: { set: "kip", item: "working" } }))), "kip resolves a mood the old 8-cell sheet never had");
+ok(!/twemoji/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "delighted" } }))), "the retired twemoji pack fetches nothing (v0.52.0)");
+ok(/class="txt fk vk"/.test(buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "delighted" } }))), "a retired pack falls back to kaomoji, never a broken image");
 ok(/class="txt fk vk"/.test(buildSVG(Object.assign({}, base, { face: { set: "noto", item: "content" } }))), "the retired noto packs fall back to kaomoji, never a broken image");
 
 console.log("two keys (v0.42.0): avatar + details; empty details ships a square tile");
@@ -95,10 +95,10 @@ ok(!/class="txt fk vk"/.test(fp1), "image face replaces the kaomoji glyphs");
 let fp2 = buildSVG(Object.assign({}, base, { face: { url: "https://cdn.jsdelivr.net/gh/u/r@abc/sheet.png", cellW: 64, cellH: 64, cols: 4, rows: 2, index: 5 } }));
 ok(/<svg class="vk"[^>]*viewBox="64 64 64 64"/.test(fp2), "sprite index 5 of 4-col sheet → viewBox crops row 1, col 1");
 ok(/width="256" height="128"/.test(fp2), "sheet dims derive from cell size × grid");
-let kf1 = buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: "1f60a" } }));
-ok(/twemoji@15\.1\.0\/assets\/72x72\/1f60a\.png/.test(kf1), "KnownFace twemoji resolves its jsDelivr URL");
 let kf2 = buildSVG(Object.assign({}, base, { face: { set: "kip", item: "puzzled" } }));
-ok(/kip-sheet\.png/.test(kf2) && /viewBox="128 0 64 64"/.test(kf2), "KnownFace kip:puzzled → sheet cell 2");
+ok(/kip-sheet\.png/.test(kf2), "KnownFace kip:puzzled resolves the sheet");
+ok(/viewBox="192 192 64 64"[^>]*>\s*<image[^>]*kip-sheet/.test(kf2), "kip:puzzled is cell 27 — col 3, row 3 of the 8-wide grid");
+ok(/viewBox="0 0 64 64"[^>]*>\s*<image[^>]*kip-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "kip", item: "neutral" } }))), "kip:neutral is cell 0");
 let kf3 = buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "vertigo" } }));
 ok(/sepia-sheet\.png/.test(kf3) && /viewBox="64 192 64 64"/.test(kf3), "KnownFace sepia:vertigo → index 25, col 1 row 3");
 ok(/viewBox="448 192 64 64"/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "love" } }))), "sepia:love → the last cell (31)");
@@ -213,7 +213,7 @@ ok(capOf(Object.assign({}, base, { face: { set: "kip", item: "puzzled" } })) ===
 ok(capOf(Object.assign({}, base, { face: { set: "sepia", item: "at_peace" } })) === "at peace", "underscores read as spaces");
 ok(capOf(base) === null, "a kaomoji names itself — no caption");
 ok(capOf(Object.assign({}, base, { face: "https://cdn.jsdelivr.net/gh/u/r@abc/x.png" })) === null, "an arbitrary image has no mood to report");
-ok(capOf(Object.assign({}, base, { face: { set: "twemoji", item: "1f60a" } })) === null, "a raw codepoint is not a mood name");
+ok(capOf(Object.assign({}, base, { face: "https://cdn.jsdelivr.net/gh/u/r@abc/y.png" })) === null, "an image URL has no mood to caption");
 let wOnly = buildSVG(Object.assign({}, base, { weather: "storm" }));
 ok(!/class="txt fl">\[storm\]/.test(wOnly), "weather no longer captions: seven registers, rare and unmistakable");
 let bothCap = capOf(Object.assign({}, base, { face: { set: "sepia", item: "angry" }, weather: "storm" }));
@@ -341,12 +341,13 @@ const MOODS_ALL = ["neutral","content","delighted","focused","sleepy","sheepish"
   "asking","weary","wink","love","working"];
 let noArt = MOODS_ALL.filter((m) => !M.moods[m]);
 ok(!noArt.length, "motes has a formation for all " + MOODS_ALL.length + " moods" + (noArt.length ? " — missing " + noArt : ""));
-let badEmoji = MOODS_ALL.filter((m) => {
-  let s = buildSVG(Object.assign({}, base, { face: { set: "twemoji", item: m } }));
-  let u = (s.match(/72x72\/([^"]+)\.png/) || [])[1];
-  return !u || !/^[0-9a-f]{4,5}(-[0-9a-f]{4,5})*$/.test(u);   // a mood name leaking through = a 404 image
-});
-ok(!badEmoji.length, "twemoji maps every mood to real codepoints" + (badEmoji.length ? " — leaking " + badEmoji : ""));
+let kipMissing = MOODS_ALL.filter((m) => !/kip-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "kip", item: m } }))));
+ok(!kipMissing.length, "kip draws all " + MOODS_ALL.length + " moods — he was eight until v0.52.0" + (kipMissing.length ? ": " + kipMissing : ""));
+let kipCells = new Set(MOODS_ALL.map((m) => {
+  const q = buildSVG(Object.assign({}, base, { face: { set: "kip", item: m } }));
+  return (/viewBox="(\d+ \d+) 64 64"[^>]*>\s*<image[^>]*kip-sheet/.exec(q) || [])[1];
+}));
+ok(kipCells.size === MOODS_ALL.length, "every kip mood lands on its OWN cell (" + kipCells.size + " distinct)");
 let sepiaIdx = MOODS_ALL.map((m) => { let s = buildSVG(Object.assign({}, base, { face: { set: "sepia", item: m } })); return /sepia-sheet/.test(s); });
 ok(sepiaIdx.every(Boolean), "sepia renders a cell for every mood (via fallback where art is pending)");
 

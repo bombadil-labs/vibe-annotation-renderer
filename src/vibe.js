@@ -419,7 +419,15 @@
   // KnownFace registry: face: { set, item } resolves here. Every entry is version-pinned
   // to an allowlisted CDN. "kip" is the repo's own mascot — items are mood names.
   var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
-  var KIP_MOODS = { content: 0, delighted: 1, puzzled: 2, surprised: 3, solemn: 4, excited: 5, sheepish: 6, at_peace: 7 };
+  var KIP_MOODS = MOODS;                                       // v0.52.0: Kip speaks the whole vocabulary
+  // KIP IS STEPPED. Sepia eases; Kip cuts. His clock is quantised to a handful of frames a
+  // second and every offset rounds to a whole art-pixel, so he ARRIVES at each pose instead
+  // of travelling to it — a creature running at a different framerate than the room he is in.
+  // One char per mood, in MOODS order: r = rare (long stillness, one twitch), c = calm idle,
+  // b = busy (constant alternation). The pattern is what stops a 2-frame loop reading as a
+  // vibration: most moods hold frame 0 for several steps before the off-beat lands.
+  var KIP_BEAT = "ccbrrcbrbbccrbbbrbbbcrrcrbrccrccb";
+  var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
   var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
@@ -449,33 +457,30 @@
   // pack you picked. Now every pack speaks Sepia's 32 moods — the reporter always names a
   // FEELING and the pack resolves it. Raw codepoints still pass through untouched, so
   // older skills and one-off emoji keep working.
-  var MOOD_EMOJI = {
-    neutral: "1f642", content: "1f60a", delighted: "1f604", focused: "1f9d0", sleepy: "1f634",
-    sheepish: "1f605", booped: "1f633", thinking: "1f914", spark: "1f4a1", excited: "1f929",
-    surprised: "1f62e", tender: "1f970", melancholy: "1f61e", anxious: "1f630", mirth: "1f606",
-    laugh: "1f602", groan: "1f62b", oops: "1f62c", frustrated: "1f624", angry: "1f620",
-    dramatic: "1f3ad", at_peace: "1f60c", solemn: "1f636", rhyme: "1f3b5", awe: "1f632",
-    vertigo: "1f635", resolute: "1f4aa", puzzled: "1f615", asking: "2753", weary: "1f629",
-    wink: "1f609", love: "1f60d", working: "1f6e0"
-  };
-  // The animated set is faces-and-a-few-objects only; every mood above resolves there
-  // EXCEPT the musical note, so rhyme borrows whimsy's upside-down face. (Audited by
-  // fetching all 32 against the gstatic set — see DESIGN.md.)
-  var MOOD_EMOJI_OVERRIDE = {};                                // per-pack substitutions when a mood has no art in that pack
-  function emojiFor(item, set) {
-    var k = String(item == null ? "" : item);
-    var ov = set && MOOD_EMOJI_OVERRIDE[set];
-    if (ov && ov[k]) return ov[k];
-    return MOOD_EMOJI[k] || k;                                 // unknown → pass through: raw codepoints still work
-  }
+  // The twemoji pack and the custom-URL pack retired in v0.52.0: the project's own faces
+  // (Sepia, Motes, Kip) each carry an identity the renderer animates natively, and a
+  // borrowed emoji sheet could never do that — it was a still image with a mood name on it.
   var FACE_SETS = {
     "motes": function (item) {                                 // no url: this face is code
       return { proc: "motes", item: MOTE_MOODS[item] ? item : "content" };
     },
-    "twemoji": function (item) { return { url: "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/" + encodeURIComponent(emojiFor(item)) + ".png" }; },
     "kip": function (item) {
-      var i = KIP_MOODS[item]; if (i == null) i = Math.max(0, Math.min(7, parseInt(item, 10) || 0));
-      return { url: KIP_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 1, index: i };
+      // Direct hit FIRST: Kip has art for all 33, so he must never inherit Sepia's
+      // working→focused fallback. A fallback is for packs whose art has fallen behind.
+      var i = KIP_MOODS.indexOf(String(item));
+      if (i < 0) i = KIP_MOODS.indexOf(MOOD_FALLBACK[item] || item);
+      if (i < 0) i = Math.max(0, Math.min(32, parseInt(item, 10) || 0));
+      return {
+        url: KIP_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 10, index: i,
+        anim: {
+          frames: 2, frameRows: 5, stride: 40,
+          stepped: 6,                                          // frames per second — his whole clock
+          beat: KIP_BEAT,
+          props: { 8: "bulb", 10: "excl", 15: "laughs", 16: "sweat", 17: "sweat", 18: "vein",
+                   19: "grawlix", 23: "note", 27: "qmark", 28: "qmark", 7: "qmark", 32: "gear" },
+          propScale: 1.9, propAlpha: 1                          // bigger and fully opaque: at his resolution a faint prop is just noise
+        }
+      };
     },
     "sepia": function (item) {
       var i = SEPIA_MOODS.indexOf(MOOD_FALLBACK[item] || item);
@@ -1649,9 +1654,26 @@
         // --- the living sprite: shimmer + blink, cycled from the sheet's extra frames.
         // Chromatophores drift on a slow uneven clock; blinks land on a seeded organic
         // cadence. Native frames, never an animated image — the tidepool's philosophy. ---
+        var drewStepped = false;
         if (kaoEl && fm && fm.kind === "sprite" && fm.anim) {
           var fRows = fm.anim.frameRows || fm.rows / fm.anim.frames;
           var fr = 0;                                                                // base at rest — fins and chromatophores carry all continuous motion now
+          if (fm.anim.stepped) {
+            // THE STEPPED CLOCK. Quantise time to whole steps and index a fixed pattern —
+            // no easing, no phase, no continuous term anywhere. Two frames alternating at a
+            // steady rate would read as a vibration, so the pattern holds frame 0 for
+            // several steps and lets the off-beat LAND.
+            var stepN = Math.floor(t * fm.anim.stepped);
+            var pat = KIP_PATTERN[(fm.anim.beat || "")[fm.index]] || KIP_PATTERN.c;
+            fr = pat[((stepN % pat.length) + pat.length) % pat.length];
+            var kcell = fm.index, kkey = kcell * 4 + fr + 1;
+            if (kkey !== spriteFrame) {
+              spriteFrame = kkey;
+              var kcol = kcell % fm.cols, krow = Math.floor(kcell / fm.cols) + fr * fRows;
+              kaoEl.style.backgroundPosition = (kcol * 100 / (fm.cols - 1)) + "% " + (krow * 100 / (fm.rows - 1)) + "%";
+            }
+            drewStepped = true;
+          }
           var beat = fm.anim.cycle && fm.anim.cycle[fm.index];
           if (beat != null) {                                                        // beat moods (the guffaw): frame 1 is a mouth thrown wide, not a blink —
             var bout = t % 3.8;                                                      // a bout of deep HAs, then a breath
@@ -1668,9 +1690,10 @@
             if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 1;                    // blink, ~160ms on a seeded organic cadence
           }
           var fcell = fm.index, fframe = fr;
-          if (fm.anim.thrill != null && thrillE > 0) { fcell = fm.anim.thrill; fframe = 1; }   // the feeding thrill wears the wide-eyed guffaw cell, whatever the mood was
+          if (fm.anim.thrill != null && thrillE > 0) { fcell = fm.anim.thrill; fframe = 1; }
+          if (drewStepped) fcell = -1;                                                // stepped avatars painted themselves above   // the feeding thrill wears the wide-eyed guffaw cell, whatever the mood was
           var fkey = fcell * 4 + fframe + 1;
-          if (fkey !== spriteFrame) {
+          if (fcell >= 0 && fkey !== spriteFrame) {
             spriteFrame = fkey;
             var fcol2 = fcell % fm.cols;
             var frow2 = Math.floor(fcell / fm.cols) + (fm.anim.split ? (1 + fframe) : fframe) * fRows;   // split: the BODY never swaps — only the features layer changes
