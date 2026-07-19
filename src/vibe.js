@@ -418,7 +418,7 @@
 
   // KnownFace registry: face: { set, item } resolves here. Every entry is version-pinned
   // to an allowlisted CDN. "kip" is the repo's own mascot — items are mood names.
-  var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
+  var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@77d6ca02d7e98a92f368df2fe8ef351aad32d41d/assets/kip-sheet.png";
   var KIP_MOODS = MOODS;                                       // v0.52.0: Kip speaks the whole vocabulary
   // KIP IS STEPPED. Sepia eases; Kip cuts. His clock is quantised to a handful of frames a
   // second and every offset rounds to a whole art-pixel, so he ARRIVES at each pose instead

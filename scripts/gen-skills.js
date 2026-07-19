@@ -14,7 +14,7 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 // Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
 // If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
 const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@66b4d9b0972f9ced1f90e8c01644bc68732f9f4b/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
-const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@f58341ead95e63762b2f3421021e7148e74e0ed5/assets/kip-sheet.png";
+const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@77d6ca02d7e98a92f368df2fe8ef351aad32d41d/assets/kip-sheet.png";
 const SCENE_TIDEPOOL = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png";
 // Newer scenes pin via the release sha (npm run pin stamps every consumer uniformly;
 // the assets are immutable once committed, so any post-birth release sha serves the
@@ -290,7 +290,10 @@ him when that is funny, or when it is true.`,
       FULL_VOCAB: true,
       FACE: `wear Kip: \`avatar: { set: "kip", item: "<mood>" }\`, chosen on first instinct. The
   vocabulary (33 moods):
-  ${PIECES.MOOD_VOCAB}`,
+  \`neutral · content · delighted · focused · sleepy · sheepish · booped · thinking · spark ·
+  excited · surprised · tender · melancholy · anxious · mirth · laugh · groan · oops ·
+  frustrated · angry · dramatic · at_peace · solemn · rhyme · awe · vertigo · resolute ·
+  puzzled · asking · weary · wink · love · working\``,
       SNIPPET_FACE: `        set: "kip", item: "content",
 `
     }
