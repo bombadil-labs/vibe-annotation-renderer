@@ -133,47 +133,55 @@ const MOUTHS = {
   pucker: { kind: "open", rx: 2.2, ry: 2.6 }
 };
 
-// [eyes, mouth, browTilt, vineCurl, headTilt, blush, gild]
+// THE BOIL IS THE EXPRESSION (v3). Every other face here animates per mood; this one only
+// had one animation — the re-inking — applied at a flat rate to all 33. But a boiling line
+// is not a fixed effect, it is a hand: an anxious hand shakes and a settled hand doesn't. So
+// the WOBBLE AMPLITUDE is now per-mood, and the renderer varies the RATE to match. at_peace
+// barely quivers at 4fps; surprised judders at 11. Same mechanism, 33 different nerves.
+//
+// [eyes, mouth, brow, tail, tilt, blush, gild, boil, wing, hand, prop]
+//   boil: multiplier on the jitter — 0.3 nearly still, 2.4 shaking
+//   wing: fold | spread | raise | droop      hand: grip | one | up | cover
 const M = {
-  neutral:    ["open", "line", 0, 0.0, 0, 0, 0],
-  content:    ["narrow", "smile", 0.1, 0.2, 0, 1, 0],
-  delighted:  ["wide", "grin", 0.3, 0.7, -0.06, 1, 1],
-  focused:    ["narrow", "flat", -0.3, -0.2, 0, 0, 0],
-  sleepy:     ["shut", "small", 0.2, -0.4, 0.09, 0, 0],
-  sheepish:   ["side", "small", 0.25, -0.2, 0.08, 1, 0],
-  booped:     ["wide", "open", 0.4, 0.5, -0.04, 1, 0],
-  thinking:   ["up", "line", -0.15, 0.3, -0.07, 0, 0],
-  spark:      ["wide", "smile", 0.35, 0.8, -0.05, 0, 1],
-  excited:    ["wide", "grin", 0.3, 0.9, 0, 1, 1],
-  surprised:  ["wide", "open", 0.45, 0.4, 0, 0, 0],
-  tender:     ["narrow", "smile", 0.15, 0.25, 0.05, 1, 0],
-  melancholy: ["droop", "frown", 0.3, -0.5, 0.10, 0, 0],
-  anxious:    ["wide", "wave", 0.4, -0.3, 0.04, 0, 0],
-  mirth:      ["narrow", "grin", 0.2, 0.5, -0.04, 1, 0],
-  laugh:      ["shut", "wide", 0.3, 0.8, -0.07, 1, 1],
-  groan:      ["shut", "wave", 0.35, -0.5, 0.11, 0, 0],
-  oops:       ["wide", "open", 0.4, 0.3, 0.06, 1, 0],
-  frustrated: ["glare", "flat", -0.5, -0.3, 0, 0, 0],
-  angry:      ["glare", "frown", -0.7, -0.4, 0, 0, 0],
-  dramatic:   ["side", "open", -0.2, 0.9, -0.08, 0, 1],
-  at_peace:   ["shut", "smile", 0.1, 0.3, 0, 0, 1],
-  solemn:     ["narrow", "flat", -0.1, -0.1, 0, 0, 0],
-  rhyme:      ["side", "smile", 0.1, 0.6, -0.05, 0, 1],
-  awe:        ["wide", "open", 0.35, 0.7, -0.06, 0, 1],
-  vertigo:    ["spiral", "wave", 0.2, -0.6, 0.12, 0, 0],
-  resolute:   ["narrow", "flat", -0.35, 0.4, 0, 0, 0],
-  puzzled:    ["side", "wave", -0.25, 0.1, 0.07, 0, 0],
-  asking:     ["up", "small", -0.2, 0.35, -0.06, 0, 0],
-  weary:      ["droop", "flat", 0.3, -0.55, 0.09, 0, 0],
-  wink:       ["wink", "grin", 0.2, 0.55, -0.05, 1, 0],
-  love:       ["heart", "smile", 0.2, 0.6, -0.04, 1, 1],
-  working:    ["narrow", "line", -0.25, 0.15, 0, 0, 0]
+  neutral:    ["open", "line", 0, 0.0, 0, 0, 0, 1.0, "fold", "grip", 0],
+  content:    ["narrow", "smile", 0.1, 0.2, 0, 1, 0, 0.7, "fold", "grip", 0],
+  delighted:  ["wide", "grin", 0.3, 0.7, -0.06, 1, 1, 1.3, "spread", "up", 0],
+  focused:    ["narrow", "flat", -0.3, -0.2, 0, 0, 0, 0.45, "fold", "one", "quill"],
+  sleepy:     ["shut", "small", 0.2, -0.4, 0.09, 0, 0, 0.35, "droop", "grip", 0],
+  sheepish:   ["side", "small", 0.25, -0.2, 0.08, 1, 0, 0.9, "droop", "cover", 0],
+  booped:     ["wide", "open", 0.4, 0.5, -0.04, 1, 0, 1.8, "spread", "up", 0],
+  thinking:   ["up", "line", -0.15, 0.3, -0.07, 0, 0, 0.8, "fold", "one", "quill"],
+  spark:      ["wide", "smile", 0.35, 0.8, -0.05, 0, 1, 1.4, "raise", "up", "flame"],
+  excited:    ["wide", "grin", 0.3, 0.9, 0, 1, 1, 2.0, "spread", "up", 0],
+  surprised:  ["wide", "open", 0.45, 0.4, 0, 0, 0, 2.2, "spread", "up", 0],
+  tender:     ["narrow", "smile", 0.15, 0.25, 0.05, 1, 0, 0.6, "fold", "one", 0],
+  melancholy: ["droop", "frown", 0.3, -0.5, 0.10, 0, 0, 0.5, "droop", "grip", "drop"],
+  anxious:    ["wide", "wave", 0.4, -0.3, 0.04, 0, 0, 2.4, "fold", "cover", "drop"],
+  mirth:      ["narrow", "grin", 0.2, 0.5, -0.04, 1, 0, 1.2, "fold", "one", 0],
+  laugh:      ["shut", "wide", 0.3, 0.8, -0.07, 1, 1, 1.9, "spread", "up", 0],
+  groan:      ["shut", "wave", 0.35, -0.5, 0.11, 0, 0, 0.8, "droop", "cover", "drop"],
+  oops:       ["wide", "open", 0.4, 0.3, 0.06, 1, 0, 2.1, "spread", "up", 0],
+  frustrated: ["glare", "flat", -0.5, -0.3, 0, 0, 0, 1.9, "fold", "grip", 0],
+  angry:      ["glare", "frown", -0.7, -0.4, 0, 0, 0, 2.3, "raise", "grip", 0],
+  dramatic:   ["side", "open", -0.2, 0.9, -0.08, 0, 1, 1.1, "spread", "one", "scroll"],
+  at_peace:   ["shut", "smile", 0.1, 0.3, 0, 0, 1, 0.3, "fold", "grip", 0],
+  solemn:     ["narrow", "flat", -0.1, -0.1, 0, 0, 0, 0.4, "fold", "grip", 0],
+  rhyme:      ["side", "smile", 0.1, 0.6, -0.05, 0, 1, 0.9, "fold", "one", "note"],
+  awe:        ["wide", "open", 0.35, 0.7, -0.06, 0, 1, 0.8, "spread", "up", "star"],
+  vertigo:    ["spiral", "wave", 0.2, -0.6, 0.12, 0, 0, 2.2, "droop", "grip", 0],
+  resolute:   ["narrow", "flat", -0.35, 0.4, 0, 0, 0, 0.6, "raise", "grip", 0],
+  puzzled:    ["side", "wave", -0.25, 0.1, 0.07, 0, 0, 1.0, "fold", "one", 0],
+  asking:     ["up", "small", -0.2, 0.35, -0.06, 0, 0, 0.9, "fold", "one", "scroll"],
+  weary:      ["droop", "flat", 0.3, -0.55, 0.09, 0, 0, 0.45, "droop", "grip", 0],
+  wink:       ["wink", "grin", 0.2, 0.55, -0.05, 1, 0, 1.0, "fold", "one", 0],
+  love:       ["heart", "smile", 0.2, 0.6, -0.04, 1, 1, 1.1, "raise", "up", "heart"],
+  working:    ["narrow", "line", -0.25, 0.15, 0, 0, 0, 0.85, "fold", "one", "quill"]
 };
 
 function build(mood, frame) {
-  const [eyeK, mouthK, brow, tail, tilt, blush, gild] = M[mood];
+  const [eyeK, mouthK, brow, tail, tilt, blush, gild, boil, wingK, handK, prop] = M[mood];
   const R = rng(mood.length * 9173 + frame * 7717 + mood.charCodeAt(0) * 131);
-  const J = 0.55;                                          // the boil: sub-pixel wobble, per frame
+  const J = 0.55 * boil;                                   // the hand's own steadiness, per mood                                          // the boil: sub-pixel wobble, per frame
   const jx = () => (R() - 0.5) * J, jy = () => (R() - 0.5) * J;
   const S = [];
   // v1 sat small and polite in the middle of its cell. A gargoyle CROUCHES, filling its
@@ -212,10 +220,11 @@ function build(mood, frame) {
   S.push(ell(tx, ty, 4.6, 2.4, tDir * 0.7, C.verd));
 
   // ── folded wings, lapis, behind the shoulders — the one place the blue survives
+  const WG = { fold: [25, 2, 20, 22], spread: [33, -4, 26, 20], raise: [28, -10, 22, 14], droop: [22, 12, 18, 26] }[wingK];
   [-1, 1].forEach((sd) => {
-    const w1 = P(hx + sd * 15, hy + 12), w2 = P(hx + sd * 25, hy + 2), w3 = P(hx + sd * 20, hy + 22);
+    const w1 = P(hx + sd * 15, hy + 12), w2 = P(hx + sd * WG[0], hy + WG[1]), w3 = P(hx + sd * WG[2], hy + WG[3]);
     S.push(poly([[w1[0], w1[1]], [w2[0], w2[1]], [w3[0], w3[1]]], C.ink));
-    const i1 = P(hx + sd * 16, hy + 13), i2 = P(hx + sd * 22.5, hy + 5), i3 = P(hx + sd * 19, hy + 19.5);
+    const i1 = P(hx + sd * 16, hy + 13), i2 = P(hx + sd * (WG[0] - 2.5), hy + WG[1] + 3), i3 = P(hx + sd * (WG[2] - 1), hy + WG[3] - 2.5);
     S.push(poly([[i1[0], i1[1]], [i2[0], i2[1]], [i3[0], i3[1]]], sd < 0 ? C.wing : C.wingL));
   });
 
@@ -226,12 +235,14 @@ function build(mood, frame) {
 
   // ── CLAWED HANDS gripping the ledge. Nothing else on the roster has hands, and a thing
   // that grips reads as perched rather than floating — the most gargoyle detail available.
-  [-1, 1].forEach((sd) => {
-    const g0 = P(hx + sd * 11.5, 54 + jy());
+  const HP = { grip: [0, 0], one: [0, -13], up: [-13, -13], cover: [-9, -9] }[handK];
+  [-1, 1].forEach((sd, hi) => {
+    const lift = HP[hi], inset = handK === "cover" ? 5 : 0;
+    const g0 = P(hx + sd * (11.5 - inset), 54 + lift + jy());
     S.push(ell(g0[0], g0[1], 5.4, 4.0, 0, C.ink));
     S.push(ell(g0[0], g0[1], 4.0, 2.7, 0, C.bodyD));
     for (let k = -1; k <= 1; k++) {
-      const c0 = P(hx + sd * (11.5 + k * 3.2), 57.5 + jy());
+      const c0 = P(hx + sd * (11.5 - inset + k * 3.2), 57.5 + lift + jy());
       S.push(disc(c0[0], c0[1], 1.9, C.ink));
       S.push(disc(c0[0], c0[1] - 0.3, 1.1, C.gold));
     }
@@ -332,10 +343,63 @@ function build(mood, frame) {
     S.push(poly([[t0[0] - 1.9, t0[1]], [t0[0] + 1.9, t0[1]], [t1[0], t1[1]]], C.parch));
   });
 
+  if (prop) drawProp(S, prop, hx, hy, P, C, disc, ell, capsule, poly);
   if (blush) [-1, 1].forEach((sd) => { const b = P(hx + sd * 14.5, hy + 5); S.push(ell(b[0], b[1], 3.8, 2.4, 0, C.rose)); });
   return S;
 }
 
+
+
+// A handful of moods carry a MARK — the sort of small object a marginal figure is forever
+// holding: a quill, a taper, a banderole, a note. Drawn in the same ink and gold as the rest,
+// never an emoji: this creature predates them by six hundred years.
+function drawProp(S, kind, hx, hy, P, C, disc, ell, capsule, poly) {
+  if (kind === "quill") {
+    const a = P(hx + 24, hy + 6), b = P(hx + 14, hy + 26);
+    S.push(capsule(a[0], a[1], b[0], b[1], 3.2, C.ink));
+    S.push(capsule(a[0], a[1], b[0], b[1], 1.7, C.parch));
+    const f = P(hx + 26, hy + 2);
+    S.push(ell(f[0], f[1], 5.0, 2.6, -0.7, C.ink));
+    S.push(ell(f[0], f[1], 3.6, 1.5, -0.7, C.goldL));
+  } else if (kind === "flame") {
+    const f = P(hx, hy - 30);
+    S.push(ell(f[0], f[1], 4.6, 6.6, 0, C.ink));
+    S.push(ell(f[0], f[1] + 0.6, 3.2, 4.8, 0, C.gold));
+    S.push(ell(f[0], f[1] + 1.6, 1.6, 2.4, 0, C.goldL));
+  } else if (kind === "scroll") {
+    const c = P(hx + 21, hy + 16);
+    S.push(ell(c[0], c[1], 10.5, 5.2, -0.28, C.ink));
+    S.push(ell(c[0], c[1], 9.0, 3.8, -0.28, C.parch));
+    for (let k = -1; k <= 1; k++) {
+      const l0 = P(hx + 15 + k * 5, hy + 15 + k * 1.4), l1 = P(hx + 19 + k * 5, hy + 16 + k * 1.4);
+      S.push(capsule(l0[0], l0[1], l1[0], l1[1], 0.9, C.ink));
+    }
+  } else if (kind === "note") {
+    const n0 = P(hx + 22, hy - 14), n1 = P(hx + 22, hy - 3);
+    S.push(capsule(n0[0], n0[1], n1[0], n1[1], 2.4, C.ink));
+    S.push(disc(n1[0] - 1.6, n1[1] + 1.2, 3.6, C.ink));
+    S.push(disc(n1[0] - 1.6, n1[1] + 1.2, 2.4, C.gold));
+    const t0 = P(hx + 22, hy - 14), t1 = P(hx + 28, hy - 11);
+    S.push(capsule(t0[0], t0[1], t1[0], t1[1], 2.2, C.ink));
+  } else if (kind === "star") {
+    [[-24, -18, 3.4], [22, -22, 4.2], [26, -6, 2.8]].forEach((q) => {
+      const c = P(hx + q[0], hy + q[1]);
+      S.push(poly([[c[0], c[1] - q[2]], [c[0] + q[2] * 0.4, c[1]], [c[0], c[1] + q[2]], [c[0] - q[2] * 0.4, c[1]]], C.ink));
+      S.push(poly([[c[0] - q[2], c[1]], [c[0], c[1] - q[2] * 0.4], [c[0] + q[2], c[1]], [c[0], c[1] + q[2] * 0.4]], C.goldL));
+    });
+  } else if (kind === "heart") {
+    const c = P(hx + 22, hy - 18);
+    S.push(disc(c[0] - 2.6, c[1] - 1.8, 3.8, C.ink)); S.push(disc(c[0] + 2.6, c[1] - 1.8, 3.8, C.ink));
+    S.push(poly([[c[0] - 6.1, c[1] - 1.2], [c[0] + 6.1, c[1] - 1.2], [c[0], c[1] + 6.8]], C.ink));
+    S.push(disc(c[0] - 2.4, c[1] - 2.0, 2.6, C.rose)); S.push(disc(c[0] + 2.4, c[1] - 2.0, 2.6, C.rose));
+    S.push(poly([[c[0] - 4.6, c[1] - 1.4], [c[0] + 4.6, c[1] - 1.4], [c[0], c[1] + 4.8]], C.rose));
+  } else if (kind === "drop") {
+    const d0 = P(hx + 18, hy - 8);
+    S.push(poly([[d0[0], d0[1] - 5.5], [d0[0] + 3.4, d0[1] + 2.4], [d0[0] - 3.4, d0[1] + 2.4]], C.ink));
+    S.push(disc(d0[0], d0[1] + 1.6, 3.0, C.ink));
+    S.push(disc(d0[0], d0[1] + 1.6, 1.9, C.wingL));
+  }
+}
 
 // ── raster ──────────────────────────────────────────────────────────────────────────
 const px = Buffer.alloc(W * H * 4);

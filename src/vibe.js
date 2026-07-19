@@ -165,6 +165,12 @@
   // 20% opaque, offset LEFT by 80% of its own width, mirroring every frame and transform.
   // It reads as memory — the same shape a moment ago and a little way behind. Sheet packs
   // only: Motes already dissolves and re-forms, so doubling it would just read as noise.
+  // Drollery boils at a rate as well as an amplitude: the generator varies how far the line
+  // wanders, this varies how often it is re-drawn. Together they read as one hand — a settled
+  // one at 4fps barely moving, a frightened one at 11fps that cannot hold the pen still.
+  // One char per mood, MOODS order: s slow (4), n normal (7), f fast (11).
+  var DROLLERY_BOIL = "nsnssnfsnffssfnfnfffnssnsfsnnsnnn";
+  var BOIL_FPS = { s: 4, n: 7, f: 11 };
   var ECHO = { moods: { rhyme: 1 }, alpha: 0.2, dx: -0.8, lag: 0.2 };
   // Applied to the CLONE, whose width is the face's — so the percentage means 80% of the
   // avatar, which is what was asked for. Every live transform composes AFTER it.
@@ -498,7 +504,8 @@
       return {
         url: DROLLERY_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 15, index: di,
         echo: echoes("drollery", item),
-        anim: { frames: 3, frameRows: 5, stride: 40, boil: 7 }   // boil: cycle the re-inkings, ~7fps
+        anim: { frames: 3, frameRows: 5, stride: 40,
+                boil: BOIL_FPS[DROLLERY_BOIL.charAt(di)] || 7 }   // the rate this mood re-inks at
       };
     },
     "kip": function (item) {
