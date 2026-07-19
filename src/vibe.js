@@ -2205,6 +2205,13 @@
   root.vibe.buildSVG = buildSVG;
   if (typeof module !== "undefined" && module.exports) module.exports = {   // CJS only: costs the browser bundle nothing
     buildSVG: buildSVG,
-    __motes: { pointAt: motePointAt, target: moteTarget, pathsFor: motePathsFor, closed: pathClosed, moods: MOTE_MOODS, N: MOTE_N }
+    __motes: { pointAt: motePointAt, target: moteTarget, pathsFor: motePathsFor, closed: pathClosed, moods: MOTE_MOODS, N: MOTE_N },
+    __kip: { beat: KIP_BEAT, pattern: KIP_PATTERN, moods: KIP_MOODS,
+             frameAt: function (mood, t, fps) {                  // the stepped clock, exactly as the loop runs it
+               var i = KIP_MOODS.indexOf(mood);
+               var pat = KIP_PATTERN[KIP_BEAT[i]] || KIP_PATTERN.c;
+               var n = Math.floor(t * (fps || 6));
+               return pat[((n % pat.length) + pat.length) % pat.length];
+             } }
   };
 })(typeof window !== "undefined" ? window : this);

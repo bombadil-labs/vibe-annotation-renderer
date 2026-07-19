@@ -572,6 +572,44 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
     job. If naming rare weather turns out to matter, the honest fix is a second affordance,
     not two things sharing a corner.
 
+- **Kip becomes a crew member, and stepped motion is his whole character (v0.52.0).** He was
+  eight hand-drawn cells in a single row with no generator and no animation. He is now
+  generated (`scripts/gen-kip.js`), 33 moods x 2 frames, and — the part that matters — he does
+  not move the way anything else here moves.
+  The maintainer's framing did the design work: *8-bit, discrete state changes, a man out of
+  phase with reality.* So the difference is STRUCTURAL, not decorative. Sepia is drawn on a
+  32-grid; Kip is drawn on a SIXTEEN-grid at 4x scale, so he physically cannot hold a smooth
+  curve. His clock is quantised to 6 steps a second and every offset rounds to a whole
+  art-pixel: he arrives at each pose instead of travelling to it. Nothing about him
+  interpolates, and a test asserts the frame is constant *within* a step so nothing ever can.
+  Two frames alternating at a steady rate reads as a VIBRATION, not as animation. The fix is
+  a per-mood beat pattern: `r` holds still six steps then twitches once (solemn, focused,
+  at_peace), `c` holds three (the calm default), `b` alternates every step (delighted, laugh,
+  working). Stillness is where the character lives; the off-beat only lands because most of
+  the time nothing happens.
+  Frame 1 had to differ STRUCTURALLY for every mood, not just the lively ones — v1 varied only
+  the antenna star and he read as a static sprite with a blinking light. Standing Kip now
+  squats a pixel with his feet planted (the classic 8-bit idle); hopping Kip leaves the ground
+  entirely, feet and all.
+  **The feet, answering the maintainer's question: yes, he needs them.** They were
+  body-coloured and vanished against him. They are amber now — the one warm note on a cool
+  creature — with the hem outline between, so they read at 56px. They earn it: discrete feet
+  are what make a stepped hop legible as a HOP rather than as the whole sprite jittering, and
+  a planted foot is what makes the idle squat read as weight rather than as drift.
+  His props are drawn bigger and fully opaque (`propScale`, `propAlpha`), because at his
+  resolution a faint prop is just noise on the sprite.
+  One bug worth recording: he initially inherited Sepia's `working -> focused` fallback and
+  silently drew the wrong cell for a mood he HAS art for. A fallback must be per-pack and
+  tried only after a direct hit — it exists for art that has fallen behind, not as a lookup.
+
+- **Twemoji and the custom-URL pack retired (v0.52.0).** The maintainer's call, and the right
+  one: the project's own faces each carry an identity the renderer animates natively, and a
+  borrowed emoji sheet could never do that. It was a still image with a mood name attached —
+  no frames, no stepped clock, no chromatophores, nothing to say. Keeping it meant every
+  vocabulary change had to be audited against a third party's art (which had already cost a
+  release when `working` mapped to nothing and requested a 404). Three faces that are ours,
+  each with a real mechanic, beats five where two are stubs.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately

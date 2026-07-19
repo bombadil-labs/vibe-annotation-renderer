@@ -334,6 +334,21 @@ ok(M.pathsFor("working", 1.2).k === 0, "mid-hold, it rests on one shape rather t
 let fl = M.pathsFor("puzzled", 0.2);
 ok(fl.k > 0 && fl.k < 1, "flash ramps in too — the question mark gathers rather than appearing");
 
+console.log("\nKip is STEPPED (v0.52.0): a discrete clock, never a tween");
+const K = require("../src/vibe.js").__kip;
+let held = [0, 0.04, 0.09, 0.14].map((d) => K.frameAt("delighted", 0.5 + d, 6));
+ok(new Set(held).size === 1, "the frame is CONSTANT within a step — nothing interpolates");
+let calm = Array.from({ length: 12 }, (_, n) => K.frameAt("neutral", n / 6, 6)).join("");
+ok(/^(0001)+$/.test(calm), "a calm mood holds frame 0 three steps, then one off-beat: " + calm);
+let busy = Array.from({ length: 12 }, (_, n) => K.frameAt("delighted", n / 6, 6)).join("");
+ok(/^(01)+$/.test(busy), "a busy mood alternates every step: " + busy);
+let rare = Array.from({ length: 14 }, (_, n) => K.frameAt("solemn", n / 6, 6)).join("");
+ok(rare.split("1").length - 1 <= 2, "a still mood twitches at most twice in 14 steps: " + rare);
+ok(K.beat.length === 33, "one beat char per mood");
+ok(K.beat.split("").every((c) => K.pattern[c]), "every beat char names a real pattern");
+ok(["delighted", "excited", "laugh", "working"].every((m) => K.pattern[K.beat[K.moods.indexOf(m)]].length <= 2),
+   "energetic moods get the short pattern — stillness is not distributed at random");
+
 console.log("\nevery mood resolves in every pack that advertises it");
 const MOODS_ALL = ["neutral","content","delighted","focused","sleepy","sheepish","booped","thinking",
   "spark","excited","surprised","tender","melancholy","anxious","mirth","laugh","groan","oops",
