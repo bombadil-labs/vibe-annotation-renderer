@@ -26,7 +26,10 @@ const MOOD_LIST = ["neutral","content","delighted","focused","sleepy","sheepish"
   "spark","excited","surprised","tender","melancholy","anxious","mirth","laugh",
   "groan","oops","frustrated","angry","dramatic","at_peace","solemn","rhyme",
   "awe","vertigo","resolute","puzzled","asking","weary","wink","love",
-  "working"];   // mirrors MOODS in src/vibe.js
+  "working"];   // SHEET ORDER — mirrors MOODS in src/vibe.js; used for preview cell-indexing
+// booped is not offered (v0.71.0): it is the reaction shown when a face is tapped, not a mood
+// you pick. It keeps its cell in every sheet; it just never appears in a vocabulary.
+const MOOD_OFFERED = MOOD_LIST.filter(m => m !== "booped");
 
 // Wrap a mood list to the skill's line width. Kept out of PIECES so it can be called while
 // PIECES is still being built (a lesson learned the hard way: PIECES cannot reference itself).
@@ -437,7 +440,7 @@ him when that is funny, or when it is true.`,
   },
 
   CORE_MOODS: CORE_MOODS,
-  MOOD_LIST_ALL: MOOD_LIST,
+  MOOD_LIST_ALL: MOOD_OFFERED,
   CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },

@@ -409,7 +409,7 @@ const CANON = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish
   "thinking", "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth",
   "laugh", "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
   "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love", "working"];
-ok(CANON.length === 33, "the canonical vocabulary is 33 moods");
+ok(CANON.length === 33, "the sheet holds 33 cells");
 ["sepia", "kip", "drollery"].forEach((set) => {
   const byCell = {};
   CANON.forEach((mood) => {
@@ -420,11 +420,16 @@ ok(CANON.length === 33, "the canonical vocabulary is 33 moods");
   });
   const shared = Object.keys(byCell).filter((k) => byCell[k].length > 1).map((k) => byCell[k].join("="));
   ok(!byCell.MISSING && !shared.length,
-     set + " draws all 33 from its own cells" + (shared.length ? " — SHARING: " + shared.join(" ") : ""));
+     set + " draws all 33 cells distinctly" + (shared.length ? " — SHARING: " + shared.join(" ") : ""));
 });
 let moteGaps = CANON.filter((m) => !M.moods[m]);
 ok(!moteGaps.length, "motes has a formation for all 33" + (moteGaps.length ? " — missing " + moteGaps : ""));
-ok(Object.keys(M.moods).length === 33, "and no formations beyond the vocabulary");
+ok(Object.keys(M.moods).length === 33, "and no formations beyond the sheet");
+// booped is a reaction, not a mood (v0.71.0): art present, but never offered.
+const OFFERED = require("../scripts/gen-skills.js").PIECES.MOOD_LIST_ALL;
+ok(OFFERED.length === 32 && OFFERED.indexOf("booped") < 0, "booped is not in the offered vocabulary (32 moods)");
+ok(CANON.indexOf("booped") >= 0 && /-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "booped" } }))),
+   "but its cell art is intact — it is the boop interrupt now");
 
 console.log("\nevery mood resolves in every pack that advertises it");
 const MOODS_ALL = ["neutral","content","delighted","focused","sleepy","sheepish","booped","thinking",

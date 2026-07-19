@@ -158,6 +158,10 @@
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
     "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love",
     "working"];
+  // booped is NOT an offered mood (v0.71.0): it's the reaction shown when the face is tapped,
+  // and laugh's cell doubles as the fed reaction. Both stay in MOODS for cell-index and
+  // formation stability; the skill, builder and gallery simply never list booped.
+  var BOOP_CELL = MOODS.indexOf("booped"), FED_CELL = MOODS.indexOf("laugh");
   // A pack whose art predates a mood borrows its nearest neighbour rather than blocking the
   // vocabulary from growing. Sepia's sheet is 32 cells; "working" waits for the next redraw.
   var MOOD_FALLBACK = {};                                      // empty: every pack now has art for every mood. The mechanism stays for the next one.
@@ -505,7 +509,8 @@
         url: DROLLERY_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 15, index: di,
         echo: echoes("drollery", item),
         anim: { frames: 3, frameRows: 5, stride: 40,
-                boil: BOIL_FPS[DROLLERY_BOIL.charAt(di)] || 7 }   // the rate this mood re-inks at
+                boil: BOIL_FPS[DROLLERY_BOIL.charAt(di)] || 7,   // the rate this mood re-inks at
+                boop: BOOP_CELL, fed: FED_CELL }
       };
     },
     "kip": function (item) {
@@ -522,7 +527,8 @@
           beat: KIP_BEAT,
           props: { 8: "bulb", 10: "excl", 15: "laughs", 16: "sweat", 17: "sweat", 18: "vein",
                    19: "grawlix", 23: "note", 27: "qmark", 28: "qmark", 7: "qmark", 32: "gear" },
-          propScale: 1.9, propAlpha: 1                          // bigger and fully opaque: at his resolution a faint prop is just noise
+          propScale: 1.9, propAlpha: 1,                         // bigger and fully opaque: at his resolution a faint prop is just noise
+          boop: BOOP_CELL, fed: FED_CELL
         }
       };
     },
@@ -542,7 +548,7 @@
           strain: { 19: 1 },                                   // angry: RESTRAINED fury — arms strain longer and tense, fins frill out but not far, everything trembling slightly
           props: { 8: "bulb", 15: "laughs", 16: "sweat", 17: "excl", 18: "vein", 19: "grawlix", 27: "qmark" },   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
           tint: { 20: 1 },                                     // dramatic: the porcelain mask washes in the palette's lead colour (v0.40.3) — the sheet stays white; the tint is live. Tinted moods must keep both feature frames identical (the tint canvas replaces the features layer)
-          thrill: 15                                           // the feeding reaction (v0.35.0): whatever the mood, being fed flashes this cell's frame 1 — laugh's wide-eyed guffaw — one delighted pulse, then back
+          boop: BOOP_CELL, fed: FED_CELL                       // the interrupts: tapped flashes the booped cell, fed flashes laugh's guffaw — one pulse, then back to the mood
         }
       };
     }
@@ -1444,7 +1450,7 @@
     // the registry: >=0.7 → one full startled puff shortly after arrival; smaller →
     // recurring nervous wisps on a seeded cadence. Drawn in the window, behind the face.
     var inkAmt = (fm && fm.kind === "sprite" && fm.anim && fm.anim.ink && fm.anim.ink[fm.index]) || 0;
-    var inkBursts = [], inkFired = false, inkSeq = 0, boopFx = null;
+    var inkBursts = [], inkFired = false, inkSeq = 0, boopFx = null, boopCellFx = null;
     // The startle reflex: booping an inked creature gets a REACTION — recoil away from
     // the finger, a squash-and-boing, a poke-ripple at the spot, and a puff of ink.
     // Pure visuals (no message), so it fires on plain pages too; the chat boop stays
@@ -1470,6 +1476,13 @@
         var pt = L.portrait;
         if (x >= pt.x && x <= pt.x + pt.s && y >= pt.y && y <= pt.y + pt.s) live.ripples.push({ x: x, y: y, t0: null });
       });
+    }
+    // THE BOOP INTERRUPT (v0.71.0). Every face flashes its boop cell when tapped, whatever
+    // it was showing — the reaction, not a mood you can select. Fires with no sendPrompt too,
+    // so the gallery and plain pages get it; the chat *boop* message stays its own handler.
+    if (kaoEl && p.play !== false && fm && (fm.kind === "sprite" || fm.kind === "proc")) {
+      kaoEl.style.cursor = "pointer";
+      kaoEl.addEventListener("click", function () { boopCellFx = { t0: null }; });
     }
     if (typeof root.sendPrompt === "function") {
       // native opt-outs (skill-builder surface): cues:false disables the [note] tap,
@@ -1820,6 +1833,9 @@
         if (feedFx && feedFx.t0 == null) feedFx.t0 = t;                              // late-bind the feeding clock, like every other gesture
         var feedAge = feedFx ? t - feedFx.t0 - feedFx.delay : 9;
         var thrillE = feedAge > 0 && feedAge < 1.1 ? Math.sin(feedAge / 1.1 * Math.PI) : 0;   // the thrill: one delighted pulse when the food arrives, then back to the mood
+        if (boopCellFx && boopCellFx.t0 == null) boopCellFx.t0 = t;
+        var boopAge = boopCellFx ? t - boopCellFx.t0 : 9;
+        var boopE = boopAge > 0 && boopAge < 0.85 ? Math.sin(boopAge / 0.85 * Math.PI) : 0;    // one startled pulse on a boop, then back to the mood
 
         // --- the living sprite: shimmer + blink, cycled from the sheet's extra frames.
         // Chromatophores drift on a slow uneven clock; blinks land on a seeded organic
@@ -1828,6 +1844,12 @@
         if (kaoEl && fm && fm.kind === "sprite" && fm.anim) {
           var fRows = fm.anim.frameRows || fm.rows / fm.anim.frames;
           var fr = 0;                                                                // base at rest — fins and chromatophores carry all continuous motion now
+          // Interrupts win over every clock. A boop or a feeding briefly swaps the current
+          // mood for a dedicated cell, then hands it back — so they must paint here, ahead of
+          // Kip's stepped clock and Drollery's boil, which would otherwise overwrite them.
+          var interruptCell = (boopE > 0.15 && fm.anim.boop != null) ? fm.anim.boop
+            : (thrillE > 0.15 && fm.anim.fed != null) ? fm.anim.fed : null;
+          if (interruptCell == null) {
           if (fm.anim.boil) {
             // THE BOIL. Not a pose changing — the same drawing being RE-INKED. Cycle the
             // frames on a steady clock; each is the identical creature with every control
@@ -1873,9 +1895,10 @@
             var bper = 3.2 + (L.seed % 5) * 0.9;
             if (((t + (L.seed % 7) * 0.6) % bper) < 0.16) fr = 1;                    // blink, ~160ms on a seeded organic cadence
           }
+          }                                                                          // end: normal clocks, skipped while an interrupt holds
           var fcell = fm.index, fframe = fr;
-          if (fm.anim.thrill != null && thrillE > 0) { fcell = fm.anim.thrill; fframe = 1; }
-          if (drewStepped) fcell = -1;                                                // stepped avatars painted themselves above   // the feeding thrill wears the wide-eyed guffaw cell, whatever the mood was
+          if (interruptCell != null) { fcell = interruptCell; fframe = 1; drewStepped = false; }   // boop/fed: this cell, frame 1, whatever the mood was
+          else if (drewStepped) fcell = -1;                                          // stepped/boiled avatars already painted themselves
           var fkey = fcell * 4 + fframe + 1;
           if (fcell >= 0 && fkey !== spriteFrame) {
             spriteFrame = fkey;
@@ -1902,6 +1925,7 @@
             }
             var mMood = fm.item;
             if (thrillE > 0.25) mMood = "delighted";           // fed: the swarm leaps before it settles
+            if (boopE > 0.2) mMood = "booped";                 // booped: it scatters wide, then re-forms
             var MFP = motePathsFor(mMood, t);
             var mPal = L.blobs.length ? L.blobs.map(function (b2) { return b2.fill; }) : ["#b89ab0"];
             mx.globalCompositeOperation = "source-over";
@@ -2237,6 +2261,7 @@
         ky += beatKy;                                                                // the cackle-jounce: the avatar's OWN body language, not a flag pose
         if (conAmt) { ky += 4.5 * conAmt; ks *= 1 - 0.05 * conAmt; }                 // the contraction: sunk low and drawn small
         if (thrillE) { ky -= 2.2 * thrillE; ks *= 1 + 0.1 * thrillE; }               // the feeding thrill: a little hop of delight — every face gets this, sprite or text
+        if (boopE) { ky -= 1.6 * boopE; ks *= 1 + 0.06 * boopE; }                     // a boop jolts too — a smaller startle than a feeding
         if (kaoEl && boopFx && boopFx.t0 == null) boopFx.t0 = t;
         var boopAge = boopFx && boopFx.t0 != null ? t - boopFx.t0 : 9;
         if (kaoEl && boopAge < 0.8) {                                                // the startle: recoil away from the finger, squash and boing
