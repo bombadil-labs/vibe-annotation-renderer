@@ -655,6 +655,30 @@ Every mapping in the grammar passes all three. Proposals that don't, get reshape
   The lesson is the one this file keeps relearning: a normaliser that isn't applied at every
   entry point is a normaliser that will be forgotten at one of them.
 
+- **The gallery was describing a banner it no longer draws (v0.54.0).** The maintainer sent a
+  screenshot: a cell captioned "Multi-line kaomoji (a bloom)" with a swarm of Motes in it. The
+  face picker re-dresses every cell, but the captions were written when kaomoji was the only
+  face, so the label described something the reader could not see. Pulling that thread found
+  worse: **twenty captions in the last group promised effects deleted in v0.44.0** — a
+  light-bulb over the face, twinkling stars, champagne bubbles, a halo pop. Weather replaced
+  flags and thirteen gestures went with it, and nobody updated the page that teaches them. A
+  demo page is a claim about behaviour, and every one of those was false.
+  Two mechanisms, both small:
+  - **A cell can PIN its face.** Multi-line bloom is a text-face behaviour; dressing it in
+    anything else makes the caption a lie. Pinned cells ignore the picker and say so in the
+    caption, which turns the exception into information instead of a bug.
+  - **A caption can be a function of the face actually shown**, so a cell that reads
+    differently per face can say so rather than picking one and being wrong four times out
+    of five.
+  The retired-effect captions now name what actually happens: the mood the FACE wears, and —
+  only where one genuinely fires — the weather the room turns. Most say "the room stays out of
+  it", which is the honest and much commoner case.
+  Also retired: `KIP_MAP` (Kip speaks all 33 moods natively now, so the translation table was
+  mapping moods he already had onto worse ones) and `EMOJI_MOODS` (twemoji is gone).
+  The general lesson, which is the same one the sceneless-skill bug taught: generated or
+  hand-written, a thing that DESCRIBES the system drifts silently unless something checks it
+  against the system. Nothing here throws when a caption lies.
+
 - **More first-party avatars are cheap now (bench).** The component system (recipes:
   eyes preset × mouth × extras × hue; renderer-side fins/arms/spots/ink) means a new
   creature is mostly a new PROFILE and component tables. A future project, deliberately

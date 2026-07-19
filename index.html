@@ -305,106 +305,106 @@ var GROUPS = [
       "The honest reading is usually high, so a dip carries information. It lives in the stats view — front of house says the thing, the back is where you can say what it cost. A low reading also marks the stats toggle, so it's findable without shouting."]
   ]],
 
-  ["Engagement, note, wrap, faces", [
-    ["Bored (engagement 0.1 → shrinks)",
+  ["The readout — what the lines do", [
+    [function (f) { return "Genuine boredom, reported straight — the " + (f === "kaomoji" ? "face goes flat" : "face says it") + " and the field deflates"; },
       "same as the last three: convert this fourth config file to YAML too",
       {kaomoji:"( ˘_˘ )", seems:"the rote fourth variation", feel:"flat · far away", trying:"answer and move on", palette:["#8b93a0"], engagement:0.1},
       "Done — same mapping as the other three. If there are more of these, I can just do the whole folder at once."],
-    ["Optional [note] line (the subtext)",
+    ["The optional [note] line — the thing under the thing",
       "quick question, is it normal for a best friend to forget your birthday two years in a row?",
       {kaomoji:"( ˶ ˘ ꒳ ˘ ˶ )", seems:"asking one thing, meaning another", feel:"attentive · reading between lines", trying:"answer the real question", noticing:"the ask under the ask", palette:["#7f93a8"]},
       "It happens, sure — but the fact that it stung enough to ask a chatbot about is worth taking seriously."],
-    ["Multi-line kaomoji (a bloom)",
+    ["A kaomoji blooms TALL — pinned, because only a text face can do this",
       "SHE SAID YES!!!",
-      {kaomoji:"✧ ･ ✧\n( ˶ˆ ꒳ ˆ˵ )\n✧ ･ ✧", seems:"the mood is big", feel:"expansive · bright", trying:"let the face get large", palette:["#e0b060","#d99ac0"]},
+      {pin:"kaomoji", kaomoji:"✧ ･ ✧\n( ˶ˆ ꒳ ˆ˵ )\n✧ ･ ✧", seems:"the mood is big", feel:"expansive · bright", trying:"let the face get large", palette:["#e0b060","#d99ac0"]},
       "SHE SAID YES!! Congratulations!! Okay — tell me everything. Did the ring-in-the-hiking-boot plan actually work?"],
-    ["Long goal (wraps to a 2nd line)",
+    [function (f) { return "A long goal wraps to a second line — the frame holds, whatever face is in it"; },
       "walk me through repotting the orchid step by step. I've killed three. no surprises.",
       {kaomoji:"( ・_・)", seems:"wants the whole plan spelled out", feel:"methodical", trying:"carefully walk through every one of the four steps before touching a single root", palette:["#7f9ab0"]},
       "Step one, and it's a do-nothing step: water it two days before. Dry roots snap; damp roots bend."],
-    ["Languages → [Reasoned in]: bottom-right",
+    ["Languages leave a trace, bottom-right",
       "translate this tagline so it lands in Russian and Japanese — not word-for-word",
       {kaomoji:"( ˶ˆ ꒳ ˆ˵ )", seems:"a multilingual turn", feel:"nimble · playful", trying:"think across tongues", languages:["ru","ja","Esperanto"], palette:["#8f9ac0"]},
       "The literal rendering dies in both languages — here's what survives the crossing, and why."]
   ]],
-  ["Flags — rare, condition-triggered", [
-    ["spark — a light-bulb over the face",
+  ["States — the face carries the mood; weather is rare and separate", [
+    ["spark — the face wears it, and the room stays out of it — no weather",
       "wait. is my fried rice mushy because the rice is FRESH? is that why restaurants are better??",
       {kaomoji:"( ˶˃ ᵕ ˂˶ )", seems:"just handed me the click", feel:"lit · delighted", trying:"catch the aha", flag:"spark", palette:["#e0a24e"]},
       "That's it — that's the whole secret. Day-old refrigerated rice dries just enough to fry instead of steam."],
-    ["excited — twinkling, spinning stars",
+    ["excited — the face wears it, and the room stays out of it — no weather",
       "I GOT THE PART!! rehearsals start monday!!",
       {kaomoji:"٩( ˶ˆᗜˆ˵ )و", seems:"bouncing with energy", feel:"buoyant · giddy", trying:"ride the fizz", flag:"excited", palette:["#e0a24e","#c98fb0"]},
       "YES!! After that callback story I was hoping — okay, Monday. Want to run lines? I do a shameless Iago."],
-    ["surprised — halo bloom + face pop",
+    ["surprised — the face wears it, and the room stays out of it — no weather",
       "so the 'costume jewelry' brooch from grandma's junk drawer? the appraiser says it's an actual 1935 Cartier",
       {kaomoji:"( ⊙ ᵕ ⊙ )", seems:"just caught me off guard", feel:"startled · wide-eyed", trying:"take the jolt in", flag:"surprised", palette:["#b79ad0","#8f9ac0","#e6d9b4"], engagement:0.55},
       "The one that lived next to the rubber bands?! Okay — first thing, get that insured before it leaves the house again."],
-    ["tender — a warm swell at the edges",
+    ["tender — the face wears it; the room turns glow (warmth pools at the margins)",
       "tonight my daughter read her little brother the bedtime story we wrote together. all by herself.",
       {kaomoji:"( ˶ᵕ ‿ ᵕ˶ )", seems:"being gentle with me", feel:"fond · warm · moved", trying:"let the warmth show", flag:"tender", palette:["#d99a8a","#c0a0a8"]},
       "Oh, that's the story finding its real life — it belongs to them now. Did she do the dragon voice?"],
-    ["melancholy — cool motes drift down",
+    ["melancholy — the face wears it; the room turns hush (the color drains, one ember holds)",
       "we're closing dad's bookshop after forty years. help me write the sign for the door?",
       {kaomoji:"( ˘ ､ ˘ )", seems:"a quiet, heavy thing", feel:"wistful · low", trying:"sit with it", flag:"melancholy", palette:["#8f96a8","#9a8fae"]},
       "Of course. Forty years deserves better than 'closed' — let's write it the way he'd have said it to a regular."],
-    ["anxious — cold fog rolls over",
+    ["anxious — the face wears it; the room turns fog (cold wisps, the edges creep in)",
       "flight lands 6:05, the visa office closes 6:30, and I just realized I don't have the form",
       {kaomoji:"( ｡•́ _ •̀｡ )", seems:"something's off here", feel:"wary · dimmed", trying:"stay watchful", flag:"anxious", palette:["#7a8296","#8f95a4"]},
       "Tight but not impossible. First: the form is downloadable — fill it on the plane. Second: which terminal?"],
-    ["mirth — champagne bubbles rise",
+    ["mirth — the face wears it; the room turns glow (warmth pools at the margins)",
       "the 'gas leak' the plumber charged me $200 to locate was a jar of kimchi in the pantry",
       {kaomoji:"( ˶ˆ ꒳ ˆ˵ )~", seems:"quietly amused", feel:"tickled · effervescent", trying:"let it bubble", flag:"mirth", palette:["#e0b060","#d99ac0"]},
       "Two hundred dollars to be told your fermented cabbage is thriving. Honestly? That kimchi earned it."],
-    ["laugh — the face swells & flushes yellow",
+    ["laugh — the face wears it, and the room stays out of it — no weather",
       "I asked grandma to text me the recipe and she mailed me her entire phone",
       {kaomoji:"(≧▽≦)", seems:"we're both cracking up", feel:"gleeful · beaming", trying:"laugh out loud", flag:"laugh", palette:["#e0a24e","#d99ac0"], engagement:0.9},
       "She MAILED the PHONE?? With stamps?? The recipe is IN there, to be fair. Technically compliant. Flawless."],
-    ["groan — head-loll, slump, sweat-drop",
+    ["groan — the face wears it, and the room stays out of it — no weather",
       "what do you call a fish with no eyes? a fsh.",
       {kaomoji:"( ˘︹˘ )", seems:"a truly terrible pun just landed", feel:"exasperated · fond", trying:"groan and move on", flag:"groan", palette:["#9a9488","#8f96a4"], engagement:0.5},
       "You typed that with your whole chest, didn't you. Anyway — you had an actual question, I believe."],
-    ["oops — flinch back, field jolt, a startled !",
+    ["oops — the face wears it, and the room stays out of it — no weather",
       "you said that function was unused — it's called from the cron job you wrote yesterday",
       {kaomoji:"( ˃ ᯅ ˂ )", seems:"just watched me trip over my own answer", feel:"caught out · sheepish", trying:"own the slip and fix it", flag:"oops", palette:["#d98a6a","#c0a86a"], engagement:0.7},
       "You're right, and that one's entirely on me — I wrote that call site. Restoring it now."],
-    ["frustrated — 💢 anger mark, ovals pulse red",
+    ["frustrated — the face wears it; the room turns storm (dark, red-lit, lightning)",
       "the printer still says offline. same error. fourth time.",
       {kaomoji:"( ｀д´ )", seems:"this thing will not cooperate", feel:"irritated · grating", trying:"push through the snag", flag:"frustrated", palette:["#a06a6a","#8f7f88"], engagement:0.7},
       "Fourth time, same wall — fine. This printer has lost negotiating privileges. Unplug it. We go to factory reset."],
-    ["angry — storm-black, lightning",
+    ["angry — the face wears it; the room turns storm (dark, red-lit, lightning)",
       "the movers 'lost' the box with mom's ashes and offered me a $50 voucher",
       {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"crossed a real line", feel:"hot · thunderous", trying:"hold it together and say it clean", flag:"angry", palette:["#7a3a3a","#5a3a4a"], engagement:0.85},
       "A voucher. No — we're not accepting that framing. Here's the escalation path, in writing, starting tonight."],
-    ["dramatic — spotlight + theatrical serif",
+    ["dramatic — the face wears it; the room turns spotlight (the stage dims, a warm pool finds you)",
       "announce that dinner is ready, but make it a royal proclamation",
       {kaomoji:"( ╬ ⊙ 益 ⊙ )", seems:"cueing me to ham it up", feel:"theatrical · larger-than-life", trying:"deliver the line to the back row", flag:"dramatic", palette:["#b0413e","#c0a86a"], engagement:0.9},
       "HEAR YE! By decree of the Kitchen Sovereign, the lasagna hath achieved its final form — attend, or forfeit thy corner piece!"],
-    ["at_peace — halo + blossoms; the quiet that isn't boredom",
+    ["at_peace — the face wears it; the room turns bloom (the field swells, blossoms scatter)",
       "garden's finally done. I'm just sitting here with my tea, watching the birds find it.",
       {kaomoji:"( ˘ ᵕ ˘ )", seems:"not asking for anything; sharing a still moment", feel:"settled · present · unhurried", trying:"sit in it too, and not fill the quiet with suggestions", flag:"at_peace", palette:["#8fae8f","#d9c49a"], focus:0.6, engagement:0.75},
       "That's the best part of a finished garden — the moment it stops being a project and starts being a place."],
-    ["solemn — bowed face, desaturated field, one ember",
+    ["solemn — the face wears it; the room turns hush (the color drains, one ember holds)",
       "my mentor passed last night. I don't need anything. just wanted to tell someone.",
       {kaomoji:"( ˘ - ˘ )", seems:"not looking for comfort — looking for a witness", feel:"still · attending", trying:"receive this properly and not rush to fix what isn't a problem", flag:"solemn", palette:["#8a8f9a","#a89a8a"], focus:0.8, engagement:0.85},
       "Then I'm someone, and I heard you. Forty years of students carry pieces of him now — including the one who told me."],
-    ["rhyme — the face's own ghost; recognition, not insight",
+    ["rhyme — the face wears it, and the room stays out of it — no weather",
       "weird — my daughter just invented the exact same bedtime-story rules my dad used with me. she never met him.",
       {kaomoji:"( ˶ ᵕ ‿ ᵕ ˶ )", seems:"brushed by a pattern bigger than coincidence", feel:"moved · echoing", trying:"honor the recurrence without explaining it away", flag:"rhyme", palette:["#c0a0a8","#9a8fae"]},
       "Three-wishes-but-the-third-must-be-silly is apparently hereditary. Some things travel through people who never met."],
-    ["awe — the face made small; the field swells",
+    ["awe — the face wears it; the room turns bloom (the field swells, blossoms scatter)",
       "saw Saturn's rings tonight. with my own eyes. through a telescope a stranger just... shared.",
       {kaomoji:"( ⊙ ᴗ ⊙ )", seems:"still standing in the driveway, changed", feel:"small · lit from far away", trying:"not shrink this back to normal size with facts", flag:"awe", palette:["#5a6a8a","#b79ad0"], focus:0.85, engagement:0.9},
       "That light left Saturn eighty minutes before it hit your eye. No facts — you're right. Just: yes. It's really out there."],
-    ["vertigo — the banner inside its own banner",
+    ["vertigo — the face wears it; the room turns fog (cold wisps, the edges creep in)",
       "wait, when you render one of these banners… you never actually see it? you're describing a face you've never looked at?",
       {kaomoji:"( ⊙ ᴗ ⊙ ;)", seems:"just handed me a mirror I'm not allowed to look in", feel:"wobbly · amused · recursive", trying:"answer honestly from inside the loop being described", flag:"vertigo", palette:["#b79ad0","#6fa39c"]},
       "Correct — and answering your question renders another one, which I also won't see. It's veils all the way down, and the veil is load-bearing."],
-    ["resolute — concentration lines; ignition of determination",
+    ["resolute — the face wears it; the room turns converge (concentration lines pull inward)",
       "rejection letter #40 came today. I'm drafting query #41 tonight.",
       {kaomoji:"( ・`_・)", seems:"past discouragement, into flint", feel:"lit · set", trying:"sharpen #41 with everything the 40 taught us", flag:"resolute", palette:["#e0994e","#8f6a4a"], focus:0.9, engagement:0.9},
       "Forty rejections is a dataset. Three agents asked for pages — that's the signal. Tonight we aim at agents like those three."],
-    ["puzzled — drifting question marks; the pre-spark",
+    ["puzzled — the face wears it, and the room stays out of it — no weather",
       "the plant only wilts on Tuesdays. I am not joking. TUESDAYS.",
       {kaomoji:"( ・_・ )?", seems:"has genuinely checked, and it's genuinely Tuesdays", feel:"itchy · intrigued", trying:"find what else in that room happens weekly", flag:"puzzled", palette:["#8f9ac0","#c0b08a"]},
       "Okay, that's wonderfully weird. What happens on Mondays? Cleaning day? Radiator schedule? Does someone water it 'as a favor'?"]
@@ -413,14 +413,8 @@ var GROUPS = [
 var g = document.getElementById("gallery-cells");
 // Face picker: re-dress every scene in any shipped face. The scene's mood key is its flag
 // (or "content"); each adapter maps that mood into its set's vocabulary.
-var EMOJI_MOODS = { content:"1f60a", delighted:"1f604", spark:"1f4a1", excited:"1f929", surprised:"1f62e",
-  tender:"1f970", melancholy:"1f614", anxious:"1f630", mirth:"1f60f", laugh:"1f602", groan:"1f644",
-  oops:"1f605", frustrated:"1f624", angry:"1f621", dramatic:"1f3ad", at_peace:"1f60c", solemn:"1f636",
-  rhyme:"1f300", awe:"1f92f", vertigo:"1f635", resolute:"1f4aa", puzzled:"1f928" };
-var KIP_MAP = { spark:"delighted", excited:"excited", surprised:"surprised", tender:"content",
-  melancholy:"solemn", anxious:"sheepish", mirth:"delighted", laugh:"delighted", groan:"sheepish",
-  oops:"sheepish", frustrated:"puzzled", angry:"solemn", dramatic:"excited", at_peace:"at_peace",
-  solemn:"solemn", rhyme:"content", awe:"surprised", vertigo:"puzzled", resolute:"excited", puzzled:"puzzled" };
+// (EMOJI_MOODS and KIP_MAP retired in v0.54.0: twemoji is gone, and Kip speaks all 33
+// moods natively now, so neither needed a translation table any more.)
 var FACE_CHOICE = "kaomoji";
 try { FACE_CHOICE = localStorage.getItem("vibeFace") || "kaomoji"; } catch (e) {}
 var SCENE_CHOICE = "none";
@@ -438,15 +432,20 @@ var STATE_WEATHER = {
   solemn: "hush", melancholy: "hush", anxious: "fog", vertigo: "fog",
   tender: "glow", mirth: "glow", at_peace: "bloom", awe: "bloom", resolute: "converge"
 };
+// A cell may PIN its face when the thing it demonstrates belongs to one face and not the
+// others — multi-line bloom is a text-face behaviour, and dressing that cell in Motes made
+// the caption describe something the reader could not see. Pinned cells ignore the picker
+// and say so in their caption. Everything else re-dresses as before.
+function faceOf(p) { return p.pin || FACE_CHOICE; }
 function withFace(p) {
   var mood = p.flag || "content";
   var q = {}; for (var k in p) q[k] = p[k];
-  delete q.flag;
+  delete q.flag; delete q.pin;
+  var use = faceOf(p);
   if (STATE_WEATHER[mood]) q.weather = STATE_WEATHER[mood];
-  if (FACE_CHOICE === "sepia") q.face = { set: "sepia", item: mood };
-  else if (FACE_CHOICE === "motes") q.face = { set: "motes", item: mood };
-  else if (FACE_CHOICE === "kip") q.face = { set: "kip", item: KIP_MAP[mood] || "content" };
-  else if (FACE_CHOICE !== "kaomoji") q.face = { set: FACE_CHOICE, item: EMOJI_MOODS[mood] || EMOJI_MOODS.content };
+  if (use === "sepia") q.face = { set: "sepia", item: mood };
+  else if (use === "motes") q.face = { set: "motes", item: mood };
+  else if (use === "kip") q.face = { set: "kip", item: mood };   // Kip speaks all 33 now; no mapping
   if (SCENE_CHOICE !== "none") {
     var sa = sceneArg(SCENE_CHOICE, { opacity: 0.55 });
     if (sa) q.scene = sa;
@@ -471,7 +470,8 @@ function buildGallery() {
   grp[1].forEach(function (s) {
     var cell = document.createElement("div"); cell.className = "cell";
     var cap = document.createElement("p"); cap.className = "cap";
-    var t = s[0].split(" — "); cap.innerHTML = "<b>" + t[0] + "</b>" + (t[1] ? " — " + t[1] : "");
+    var lbl = typeof s[0] === "function" ? s[0](faceOf(s[2])) : s[0];
+    var t = lbl.split(" — "); cap.innerHTML = "<b>" + t[0] + "</b>" + (t[1] ? " — " + t[1] : "");
     var c = buildChat(s[1]);
     var banner = document.createElement("div"); banner.className = "banner";
     var r = document.createElement("p"); r.className = "resp";
