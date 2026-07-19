@@ -345,6 +345,26 @@ ok(padT[0].indexOf("  ") === 0, "the leading indent survives, as NBSP");
 ok(padT.join("").indexOf(" ") < 0, "not one plain space left unconverted — nothing collapses");
 ok(padT.reduce((n, t) => n + t.split(" ").length - 1, 0) === 12, "all twelve spaces of the padded art survive");
 
+console.log("\ntender is a heart; dramatic wears the one mask (v0.59.0)");
+const heartPts = (() => {
+  const P = M.pathsFor("tender", 1.0), o = [];
+  for (let i2 = 0; i2 < M.N; i2++) o.push(M.target(i2, M.N, 1.0, P, 0, 0, 100, 7));
+  return o;
+})();
+const hTop = Math.min(...heartPts.map((p) => p.y)), hBot = Math.max(...heartPts.map((p) => p.y));
+const spanOf = (a) => (a.length ? Math.max(...a.map((p) => p.x)) - Math.min(...a.map((p) => p.x)) : 0);
+const lobes = spanOf(heartPts.filter((p) => p.y < hTop + (hBot - hTop) * 0.3));
+const point = spanOf(heartPts.filter((p) => p.y > hBot - (hBot - hTop) * 0.1));
+ok(lobes > point * 2.5, "a heart: wide across the lobes, pinched to a point at the base (" +
+  lobes.toFixed(0) + " vs " + point.toFixed(0) + ")");
+ok(heartPts.some((p) => Math.abs(p.x) < 14 && p.y < hTop + (hBot - hTop) * 0.22),
+   "with a cleft between the lobes — a heart, not a dome");
+const maskOf = (m) => /<text[^>]*font-size[^>]*>.{1,3}<\/text>/.test(
+  buildSVG(Object.assign({}, base, { face: { set: "motes", item: m } })));
+ok(maskOf("dramatic"), "dramatic wears the mask in the still frame too — it IS the pose");
+ok(!maskOf("tender") && !maskOf("content") && !maskOf("laugh"),
+   "no other mood wears an emoji: the swarm says everything else with its own shape");
+
 console.log("\nthe echo (v0.58.0): rhyme doubles the creature, quietly");
 const echoOf = (set, item) => {
   const q = buildSVG(Object.assign({}, base, { face: { set: set, item: item } }));

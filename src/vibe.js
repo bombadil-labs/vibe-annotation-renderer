@@ -166,6 +166,10 @@
   // It reads as memory — the same shape a moment ago and a little way behind. Sheet packs
   // only: Motes already dissolves and re-forms, so doubling it would just read as noise.
   var ECHO = { moods: { rhyme: 1 }, alpha: 0.2, dx: -0.8 };
+  // The ONE emoji Motes wears. `dramatic` already clusters part of the swarm onto a single
+  // centre point — a spotlight with nothing standing in it. The mask is what the light is FOR,
+  // and theatre is the one register where a literal symbol is honest rather than a shortcut.
+  var MOTE_PROP = { dramatic: "🎭" };
   function echoes(set, item) { return (set === "sepia" || set === "kip") && ECHO.moods[item] === 1; }
 
   // ── MOTES ─────────────────────────────────────────────────────────────────────────
@@ -242,8 +246,7 @@
                           { p: "ring", r: 0.70, ry: 0.60, share: 0.40, align: 0.20, flow: 0.30, spin: 0.40 }] },
     surprised:  { paths: [{ p: "ring", r: 0.92, ry: 0.80, align: 0.35, flow: 0.02, spin: 0.05 }],
                   flash: { every: 4.5, hold: 1.5, paths: MARK_BANG } },
-    tender:     { paths: [{ p: "ring", x: -0.28, y: -0.05, r: 0.34, ry: 0.32, share: 0.5, align: 0.75, flow: 0.12 },
-                          { p: "ring", x: 0.28, y: -0.05, r: 0.34, ry: 0.32, share: 0.5, align: 0.75, flow: -0.12 }] },
+    tender:     { paths: [{ p: "heart", r: 0.72, ry: 0.72, y: 0.02, align: 0.88, flow: 0.05 }] },
     melancholy: { paths: [{ p: "line", x1: -0.55, y1: -0.55, x2: 0.30, y2: 0.75, align: 0.40, flow: 0.09 }] },
     anxious:    { paths: [{ p: "ring", r: 0.72, ry: 0.66, align: 0.08, flow: 0.35, spin: 0.30 }] },
     mirth:      { paths: [{ p: "arc", y: -0.30, r: 0.62, ry: 0.56, a0: 0.42, a1: 2.72, share: 0.72, align: 0.80, flow: 0.28 },
@@ -346,6 +349,12 @@
       case "spiral":
         a = u * TAU * (pp.turns || 2) + spin; rr = r1 * R * (0.15 + 0.85 * u);
         return [ox + Math.cos(a) * rr, oy + Math.sin(a) * rr * 0.9];
+      case "heart":                                            // the classic 16sin³ curve — closed and smooth, so flow walks it and spin turns it
+        a = u * TAU;
+        var hsx = Math.pow(Math.sin(a), 3);
+        var hsy = -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)) / 16;
+        if (spin) { var hc = Math.cos(spin), hs2 = Math.sin(spin), htx = hsx * hc - hsy * hs2; hsy = hsx * hs2 + hsy * hc; hsx = htx; }
+        return [ox + hsx * r1 * R, oy + hsy * r2 * R];
       case "infinity":                                         // Gerono lemniscate: closed, so it spins cleanly
         a = u * TAU;
         var lx = Math.cos(a) * r1, ly = Math.sin(a) * Math.cos(a) * r2 * 1.6;
@@ -804,6 +813,10 @@
           '" fill="' + mc + '" opacity="0.85"/>');
         dots.push('<circle cx="' + g(tg.x) + '" cy="' + g(tg.y) + '" r="' + g(6 + (mi % 3)) +
           '" fill="' + mc + '" opacity="0.13"/>');
+      }
+      if (MOTE_PROP[faceProc.item]) {                          // the mask belongs in the still frame too — it IS the pose
+        dots.push('<text x="' + g(pcx) + '" y="' + g(pcy) + '" font-size="' + g(pr * 0.86) +
+          '" text-anchor="middle" dominant-baseline="central">' + MOTE_PROP[faceProc.item] + '</text>');
       }
       kaoSVG = '<g class="vk">' + dots.join("") + '</g>';
       faceBox = { x: portrait.x, y: portrait.y, w: portrait.s, h: portrait.s };
@@ -1830,6 +1843,15 @@
               mx.beginPath(); mx.arc(ms.x, ms.y, mrad * 0.6, 0, 6.2832); mx.fill();
             }
             mx.globalAlpha = 1; mx.globalCompositeOperation = "source-over";
+            var mprop = MOTE_PROP[mMood];
+            if (mprop) {                                       // drawn last: the swarm is the lighting, this is what it lights
+              var mpB = 1 + 0.045 * Math.sin(t * 1.35);        // breathing very slightly, the way a held pose does
+              mx.textAlign = "center"; mx.textBaseline = "middle";
+              mx.font = (mR * 0.86 * mpB).toFixed(1) + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+              mx.globalAlpha = 0.96;
+              mx.fillText(mprop, mcx, mcy);
+              mx.globalAlpha = 1;
+            }
           }
         }
 
