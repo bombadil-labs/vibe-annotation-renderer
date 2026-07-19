@@ -207,3 +207,65 @@ function canvas(LW, LH, SCALE) {
   for (let k = 0; k < 6; k++) lput(4 + Math.floor(r() * 12), 4 + Math.floor(r() * 14), "#8a6f52");
   save("scene-study.png");
 }
+
+/* ---- hearth: a fire in a stone surround, embers below, flames drawn live ---- */
+{
+  const { LW, LH, lput, save } = canvas(40, 40, 4);
+  const r = rng(20260721);
+  // stone surround: warm dark masonry, faintly lit from the fire's centre
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
+    const d = Math.sqrt((x - 20) * (x - 20) + (y - 26) * (y - 26));
+    const base = d < 16 ? "#3a2a24" : d < 24 ? "#2e2019" : "#241813";
+    lput(x, y, ((x * 7 + y * 5) % 17 === 0) ? "#191010" : base);   // mortar flecks
+  }
+  // a plain mantel beam across the top
+  for (let x = 3; x < 37; x++) { lput(x, 5, "#4a3524"); lput(x, 6, "#3a2818"); }
+  lput(3, 5, "#5a4230"); lput(36, 5, "#5a4230");
+  // the firebox opening: a dark arch, lower-middle
+  for (let y = 12; y < 34; y++) for (let x = 10; x < 30; x++) {
+    const arch = y < 15 ? (x - 20) * (x - 20) <= (14 - y) * 22 : true;
+    if (arch) lput(x, y, "#140c0a");
+  }
+  // logs at the base: two angled brown bars
+  for (let i = 0; i < 8; i++) { lput(12 + i, 31 - Math.floor(i / 3), "#5a3a22"); lput(12 + i, 32 - Math.floor(i / 3), "#43290f"); }
+  for (let i = 0; i < 8; i++) { lput(21 + i, 32 - Math.floor((7 - i) / 3), "#5a3a22"); lput(21 + i, 33 - Math.floor((7 - i) / 3), "#43290f"); }
+  // the ember bed: a bright band under the logs
+  for (let x = 12; x < 28; x++) { lput(x, 33, r() < 0.5 ? "#e8641e" : "#c8420e"); lput(x, 32, r() < 0.3 ? "#f0902e" : "#6a2408"); }
+  // a low resting flame painted into the art (the live layer adds the flicker on top)
+  const FL = ["#7a2408", "#c8420e", "#e8781e", "#f4b23a"];
+  for (let y = 20; y < 32; y++) {
+    const half = Math.max(0, 9 - Math.floor((32 - y) * 0.2) - Math.floor(Math.abs(Math.sin(y)) * 2));
+    for (let x = 20 - half; x <= 20 + half; x++) {
+      const tier = Math.min(FL.length - 1, Math.floor((y - 20) / 3) + (Math.abs(x - 20) > half - 2 ? 0 : 1));
+      if (r() < 0.82) lput(x, y, FL[Math.max(0, tier)]);
+    }
+  }
+  save("scene-hearth.png");
+}
+
+/* ---- rain: a window onto a grey day, drops sliding down the glass (drawn live) ---- */
+{
+  const { LW, LH, lput, save } = canvas(40, 40, 4);
+  const r = rng(20260722);
+  // the day beyond: a soft cool grey gradient, brighter toward the top
+  const SKY = ["#828d9a", "#75838f", "#697987", "#5f6f7e", "#576878"];
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) lput(x, y, SKY[Math.min(4, Math.floor(y / 8))]);
+  // blurred greenery low on the far side
+  for (let k = 0; k < 40; k++) {
+    const gx = Math.floor(r() * LW), gy = 24 + Math.floor(r() * 8);
+    lput(gx, gy, r() < 0.5 ? "#4f6a55" : "#5c7360");
+  }
+  // rain streaks in the air beyond the glass — faint diagonal hints (the live layer runs the glass drops)
+  for (let k = 0; k < 30; k++) {
+    const rx = Math.floor(r() * LW), ry = Math.floor(r() * LH);
+    lput(rx, ry, "#8fa0ad"); if (ry + 1 < LH) lput(rx, ry + 1, "#849aa8");
+  }
+  // the window frame: outer border + a cross of muntins
+  for (let x = 0; x < LW; x++) { lput(x, 0, "#3a2c22"); lput(x, 1, "#4a3a2c"); lput(x, LH - 1, "#2e2218"); lput(x, LH - 2, "#3a2c22"); }
+  for (let y = 0; y < LH; y++) { lput(0, y, "#3a2c22"); lput(1, y, "#4a3a2c"); lput(LW - 1, y, "#2e2218"); lput(LW - 2, y, "#3a2c22"); }
+  for (let y = 2; y < LH - 2; y++) { lput(19, y, "#4a3a2c"); lput(20, y, "#3a2c22"); }   // vertical muntin
+  for (let x = 2; x < LW - 2; x++) { lput(x, 19, "#4a3a2c"); lput(x, 20, "#3a2c22"); }   // horizontal muntin
+  // a sill catching a little water at the bottom
+  for (let x = 2; x < LW - 2; x++) { lput(x, LH - 4, "#5a4632"); lput(x, LH - 5, "#6a5440"); }
+  save("scene-rain.png");
+}
