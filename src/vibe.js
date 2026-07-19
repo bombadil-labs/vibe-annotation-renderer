@@ -165,7 +165,7 @@
   // 20% opaque, offset LEFT by 80% of its own width, mirroring every frame and transform.
   // It reads as memory — the same shape a moment ago and a little way behind. Sheet packs
   // only: Motes already dissolves and re-forms, so doubling it would just read as noise.
-  var ECHO = { moods: { rhyme: 1 }, alpha: 0.2, dx: -0.8 };
+  var ECHO = { moods: { rhyme: 1 }, alpha: 0.2, dx: -0.8, lag: 0.2 };
   // Applied to the CLONE, whose width is the face's — so the percentage means 80% of the
   // avatar, which is what was asked for. Every live transform composes AFTER it.
   var ECHO_TF = "translateX(" + (ECHO.dx * 100) + "%)";
@@ -262,8 +262,15 @@
                   flash: { every: 6, hold: 1.7, ramp: 0.7, paths: MARK_BOLT } },
     frustrated: { paths: [{ p: "poly", glyph: "wave", scale: 0.85, align: 0.72, flow: 1.10 }] },
     angry:      { paths: [{ p: "ring", r: 0.28, ry: 0.26, align: 0.55, cluster: 0.30, flow: 1.00, spin: 1.30 }] },
-    dramatic:   { paths: [{ p: "ring", r: 0.78, ry: 0.62, share: 0.70, align: 0.85, flow: 0.10, spin: 0.16 },
-                          { p: "point", share: 0.30, align: 0.90, cluster: 1 }] },
+    // The mask stands centre stage, so the swarm has no business piling onto that point —
+    // the 30% clustered there were just hiding behind it. They pair off instead: four small
+    // counter-turning orbits in the gap between the mask and the ring of watchers, which is
+    // what an audience does while the performance holds. Partners, not a crowd.
+    dramatic:   { paths: [{ p: "ring", r: 0.86, ry: 0.70, share: 0.52, align: 0.85, flow: 0.10, spin: 0.16 },
+                          { p: "ring", x: -0.44, y: -0.20, r: 0.15, ry: 0.13, share: 0.12, align: 0.80, flow: 0.62, spin: 0.5 },
+                          { p: "ring", x: 0.44, y: -0.20, r: 0.15, ry: 0.13, share: 0.12, align: 0.80, flow: -0.62, spin: -0.5 },
+                          { p: "ring", x: -0.40, y: 0.30, r: 0.14, ry: 0.12, share: 0.12, align: 0.80, flow: -0.55, spin: -0.45 },
+                          { p: "ring", x: 0.40, y: 0.30, r: 0.14, ry: 0.12, share: 0.12, align: 0.80, flow: 0.55, spin: 0.45 }] },
     at_peace:   { paths: [{ p: "ring", r: 0.66, ry: 0.58, align: 0.80, flow: 0.03, spin: 0.05 }] },
     solemn:     { paths: [{ p: "line", x1: -0.70, y1: 0.12, x2: 0.70, y2: 0.12, align: 0.85, flow: 0.02 }] },
     rhyme:      { paths: [{ p: "infinity", r: 0.72, ry: 0.46, align: 0.86, flow: 0.18, spin: 0.22 }] },
@@ -830,7 +837,7 @@
           '" fill="' + mc + '" opacity="0.13"/>');
       }
       if (MOTE_PROP[faceProc.item]) {                          // the mask belongs in the still frame too — it IS the pose
-        dots.push('<text x="' + g(pcx) + '" y="' + g(pcy) + '" font-size="' + g(pr * 0.86) +
+        dots.push('<text x="' + g(pcx) + '" y="' + g(pcy) + '" font-size="' + g(pr * 0.62) +
           '" text-anchor="middle" dominant-baseline="central">' + MOTE_PROP[faceProc.item] + '</text>');
       }
       kaoSVG = '<g class="vk">' + dots.join("") + '</g>';
@@ -1255,7 +1262,7 @@
     // lies); transforms pivot on the element's own centre, as CSS intends. The static
     // fallback (buildSVG) keeps the SVG face.
     var fm = L.faceMeta, kaoEl = null, featEl = null, faceLayerEl = null, procC = null, baseFill = [92, 67, 32];
-    var echoKao = null, echoFeat = null;                       // declared HERE: the face layer below builds them, and a
+    var echoKao = null, echoFeat = null, echoFins = null, echoChromo = null, echoHist = [];                       // declared HERE: the face layer below builds them, and a
                                                                // later `var echoKao = null` used to run afterwards and wipe it
 
     if (fm) {
@@ -1333,6 +1340,12 @@
       finC.style.cssText = "position:absolute;left:0;top:0;width:100%;height:118%;pointer-events:none";   // taller than the face box: the longer arms trail into the window below
       kaoEl.style.position = "relative";
       kaoEl.appendChild(finC);
+      if (echoKao) {                                         // the ghost needs its own fin/arm canvas or it trails a bare body
+        echoFins = document.createElement("canvas");
+        echoFins.style.cssText = finC.style.cssText;
+        echoKao.style.position = "relative";
+        echoKao.appendChild(echoFins);
+      }
     }
     // SUB-PIXEL TIME: the body animates in block frames, but the chromatophore layer
     // glides smoothly over it — soft spots in the reporter's live palette colour,
@@ -1345,6 +1358,12 @@
       kaoEl.style.position = "relative";
       kaoEl.appendChild(chromo);                               // inside the face element: rides every pose and shake
       if (featEl) kaoEl.appendChild(featEl);                   // features stack ABOVE the colour — the body is a solid surface it wanders over
+      if (echoKao) {                                         // and its own colour layer, or the ghost is grey where she is not
+        echoChromo = document.createElement("canvas");
+        echoChromo.style.cssText = chromo.style.cssText;
+        echoKao.appendChild(echoChromo);
+        if (echoFeat) echoKao.appendChild(echoFeat);          // keep the ghost stacking in the same order as the original
+      }
       // THE MASK TINT (v0.40.3): tint moods wash their FEATURES layer in the palette's
       // lead colour — multiply keeps the dark holes dark while the porcelain takes the
       // hue. Painted once from the sheet on load; replaces featEl, so tinted moods must
@@ -1400,7 +1419,8 @@
     // THE ECHO (v0.40.0, rhyme): an exact replica of the face, 25 banner-px to the LEFT,
     // 25% alpha, non-interactive, mirroring every action — transform, sprite frames, and
     // the fin/chromatophore canvases blitted each frame. A verse and its rhyme.
-    var echoFins = null, echoChromo = null, echoTint = null;   // echoKao/echoFeat are built with the face layer, above
+    var echoTint = null;                                       // echoKao/echoFeat/echoFins/echoChromo are all built ABOVE, with the layers they mirror —
+                                                               // re-declaring them here would null them out after construction, which it did, twice
     // Every banner-generated message carries this prefix so it never reads as typed text —
     // the skill tells the reporter to receive these as gestures, not prompts. Each one also
     // ends with a blank line: consecutive taps (a boop then a feeding) land as separate
@@ -1910,7 +1930,7 @@
             if (mprop) {                                       // drawn last: the swarm is the lighting, this is what it lights
               var mpB = 1 + 0.045 * Math.sin(t * 1.35);        // breathing very slightly, the way a held pose does
               mx.textAlign = "center"; mx.textBaseline = "middle";
-              mx.font = (mR * 0.86 * mpB).toFixed(1) + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+              mx.font = (mR * 0.62 * mpB).toFixed(1) + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
               mx.globalAlpha = 0.96;
               mx.fillText(mprop, mcx, mcy);
               mx.globalAlpha = 1;
@@ -2222,10 +2242,19 @@
           if (kx || ky || ks !== 1 || beatKw) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + (ks * (1 + beatKw)).toFixed(3) + "," + ks.toFixed(3) + ")";
           else if (kaoEl.style.transform) kaoEl.style.transform = "";                // rest cleanly
         }
-        if (echoKao) {                                                               // the echo mirrors everything, a beat behind nothing
-          echoKao.style.transform = ECHO_TF + (kaoEl.style.transform ? " " + kaoEl.style.transform : "");   // compose: the offset survives every mirrored pose
-          if (kaoEl.style.backgroundPosition) echoKao.style.backgroundPosition = kaoEl.style.backgroundPosition;
-          if (echoFeat && featEl) echoFeat.style.backgroundPosition = featEl.style.backgroundPosition;
+        if (echoKao) {
+          // A REAL ECHO LAGS (v0.62.0). It used to mirror the instant exactly, which reads as
+          // a double rather than a memory. The discrete channels — pose transform and sprite
+          // frame — now come out of a short history buffer sampled ECHO.lag seconds back, so
+          // the ghost does what she did a moment ago. The continuous canvas layers (fins,
+          // chromatophores) still blit live: buffering pixels for every banner on a page would
+          // cost megabytes, and a fifth of a second of phase on a slow ripple is not visible.
+          echoHist.push({ t: t, tf: kaoEl.style.transform || "", bp: kaoEl.style.backgroundPosition || "", fbp: featEl ? (featEl.style.backgroundPosition || "") : "" });
+          while (echoHist.length > 2 && echoHist[1].t <= t - ECHO.lag) echoHist.shift();
+          var past = echoHist[0];
+          echoKao.style.transform = ECHO_TF + (past.tf ? " " + past.tf : "");
+          if (past.bp) echoKao.style.backgroundPosition = past.bp;
+          if (echoFeat && past.fbp) echoFeat.style.backgroundPosition = past.fbp;
           if (echoFins && finC && finC.width > 0) {
             if (echoFins.width !== finC.width || echoFins.height !== finC.height) { echoFins.width = finC.width; echoFins.height = finC.height; }
             var ecx1 = echoFins.getContext("2d");
