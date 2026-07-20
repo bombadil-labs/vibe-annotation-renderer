@@ -11,22 +11,30 @@
     --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     --font-voice: ui-serif, Georgia, "Times New Roman", serif;
-    --paper: #fbf7ef; --ink: #3a2f1e; --sub: #8a7c63;
-    --card: #f3ecdd; --edge: #e2d7bf; --accent: #a05f2c;
+    --paper: #ffffff; --ink: #15151c; --sub: #5b5b69;
+    --card: #f5f5f8; --edge: #e4e4ee; --accent: #4338ca;
+    --accent-soft: rgba(67, 56, 202, 0.08); --on-accent: #ffffff;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --paper: #1a1712; --ink: #e9dcc4; --sub: #a08c6a;
-      --card: #241f17; --edge: #3a3226; --accent: #d99a5e; }
+    :root { --paper: #0e0e13; --ink: #ededf3; --sub: #9898a7;
+      --card: #191921; --edge: #2b2b38; --accent: #a7a2ff;
+      --accent-soft: rgba(167, 162, 255, 0.15); --on-accent: #0e0e13; }
   }
   html, body { margin: 0; background: var(--paper); color: var(--ink);
-    font-family: var(--font-sans); }
+    font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
   .wrap { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
-  h1 { font-size: 30px; font-weight: 500; margin: 0 0 6px; }
-  h2 { font-size: 20px; font-weight: 500; margin: 36px 0 10px; }
+  h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
+  h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; margin: 40px 0 10px; }
   h2:first-child { margin-top: 8px; }
   h3 { font-size: 15px; font-weight: 600; margin: 34px 0 2px; color: var(--sub); }
   p, li { font-size: 15px; line-height: 1.65; }
-  a { color: var(--accent); }
+  a { color: var(--accent); font-weight: 500; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: 8px; top: -48px; background: var(--accent);
+    color: var(--on-accent); padding: 9px 16px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; text-decoration: none; z-index: 200; transition: top 0.15s; }
+  .skip:focus { top: 8px; }
   .lede { color: var(--sub); margin: 0 0 20px; font-size: 16px; line-height: 1.6; }
   .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--edge);
     margin: 24px 0 28px; flex-wrap: wrap; }
@@ -85,46 +93,82 @@
   opacity:0.75;white-space:nowrap}
 .gal-bio .bio-tile{flex:none;width:52px;height:52px}
 @media (max-width:640px){.gal-bio .bio-tile{display:none}}
+/* Landing hero + calls to action. */
+.tab-btn.active{font-weight:600}
+.hero{margin:10px 0 26px}
+.hero-h{font-size:38px;line-height:1.12;font-weight:800;letter-spacing:-0.03em;margin:0 0 14px;color:var(--ink)}
+.hero-sub{font-size:17.5px;line-height:1.55;color:var(--sub);margin:0 0 24px;max-width:54ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.cta{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-sans);font-size:15px;
+  font-weight:600;padding:12px 22px;border-radius:10px;text-decoration:none;border:1.5px solid transparent;
+  cursor:pointer;transition:filter .12s,border-color .12s,background .12s}
+.cta:hover{text-decoration:none}
+.cta-primary{background:var(--accent);color:var(--on-accent)}
+.cta-primary:hover{filter:brightness(1.1)}
+.cta-ghost{background:transparent;color:var(--accent);border-color:var(--edge)}
+.cta-ghost:hover{border-color:var(--accent);background:var(--accent-soft)}
+.features{list-style:none;padding:0;margin:18px 0 0;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.features li{background:var(--card);border:1px solid var(--edge);border-radius:12px;padding:15px 17px;font-size:inherit}
+.features b{display:block;color:var(--ink);font-size:14.5px;font-weight:700;margin:0 0 4px}
+.features span{display:block;font-size:13px;color:var(--sub);line-height:1.5}
+@media (max-width:560px){.hero-h{font-size:31px}.hero-sub{font-size:16px}}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <div class="wrap">
-  <h1>vibe-banner</h1>
-  <p class="lede">A skill that gives Claude a face.</p>
+  <header>
+    <h1>vibe-banner</h1>
+    <p class="lede">A skill that gives Claude a face.</p>
+  </header>
 
-  <div class="tabs" role="tablist">
-    <button class="tab-btn" data-tab="landing" role="tab">Landing</button>
-    <button class="tab-btn" data-tab="gallery" role="tab">Gallery</button>
-    <button class="tab-btn" data-tab="explorer" role="tab">Explorer</button>
-    <button class="tab-btn" data-tab="builder" role="tab">Build and install</button>
-  </div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab-btn" id="tabbtn-landing" data-tab="landing" role="tab" aria-controls="tab-landing">Landing</button>
+    <button class="tab-btn" id="tabbtn-gallery" data-tab="gallery" role="tab" aria-controls="tab-gallery">Gallery</button>
+    <button class="tab-btn" id="tabbtn-explorer" data-tab="explorer" role="tab" aria-controls="tab-explorer">Explorer</button>
+    <button class="tab-btn" id="tabbtn-builder" data-tab="builder" role="tab" aria-controls="tab-builder">Build and install</button>
+  </nav>
 
-  <section class="tab-panel" id="tab-landing" role="tabpanel">
-    <p class="lede" style="color: var(--ink);">At the top of every reply, Claude renders a small
-    living banner — a face, a breathing field of colour, and a few honest first-person lines. By
-    default: its snap read of you, its mood, its immediate goal, and sometimes the subtext it's
-    noticing — though those lines are yours to rename, rewrite, or replace.
-    Like being able to see your collaborator's expression while you work.</p>
+  <main id="main">
+  <section class="tab-panel" id="tab-landing" role="tabpanel" aria-labelledby="tabbtn-landing" tabindex="0">
+    <div class="hero">
+      <h2 class="hero-h">See how Claude is feeling.</h2>
+      <p class="hero-sub">vibe-banner is a Claude skill that renders a small, honest mood banner at
+      the top of every reply — a face, a breathing field of colour, and a few first-person lines.
+      Like seeing your collaborator's expression while you work.</p>
+      <div class="cta-row">
+        <a class="cta cta-primary" href="#builder">Install the skill →</a>
+        <a class="cta cta-ghost" href="#gallery">See it in action</a>
+      </div>
+    </div>
 
-    <div class="hero-banner" id="hero"></div>
-    <p class="hero-note">Live, rendered right now from the CDN bundle — this is exactly what
-    appears above Claude's replies. Fonts here are stand-ins for claude.ai's. Respects your OS
-    light/dark and <code>prefers-reduced-motion</code>.</p>
-
-    <p>Start with the <a href="#gallery">gallery</a> to see every state in a mocked-up
-    conversation, learn to <a href="#gallery">read a banner</a>, or jump straight to
-    <a href="#builder">installation</a> — it's one pasted file on claude.ai, one
-    a downloaded file for Claude Code.</p>
+    <div class="hero-banner" id="hero" role="img" aria-label="A live vibe-banner: a face, a field of colour, and a first-person mood readout."></div>
+    <p class="hero-note">Live, rendered right now from the CDN bundle — exactly what appears above
+    Claude's replies. Fonts here are stand-ins for claude.ai's. Respects your OS light/dark theme
+    and <code>prefers-reduced-motion</code>.</p>
 
     <h2>Why it's honest</h2>
     <p>Claude only ever reports <em>values</em> — a mood, some colours, a goal — and a small
-    renderer loaded from a CDN turns them into the picture. Claude never sees the output and the
-    skill never describes what any value renders as, so there's no visual lever to perform
-    toward. It reports the feeling; the tool decides the look.
-    <a href="#gallery">See every state it can wear →</a></p>
+    renderer loaded from a CDN turns them into the picture. Claude never sees the output, and the
+    skill never describes what any value looks like rendered, so there's no visual lever to perform
+    toward. It reports the feeling; the tool decides the look.</p>
+
+    <h2>What you get</h2>
+    <ul class="features">
+      <li><b>Five faces</b><span>Kaomoji, Sepia the cuttlefish, a procedural swarm, an inkblot, and a pixel mascot — each speaks all 33 moods.</span></li>
+      <li><b>Four living habitats</b><span>A tidepool, a study, a night sky, a glade — the window behind the face, quietly alive.</span></li>
+      <li><b>Yours to shape</b><span>Rename the readout lines, set how often it fires, pick a home. Built in the browser, no account.</span></li>
+      <li><b>One tiny paste</b><span>Install is a single file on claude.ai, or one download for Claude Code. No dependencies.</span></li>
+    </ul>
+
+    <div class="cta-row" style="margin-top:26px">
+      <a class="cta cta-primary" href="#builder">Build and install →</a>
+      <a class="cta cta-ghost" href="#explorer">Explore faces &amp; scenes</a>
+    </div>
   </section>
 
-  <section class="tab-panel" id="tab-gallery" role="tabpanel">
+  <section class="tab-panel" id="tab-gallery" role="tabpanel" aria-labelledby="tabbtn-gallery" tabindex="0">
     <h2 id="gallery">Gallery — every state, in conversation</h2>
     <p class="lede" style="margin-bottom:0">Each cell is a mocked-up exchange: what the user said,
     the banner Claude rendered in the moment, and the opening of the reply. Every banner is drawn
@@ -152,7 +196,7 @@
     <div id="gallery-cells"></div>
   </section>
 
-  <section class="tab-panel" id="tab-explorer" role="tabpanel">
+  <section class="tab-panel" id="tab-explorer" role="tabpanel" aria-labelledby="tabbtn-explorer" tabindex="0">
     <h2 id="explore">Visuals explorer</h2>
     <p class="lede">Face and environment, combined live. Pick any face-pack and any first-party
     scene (or your own image URL) and see the composite banner exactly as it renders — the
@@ -164,7 +208,7 @@
     <div id="x-bio" class="gal-bio" style="border-top:none; padding-top:0; margin-top:12px;"></div>
   </section>
 
-  <section class="tab-panel" id="tab-builder" role="tabpanel">
+  <section class="tab-panel" id="tab-builder" role="tabpanel" aria-labelledby="tabbtn-builder" tabindex="0">
     <h2 id="build">Build your own skill</h2>
     <p class="lede">Most of this file is fixed, on purpose — the contract, the snippet, the
     attunement rules and the value bullets are load-bearing, and versions people hand-edited
@@ -255,6 +299,7 @@ npm run skill -- kip glade -o ./SKILL.md</pre>
   
   
   </section>
+  </main>
 
   <footer>
     <a href="https://github.com/bombadil-labs/vibe-banner">bombadil-labs/vibe-banner</a>
@@ -687,7 +732,10 @@ var TAB_ALIAS = { "": "landing", landing: "landing", key: "gallery",
   explorer: "explorer", visuals: "explorer", builder: "builder", build: "builder" };
 function activate(tab) {
   document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
-    b.classList.toggle("active", b.dataset.tab === tab);
+    var on = b.dataset.tab === tab;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");   // announce the current tab to assistive tech
+    b.tabIndex = on ? 0 : -1;                                  // roving tabindex: only the active tab is in the tab order
   });
   document.querySelectorAll(".tab-panel").forEach(function (p) {
     p.classList.toggle("active", p.id === "tab-" + tab);
@@ -702,8 +750,18 @@ function route() {
   if (target && h !== tab) target.scrollIntoView();
   else window.scrollTo(0, 0);
 }
-document.querySelectorAll(".tabs .tab-btn").forEach(function (b) {
+var TAB_BTNS = Array.prototype.slice.call(document.querySelectorAll(".tabs .tab-btn"));
+TAB_BTNS.forEach(function (b, i) {
   b.addEventListener("click", function () { location.hash = b.dataset.tab; });
+  b.addEventListener("keydown", function (e) {                 // WAI-ARIA tabs: arrows/Home/End move between tabs
+    var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0, n;
+    if (d) n = (i + d + TAB_BTNS.length) % TAB_BTNS.length;
+    else if (e.key === "Home") n = 0;
+    else if (e.key === "End") n = TAB_BTNS.length - 1;
+    else return;
+    e.preventDefault();
+    TAB_BTNS[n].focus(); location.hash = TAB_BTNS[n].dataset.tab;
+  });
 });
 window.addEventListener("hashchange", route);
 route();
