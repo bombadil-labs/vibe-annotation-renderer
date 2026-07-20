@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sepia the cuttlefish in her tidepool">
+  <!-- Sepia in the tidepool, reduced to what survives at 16px: teal water, a pale mantle,
+       two dark eyes, three arms. The full scene is far too busy this small — this is the
+       silhouette of it, not a shrunk copy. -->
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6fb6b0"/>
+      <stop offset="1" stop-color="#3c878a"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#water)"/>
+  <ellipse cx="8" cy="6.5" rx="4.2" ry="1.4" fill="#c6ebe3" opacity="0.42"/>
+  <ellipse cx="23" cy="26.5" rx="5" ry="1.6" fill="#c6ebe3" opacity="0.28"/>
+  <g stroke="#e3d0c5" stroke-width="2.4" stroke-linecap="round">
+    <path d="M12.5 20.5Q11.3 25 12.6 28.2"/>
+    <path d="M16 21Q16 25.5 16 28.8"/>
+    <path d="M19.5 20.5Q20.7 25 19.4 28.2"/>
+  </g>
+  <ellipse cx="16" cy="15" rx="8" ry="9.2" fill="#f1e5d9" stroke="#c6b0a4" stroke-width="0.8"/>
+  <ellipse cx="12.6" cy="14.2" rx="1.95" ry="2.25" fill="#3a2f34"/>
+  <ellipse cx="19.4" cy="14.2" rx="1.95" ry="2.25" fill="#3a2f34"/>
+  <circle cx="13.25" cy="13.35" r="0.72" fill="#fff" opacity="0.9"/>
+  <circle cx="20.05" cy="13.35" r="0.72" fill="#fff" opacity="0.9"/>
+</svg>

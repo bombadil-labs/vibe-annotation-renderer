@@ -306,9 +306,18 @@
     awe:        { paths: [{ p: "ring", r: 0.98, ry: 0.86, align: 0.50, flow: 0.015, spin: 0.03 }] },
     vertigo:    { paths: [{ p: "spiral", r: 0.85, turns: 2.6, align: 0.65, flow: 0.28, spin: 0.70 }] },
     resolute:   { paths: [{ p: "poly", glyph: "chevron", y: 0.06, scale: 1.15, align: 0.96, flow: 0.26 }] },
-    puzzled:    { paths: [{ p: "ring", r: 0.52, ry: 0.46, share: 0.85, align: 0.35, flow: -0.16, spin: -0.22 }],
-                  flash: { every: 5, hold: 2.1, paths: MARK_QUESTION } },
-    asking:     { paths: [{ p: "arc", y: -0.10, r: 0.50, ry: 0.46, a0: 2.6, a1: 6.4, align: 0.60, flow: 0.10 }] },
+    // PUZZLED is several small questions at once, each on its own clock — they gather, hold,
+    // loosen and re-gather independently (per-path `pulse`), so the swarm never resolves into
+    // one clean thought. ASKING is the opposite: a single question, held.
+    puzzled:    { paths: [{ p: "poly", glyph: "question", x: -0.46, y: -0.26, scale: 0.54, share: 0.26, align: 0.93, flow: 0.20,
+                            pulse: { every: 3.1, hold: 1.7, phase: 0 } },
+                          { p: "poly", glyph: "question", x: 0.44, y: -0.40, scale: 0.44, share: 0.22, align: 0.93, flow: -0.16,
+                            pulse: { every: 4.3, hold: 2.0, phase: 1.7 } },
+                          { p: "poly", glyph: "question", x: 0.26, y: 0.40, scale: 0.62, share: 0.28, align: 0.93, flow: 0.13,
+                            pulse: { every: 5.2, hold: 2.4, phase: 3.1 } },
+                          { p: "poly", glyph: "question", x: -0.34, y: 0.46, scale: 0.40, share: 0.16, align: 0.93, flow: -0.22,
+                            pulse: { every: 3.7, hold: 1.4, phase: 2.4 } }] },
+    asking:     { paths: MARK_QUESTION },
     weary:      { paths: [{ p: "line", x1: -0.62, y1: 0.24, x2: 0.62, y2: 0.44, align: 0.40, flow: 0.04 }] },
     wink:       { paths: [{ p: "ring", r: 0.55, ry: 0.48, align: 0.60, flow: 0.08, spin: 0.12 }],
                   flash: { every: 5.5, hold: 1.9, paths: FACE_PATHS } },
@@ -467,7 +476,51 @@
     if (pathClosed(pp)) { u = u % 1; if (u < 0) u += 1; }
     else { u = Math.abs(u) % 2; if (u > 1) u = 2 - u; }         // open: ping-pong, never teleport
     var pt = motePointAt(pp, u, t, cx, cy, R);
-    return { x: pt[0], y: pt[1], align: pp.align == null ? 0.6 : pp.align };
+    var al = pp.align == null ? 0.6 : pp.align;
+    // PULSE (v0.83.0): a path may breathe on its OWN clock. align is the grip — it sets both
+    // the spring that pulls a mote to its station and how far it wanders off — so easing align
+    // down and back up reads as the shape dissolving and re-forming. Give each path a different
+    // `every`/`phase` and several shapes come and go at their own rates, never in lockstep.
+    if (pp.pulse) {
+      var pu = pp.pulse, per = pu.every || 4;
+      var phd = pu.hold == null ? per * 0.5 : pu.hold;
+      var prp = pu.ramp == null ? Math.min(0.7, phd * 0.45) : pu.ramp;
+      var pph = ((t + (pu.phase || 0)) % per + per) % per;
+      var grip = pph >= phd ? 0
+        : pph < prp ? ease(pph / prp)
+        : pph > phd - prp ? ease((phd - pph) / prp) : 1;
+      al *= 0.14 + 0.86 * grip;                                // never fully zero: they stay a loose cloud, not a scatter
+    }
+    return { x: pt[0], y: pt[1], align: al };
+  }
+
+  // THE TWO MASKS (v0.83.0). `dramatic` wore the 🎭 glyph, which welds comedy and tragedy into
+  // one immovable lump. Drawn instead, they come apart: two masks circling a shared centre,
+  // each tilting as it goes, and — because the orbit has a near side and a far side — trading
+  // which one is in front every time they cross. Procedural, like the rest of Motes: no art.
+  function drawMask(g, x, y, r, smile, rot, alpha, fill, ink) {
+    g.save(); g.translate(x, y); g.rotate(rot); g.globalAlpha = alpha;
+    g.beginPath();                                             // an oval face, tapering to a chin
+    g.moveTo(0, -r);
+    g.bezierCurveTo(r * 0.84, -r * 0.92, r * 0.76, r * 0.40, 0, r);
+    g.bezierCurveTo(-r * 0.76, r * 0.40, -r * 0.84, -r * 0.92, 0, -r);
+    g.closePath();
+    g.fillStyle = fill; g.fill();
+    g.strokeStyle = ink; g.lineWidth = Math.max(0.8, r * 0.07); g.lineJoin = "round"; g.lineCap = "round";
+    g.globalAlpha = alpha * 0.55; g.stroke(); g.globalAlpha = alpha;
+    g.fillStyle = ink;                                         // eye holes
+    g.beginPath(); g.ellipse(-r * 0.33, -r * 0.16, r * 0.15, r * 0.20, 0, 0, 6.2832); g.fill();
+    g.beginPath(); g.ellipse(r * 0.33, -r * 0.16, r * 0.15, r * 0.20, 0, 0, 6.2832); g.fill();
+    var br = smile ? -r * 0.10 : r * 0.16;                     // brows lift for comedy, knot for tragedy
+    g.beginPath();
+    g.moveTo(-r * 0.54, -r * 0.44 + br * 0.4); g.quadraticCurveTo(-r * 0.33, -r * 0.58 + br, -r * 0.12, -r * 0.44 + br * 0.2);
+    g.moveTo(r * 0.54, -r * 0.44 + br * 0.4); g.quadraticCurveTo(r * 0.33, -r * 0.58 + br, r * 0.12, -r * 0.44 + br * 0.2);
+    g.stroke();
+    g.beginPath();                                             // the mouth: a smile DIPS in the middle; an arch would read as a frown
+    g.moveTo(-r * 0.38, r * 0.36 + (smile ? 0 : r * 0.12));
+    g.quadraticCurveTo(0, r * 0.36 + (smile ? r * 0.34 : -r * 0.30), r * 0.38, r * 0.36 + (smile ? 0 : r * 0.12));
+    g.stroke();
+    g.restore(); g.globalAlpha = 1;
   }
 
   // KnownFace registry: face: { set, item } resolves here. Every entry is version-pinned
@@ -2064,7 +2117,27 @@
             }
             mx.globalAlpha = 1; mx.globalCompositeOperation = "source-over";
             var mprop = MOTE_PROP[mMood];
-            if (mprop) {                                       // drawn last: the swarm is the lighting, this is what it lights
+            if (mMood === "dramatic") {                        // drawn last: the swarm is the lighting, these are what it lights
+              // one slow orbit, the pair half a turn apart. `depth` is the near/far axis: it
+              // scales them, nudges them down as they come forward, and — sorted on — decides
+              // who passes in FRONT. So the lead trades hands on every crossing, not on a timer.
+              var mOrb = t * 0.52, mRx = mR * 0.34, mRy = mR * 0.12, mBase = mR * 0.30;
+              var masks = [0, 1].map(function (mk) {
+                var a = mOrb + mk * 3.14159;
+                var depth = Math.sin(a);                       // +1 nearest the viewer, -1 furthest
+                return { smile: mk === 0, depth: depth,
+                  x: mcx + Math.cos(a) * mRx,
+                  y: mcy + depth * mRy + Math.sin(t * 1.1 + mk * 2.1) * mR * 0.02,
+                  r: mBase * (1 + 0.16 * depth),
+                  rot: Math.sin(a + mk) * 0.20 + Math.sin(t * 0.9 + mk * 1.7) * 0.05,
+                  alpha: 0.90 + 0.08 * depth };
+              }).sort(function (p, q) { return p.depth - q.depth; });   // far one first, so the near one overlaps it
+              var mInk = "#2a2430", mFill = "#f3ecef";
+              for (var mk2 = 0; mk2 < masks.length; mk2++) {
+                var Mm = masks[mk2];
+                drawMask(mx, Mm.x, Mm.y, Mm.r, Mm.smile, Mm.rot, Mm.alpha, mFill, mInk);
+              }
+            } else if (mprop) {
               var mpB = 1 + 0.045 * Math.sin(t * 1.35);        // breathing very slightly, the way a held pose does
               mx.textAlign = "center"; mx.textBaseline = "middle";
               mx.font = (mR * 0.62 * mpB).toFixed(1) + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
@@ -2134,8 +2207,13 @@
             // Posture follows the fins' mood params at reduced amplitude — tucked moods
             // hold their arms close too.
             if (fm.anim.arms) {
-              // five LONGER arms tiling the narrow hem edge-to-edge — the skirt IS the
-              // bottom of the body; the outermost continue the elongated taper line
+              // ASKING PUTS HER ARMS TO WORK (v0.83.0). She has eight limbs and spent every
+              // mood trailing them. Asking is the one that wants hands: the two outer arms
+              // lift, one bearing a notepad and one a pen, and the inner three keep swaying.
+              // The lift is a quadratic sweep out past the flank and up beside the mantle;
+              // the props ride the recorded tips, so they are HELD rather than floated nearby.
+              var askHold = MOODS[fm.index] === "asking";
+              var armTips = {};
               [[22.7, 0, 15], [27.35, 1, 18], [32, 2, 20], [36.65, 3, 18], [41.3, 4, 15]].forEach(function (armS) {
                 var acx = armS[0], ai2 = armS[1];
                 var arr2 = mulberry32(L.seed + ai2 * 3671 + 17);
@@ -2143,6 +2221,26 @@
                 var aamp = (1.2 + fp2[1] * 0.9) * fsc * (1 - 0.6 * conAmt) * (1 - 0.45 * strainA), alen = Math.max(6, Math.round(armS[2] * (1 - 0.38 * conAmt) * (1 + 0.28 * strainA))), ay0 = 49;   // contraction draws the skirt in; strain reaches it LONGER and holds it tense
                 var aw0 = 2.3 * fsc;
                 var lEdge = [], rEdge = [];
+                var holding = askHold && (ai2 === 0 || ai2 === 4);
+                if (holding) {
+                  var sgn = ai2 === 0 ? -1 : 1;                                      // left arm takes the pad, right the pen
+                  var bob = Math.sin(t * 1.15 + ai2 * 1.7) * 1.2 * fsc;              // the hold breathes, never locks
+                  var x0 = acx * fsc, y0 = ay0 * fsc;
+                  var cxp = (32 + sgn * 26) * fsc, cyp = 56 * fsc;                   // bow out and low, then rise
+                  var x1 = (32 + sgn * 22) * fsc, y1 = 33 * fsc + bob;
+                  for (var sI = 0; sI <= 16; sI++) {
+                    var su = sI / 16, iv = 1 - su;
+                    var bx = iv * iv * x0 + 2 * iv * su * cxp + su * su * x1;
+                    var by = iv * iv * y0 + 2 * iv * su * cyp + su * su * y1;
+                    var tgx = 2 * iv * (cxp - x0) + 2 * su * (x1 - cxp);             // offset along the curve's normal so the ribbon keeps its width
+                    var tgy = 2 * iv * (cyp - y0) + 2 * su * (y1 - cyp);
+                    var tl = Math.sqrt(tgx * tgx + tgy * tgy) || 1;
+                    var aw2 = aw0 * (1 - 0.5 * su);
+                    lEdge.push([bx + (tgy / tl) * aw2, by - (tgx / tl) * aw2]);
+                    rEdge.push([bx - (tgy / tl) * aw2, by + (tgx / tl) * aw2]);
+                  }
+                  armTips[ai2] = { x: x1, y: y1 };
+                } else
                 for (var ayy = 0; ayy <= alen; ayy++) {
                   var au = ayy / alen;
                   var adx = aamp * Math.sin(t * arate * 6.283 + aph + au * 1.9) * au * au
@@ -2183,6 +2281,30 @@
               });
               // (no hem gap segments anymore: the arms tile the narrow hem edge-to-edge,
               // and their own side strokes are the grooves — one continuous boundary)
+              if (askHold && armTips[0] && armTips[4]) {        // the props, riding the lifted tips
+                var padT = armTips[0], penT = armTips[4];
+                var padW = 13 * fsc, padH = 15 * fsc;
+                var padTilt = -0.20 + Math.sin(t * 0.9) * 0.05;
+                fx2.save();
+                fx2.translate(padT.x, padT.y - padH * 0.32); fx2.rotate(padTilt);
+                fx2.fillStyle = rgba("#fbf6ec", 0.97);                                // the leaf
+                fx2.strokeStyle = rgba("#6a5a52", 0.6); fx2.lineWidth = Math.max(0.8, fsc * 0.7);
+                fx2.beginPath(); fx2.rect(-padW / 2, -padH / 2, padW, padH); fx2.fill(); fx2.stroke();
+                fx2.fillStyle = rgba("#8a7a70", 0.55);                                // the ruled lines
+                for (var pl = 0; pl < 4; pl++) fx2.fillRect(-padW * 0.34, -padH * 0.22 + pl * padH * 0.17, padW * 0.68, Math.max(0.6, fsc * 0.45));
+                fx2.fillStyle = rgba("#c85a4a", 0.85);                                // a bound edge along the top
+                fx2.fillRect(-padW / 2, -padH / 2, padW, Math.max(1, fsc * 1.4));
+                fx2.restore();
+                var penL = 14 * fsc, penTilt = -0.85 + Math.sin(t * 1.05 + 1.2) * 0.07;
+                fx2.save();
+                fx2.translate(penT.x, penT.y - penL * 0.15); fx2.rotate(penTilt);
+                fx2.strokeStyle = rgba("#4a3f52", 0.95); fx2.lineCap = "round";       // the barrel
+                fx2.lineWidth = Math.max(1.1, fsc * 1.5);
+                fx2.beginPath(); fx2.moveTo(0, penL * 0.42); fx2.lineTo(0, -penL * 0.34); fx2.stroke();
+                fx2.strokeStyle = rgba("#e8dcd0", 0.95); fx2.lineWidth = Math.max(0.9, fsc * 1.2);
+                fx2.beginPath(); fx2.moveTo(0, -penL * 0.34); fx2.lineTo(0, -penL * 0.5); fx2.stroke();   // the nib
+                fx2.restore();
+              }
             }
             // --- per-mood emoji PROPS (v0.34.0): real emoji, drawn live ON the avatar's
             // own canvas — they ride every pose. The avatar's props, never flag weather;

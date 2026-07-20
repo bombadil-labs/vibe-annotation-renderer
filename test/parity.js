@@ -273,8 +273,32 @@ ok(M.closed({ p: "ring" }) && M.closed({ p: "infinity" }) && !M.closed({ p: "lin
 });
 let bang = frameAt("surprised", MOTE_STILL), bx = bang.map((p) => p.x);
 ok(Math.max(...bx) - Math.min(...bx) < 6, "surprised flashes an exclamation: a vertical stroke, near-zero width");
+// ASKING is the question mark now (v0.83.0). It used to be a wide arc, which read as a frown
+// — the same rainbow-is-a-frown trap `mirth` fell into. A question asked should look like one.
+let ask = frameAt("asking", MOTE_STILL);
+const askYs = ask.map((p) => p.y), askXs = ask.map((p) => p.x);
+ok(Math.max(...askYs) - Math.min(...askYs) > 100, "asking spells a question mark: tall, with a detached dot");
+ok((Math.max(...askXs) - Math.min(...askXs)) < (Math.max(...askYs) - Math.min(...askYs)),
+   "and it stands upright — taller than it is wide, not an arc lying on its back");
+{ // not a frown: an arch puts its middle ABOVE its ends. The mark's mass does the opposite.
+  const byX = ask.slice().sort((a, b) => a.x - b.x);
+  const ends = (byX[0].y + byX[byX.length - 1].y) / 2, mid = byX[Math.floor(byX.length / 2)].y;
+  ok(!(mid < ends - 12), "asking does not arch like a frown (mid " + mid.toFixed(0) + " vs ends " + ends.toFixed(0) + ")");
+}
+// PUZZLED is several smaller questions, each gathering and loosening on its OWN clock.
 let qm = frameAt("puzzled", MOTE_STILL);
-ok(Math.max(...qm.map((p) => p.y)) - Math.min(...qm.map((p) => p.y)) > 100, "puzzled flashes a question mark: tall, with a detached dot");
+ok(Math.max(...qm.map((p) => p.y)) - Math.min(...qm.map((p) => p.y)) > 100, "puzzled fills the field with question marks");
+{
+  const grips = (t) => {                                     // one mote from each of the four marks
+    const P = M.pathsFor("puzzled", t);
+    return [2, 20, 36, 56].map((i) => +M.target(i, M.N, t, P, 0, 0, 100, 7).align.toFixed(3));
+  };
+  const t0 = grips(0.6);
+  ok(new Set(t0).size > 1, "the four marks are at different grips at the same instant — not in lockstep (" + t0.join(", ") + ")");
+  let varies = [0, 0, 0, 0];
+  for (let t = 0; t < 12; t += 0.25) { const g = grips(t); g.forEach((v, i) => { if (Math.abs(v - grips(0)[i]) > 0.15) varies[i] = 1; }); }
+  ok(varies.every(Boolean), "every mark forms and dissolves over time rather than standing still");
+}
 let sil = new Set();
 for (let t = 0; t < 13; t += 1) {
   const f = frameAt("working", t), xs = f.map((p) => p.x), ys = f.map((p) => p.y);
@@ -348,8 +372,8 @@ ok(!jumpy.length, "every mood's target moves continuously — a swap would step 
 let plan = M.pathsFor("working", 0.4);
 ok(plan.a !== plan.b && plan.k > 0 && plan.k < 1, "mid-gather, a seq mood is genuinely blending two sets (k=" + plan.k.toFixed(2) + ")");
 ok(M.pathsFor("working", 1.2).k === 0, "mid-hold, it rests on one shape rather than blending forever");
-let fl = M.pathsFor("puzzled", 0.2);
-ok(fl.k > 0 && fl.k < 1, "flash ramps in too — the question mark gathers rather than appearing");
+let fl = M.pathsFor("surprised", 0.2);
+ok(fl.k > 0 && fl.k < 1, "flash ramps in too — the mark gathers rather than appearing");
 
 console.log("\nmulti-line faces (v0.55.0): whitespace is never trimmed; alignment defers to the author");
 let bloomSVG = buildSVG(Object.assign({}, base, { kaomoji: "✧ ･ ✧\n( ˶ˆ ꓳ ˆ˵ )\n✧ ･ ✧" }));
