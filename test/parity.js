@@ -277,6 +277,20 @@ ok(M.closed({ p: "ring" }) && M.closed({ p: "infinity" }) && !M.closed({ p: "lin
   const ends = (pts[0].y + pts[pts.length - 1].y) / 2, mid = pts[Math.floor(pts.length / 2)].y;
   ok(mid > ends, m + " curves as a SMILE, not a rainbow (a rainbow reads as a frown)");
 });
+// A WINK IS ONE EYE (v0.85.0). It used to flash a whole face out of a ring, which read as a
+// smile that came and went. The face stands now and one eye snaps shut. Shares are .19/.19/.62
+// of 64, so motes 0-11 are the left eye, 12-23 the right, the rest the mouth.
+{
+  const eh = (pts) => Math.max(...pts.map((p) => p.y)) - Math.min(...pts.map((p) => p.y));
+  const eyes = (t) => { const F = frameAt("wink", t); return { L: eh(F.slice(0, 12)), R: eh(F.slice(12, 24)) }; };
+  const mid = eyes(4.2 + 0.31), rest = eyes(4.2 - 0.8);
+  ok(mid.R < mid.L * 0.45 && mid.L > mid.R + 10,
+     "wink: mid-flash the right eye is a dash (" + mid.R.toFixed(1) + ") while the left stays open (" + mid.L.toFixed(1) + ")");
+  ok(Math.abs(rest.L - rest.R) < 3, "at rest both eyes match — a face standing, not a smile arriving");
+  let shut = 0;
+  for (let t = 4.2; t < 5.4; t += 0.01) if (eyes(t).R < rest.R * 0.6) shut += 0.01;
+  ok(shut > 0.15 && shut < 0.9, "and it is a snap, not a pose (" + shut.toFixed(2) + "s shut)");
+}
 let bang = frameAt("surprised", MOTE_STILL), bx = bang.map((p) => p.x);
 ok(Math.max(...bx) - Math.min(...bx) < 6, "surprised flashes an exclamation: a vertical stroke, near-zero width");
 // ASKING is the question mark now (v0.83.0). It used to be a wide arc, which read as a frown

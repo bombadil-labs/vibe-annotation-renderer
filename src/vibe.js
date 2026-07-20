@@ -248,6 +248,16 @@
     { p: "ring", x: 0.40, y: -0.28, r: 0.13, share: 0.19, align: 0.94, flow: -0.35 },
     { p: "arc", y: 0.14, r: 0.62, ry: 0.36, a0: 0.55, a1: 2.59, share: 0.62, align: 0.9, flow: 0.04 }
   ];
+  // A WINK IS ONE EYE, NOT A FACE. `wink` used to flash the whole FACE_PATHS out of a ring,
+  // which just read as a smile arriving now and then. It holds the face STANDING now and
+  // flashes this instead: the same left eye and the same mouth (shared references, identical
+  // shares, so those motes never move) with the right eye collapsed to a dash. Only the dozen
+  // motes in that eye travel, and they do it fast — which is what a wink is.
+  var WINK_PATHS = [
+    FACE_PATHS[0],
+    { p: "line", x1: 0.27, y1: -0.25, x2: 0.53, y2: -0.30, share: 0.19, align: 0.96, flow: 0.30 },
+    FACE_PATHS[2]
+  ];
   // Punctuation the swarm can spell. Each is a path set, so it can be flashed like a face:
   // the motes gather into the mark, hold it, and let it go again.
   var MARK_QUESTION = [
@@ -348,8 +358,8 @@
                             drift: { y: -0.90, every: 3.4, hold: 3.0, phase: 1.15 }, pulse: { every: 3.4, hold: 3.0, ramp: 0.75, phase: 1.15 } },
                           { p: "poly", glyph: "zed", x: 0.33, y: 0.21, scale: 0.12, share: 0.12, align: 0.96, flow: 2.7,
                             drift: { y: -0.85, every: 3.4, hold: 3.0, phase: 2.3 }, pulse: { every: 3.4, hold: 3.0, ramp: 0.75, phase: 2.3 } }] },
-    wink:       { paths: [{ p: "ring", r: 0.55, ry: 0.48, align: 0.60, flow: 0.08, spin: 0.12 }],
-                  flash: { every: 5.5, hold: 1.9, paths: FACE_PATHS } },
+    wink:       { paths: FACE_PATHS,
+                  flash: { every: 4.2, hold: 0.62, ramp: 0.13, paths: WINK_PATHS } },
     love:       { paths: [{ p: "ring", x: -0.26, y: -0.12, r: 0.30, ry: 0.30, share: 0.5, align: 0.85, flow: 0.14 },
                           { p: "ring", x: 0.26, y: -0.12, r: 0.30, ry: 0.30, share: 0.5, align: 0.85, flow: -0.14 }],
                   flash: { every: 7, hold: 2.2, paths: FACE_PATHS } },
@@ -598,6 +608,23 @@
     var mg = Math.round(((pa >> 8) & 255) * (1 - k) + ((pb >> 8) & 255) * k);
     var mb = Math.round((pa & 255) * (1 - k) + (pb & 255) * k);
     return "#" + ((1 << 24) + (mr << 16) + (mg << 8) + mb).toString(16).slice(1);
+  }
+
+  // The drawn masks, as a 2-cell sheet (comedy, tragedy). Loaded once and shared by every
+  // banner on the page; until it arrives — or if it never does — drawMask below carries the
+  // pose, so `dramatic` is never a hole. crossOrigin so the canvas stays untainted.
+  var MASK_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@39371c4904ebc917013f1e1725b1d98b0a8945f9/assets/masks.svg";
+  var MASK_IMG = null, MASK_OK = false;
+  function maskSheet(root) {
+    if (MASK_IMG || !root || !root.Image) return MASK_IMG;
+    try {
+      MASK_IMG = new root.Image();
+      MASK_IMG.crossOrigin = "anonymous";
+      MASK_IMG.onload = function () { MASK_OK = true; };
+      MASK_IMG.onerror = function () { MASK_OK = false; };
+      MASK_IMG.src = MASK_SHEET;
+    } catch (e) { MASK_IMG = null; }
+    return MASK_IMG;
   }
 
   // THE TWO MASKS (v0.83.0). `dramatic` wore the 🎭 glyph, which welds comedy and tragedy into
@@ -2243,9 +2270,17 @@
                   alpha: 0.90 + 0.08 * depth };
               }).sort(function (p, q) { return p.depth - q.depth; });   // far one first, so the near one overlaps it
               var mInk = "#2a2430", mFill = "#f3ecef";
+              maskSheet(root);
               for (var mk2 = 0; mk2 < masks.length; mk2++) {
                 var Mm = masks[mk2];
-                drawMask(mx, Mm.x, Mm.y, Mm.r, Mm.smile, Mm.rot, Mm.alpha, mFill, mInk);
+                if (MASK_OK) {                                 // the drawn art: cell 0 comedy, cell 1 tragedy
+                  mx.save();
+                  mx.translate(Mm.x, Mm.y); mx.rotate(Mm.rot); mx.globalAlpha = Mm.alpha;
+                  mx.drawImage(MASK_IMG, Mm.smile ? 0 : 64, 0, 64, 64, -Mm.r, -Mm.r * 1.06, Mm.r * 2, Mm.r * 2.12);
+                  mx.restore(); mx.globalAlpha = 1;
+                } else {
+                  drawMask(mx, Mm.x, Mm.y, Mm.r, Mm.smile, Mm.rot, Mm.alpha, mFill, mInk);
+                }
               }
             } else if (mprop) {
               var mpB = 1 + 0.045 * Math.sin(t * 1.35);        // breathing very slightly, the way a held pose does
