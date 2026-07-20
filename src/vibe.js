@@ -504,11 +504,9 @@
     tidepool: { file: "scene-tidepool.png", live: "tidepool" },
     study: { file: "scene-study.png", live: "study" },
     night: { file: "scene-night.png", live: "night" },
-    glade: { file: "scene-glade.png", live: "glade" },
-    hearth: { file: "scene-hearth.png", live: "hearth" },
-    rain: { file: "scene-rain.png", live: "rain" }
+    glade: { file: "scene-glade.png", live: "glade" }
   };
-  var LIVE_KINDS = { tidepool: 1, study: 1, night: 1, glade: 1, hearth: 1, rain: 1 };
+  var LIVE_KINDS = { tidepool: 1, study: 1, night: 1, glade: 1 };
   var SOLID_DEFAULT = "#c8c6c0";                               // neutral warm grey — the empty-window replacement
   function hexOr(v, dflt) { v = String(v || ""); return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : dflt; }
   function sceneNamed(name) {
@@ -1815,66 +1813,6 @@
               ctx.globalAlpha = 1; ctx.fillStyle = ggr; ctx.beginPath(); ctx.arc(gx, gy, 2.4 * ug, 0, 6.2832); ctx.fill();
               ctx.fillStyle = rgba("#fbffd0", blink); ctx.beginPath(); ctx.arc(gx, gy, 0.7 * ug, 0, 6.2832); ctx.fill();
             }
-            ctx.globalAlpha = 1;
-          } else if (live.kind === "hearth") {                 // --- the hearth: the fire breathes, throws a warm glow, and spits the odd spark ---
-            var uh = ps / 40;
-            var flick = 0.8 + 0.14 * Math.sin(t * 9.3) + 0.06 * Math.sin(t * 21.7) + 0.07 * Math.sin(t * 3.3);   // incommensurate — candle physics, never a loop
-            var fx0 = pt.x + 20 * uh, fy0 = pt.y + 33 * uh;      // the fire lives LOW — the creature sits above it, not in it
-            var fgr = ctx.createRadialGradient(fx0, fy0, 1, fx0, fy0, ps * 0.42);   // the room glows warm from below
-            fgr.addColorStop(0, rgba("#ff9a3a", 0.24 * flick)); fgr.addColorStop(0.45, rgba("#e8641e", 0.1 * flick)); fgr.addColorStop(1, rgba("#e8641e", 0));
-            ctx.globalAlpha = 1; ctx.fillStyle = fgr; ctx.beginPath(); ctx.arc(fx0, fy0, ps * 0.42, 0, 6.2832); ctx.fill();
-            var flame = function (cx, base, hgt, wob) {          // a tongue of flame, licking upward
-              var tip = base - hgt * uh * (0.9 + 0.2 * flick);
-              var swy = Math.sin(t * 6 + wob) * 1.6 * uh;
-              ctx.globalAlpha = 0.5 + 0.3 * flick;
-              ctx.fillStyle = "#f4a63a"; ctx.beginPath();
-              ctx.moveTo(cx - 2 * uh, base); ctx.quadraticCurveTo(cx - 2.4 * uh, (base + tip) / 2, cx + swy, tip);
-              ctx.quadraticCurveTo(cx + 2.4 * uh, (base + tip) / 2, cx + 2 * uh, base); ctx.closePath(); ctx.fill();
-              ctx.globalAlpha = 0.6 + 0.3 * flick; ctx.fillStyle = "#ffe08a"; ctx.beginPath();
-              ctx.moveTo(cx - 1 * uh, base); ctx.quadraticCurveTo(cx - 1 * uh, (base + tip) / 2 + 1, cx + swy * 0.6, (base + tip) / 2 - 1 * uh);
-              ctx.quadraticCurveTo(cx + 1 * uh, (base + tip) / 2 + 1, cx + 1 * uh, base); ctx.closePath(); ctx.fill();
-            };
-            flame(pt.x + 17 * uh, pt.y + 35 * uh, 6, 0);         // shorter tongues, all kept in the lower third
-            flame(pt.x + 23 * uh, pt.y + 35 * uh, 7, 2.1);
-            flame(pt.x + 20 * uh, pt.y + 35 * uh, 8.5 * (0.9 + 0.2 * flick), 4.3);
-            for (var ki = 0; ki < 4; ki++) {                    // sparks rising and winking out — low, never past the mantel
-              var kr = mulberry32(L.seed + ki * 313 + 7), kper = 1.4 + kr() * 1.6;
-              var ku = ((t + kr() * 3) % kper) / kper;
-              if (ku > 0.9) continue;
-              var kx = pt.x + (15 + kr() * 10) * uh + Math.sin(ku * 6 + ki) * 2 * uh;
-              var ky = pt.y + 33 * uh - ku * 10 * uh;
-              ctx.globalAlpha = (1 - ku) * 0.9; ctx.fillStyle = ku < 0.5 ? "#ffd06a" : "#e8641e";
-              ctx.beginPath(); ctx.arc(kx, ky, 0.7 * uh, 0, 6.2832); ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-          } else if (live.kind === "rain") {                   // --- rain falling BEYOND the glass ---
-            var ur2 = ps / 40;
-            ctx.lineCap = "round";
-            var wind = 0.3;                                     // the slant: streaks fall down-and-to-the-right
-            // draw the rain across the WHOLE inner window, continuously, all the way to the sill.
-            var rx0 = pt.x + 2 * ur2, ry0 = pt.y + 2 * ur2, rx1 = pt.x + 37 * ur2, ry1 = pt.y + 37 * ur2;
-            ctx.save();
-            ctx.beginPath(); ctx.rect(rx0, ry0, rx1 - rx0, ry1 - ry0); ctx.clip();
-            var rh = (ry1 - ry0) + 8 * ur2, drift = wind * rh;   // horizontal travel over the fall matches the slant, so motion FOLLOWS the angle (no barber-pole)
-            for (var si = 0; si < 22; si++) {                   // slanted streaks, each on its own clock, wrapping top→bottom
-              var sr = mulberry32(L.seed + si * 47 + 3);
-              var su = (t * (0.9 + sr() * 0.5) + sr() * 4) % 1;
-              var slen = (3 + sr() * 3) * ur2;
-              var sx = rx0 + sr() * Math.max(1, (rx1 - rx0 - drift)) + su * drift;   // drifts right as it falls, in step with the slant
-              var sy = ry0 - 4 * ur2 + su * rh;
-              ctx.globalAlpha = 0.24; ctx.strokeStyle = "#cfe0ea"; ctx.lineWidth = 0.9;
-              ctx.beginPath(); ctx.moveTo(sx - wind * slen, sy - slen); ctx.lineTo(sx, sy); ctx.stroke();
-            }
-            ctx.restore();
-            // Then ERASE the rain off the wood. The cross-beams and sill are painted into the
-            // static scene image, which sits in a layer BELOW this canvas — so clearing the rain
-            // over them lets the pristine wood show through, ON TOP of the rain, exactly as a real
-            // window layers (glass and its weather behind; the muntins in front). No colour-match,
-            // no double-drawing — the beams are already there, we just stop covering them.
-            var erase = function (x, y, w, h) { ctx.clearRect(pt.x + x * ur2 - 0.6, pt.y + y * ur2 - 0.6, w * ur2 + 1.2, h * ur2 + 1.2); };
-            erase(19, 2, 2, 35);                                // vertical muntin (x19-20), down to the sill
-            erase(2, 19, 35, 2);                               // horizontal muntin (y19-20)
-            erase(2, 35, 35, 3);                               // the sill
             ctx.globalAlpha = 1;
           } else {
           for (var ui = 0; ui < 7; ui++) {                     // bubbles: seeded columns, rising, wrapping

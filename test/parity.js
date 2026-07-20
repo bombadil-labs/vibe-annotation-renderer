@@ -311,7 +311,7 @@ ok(/scene-tidepool\.png/.test(namedObj) && /opacity="0\.9"/.test(namedObj), "{ n
   const cp = require("child_process");
   const pinSha = (/@([0-9a-f]{40})\//.exec(sceneOf("tidepool")) || [])[1];
   ok(/^[0-9a-f]{40}$/.test(pinSha || ""), "SCENE_PIN is a full 40-char sha");
-  const files = ["tidepool", "study", "night", "glade", "hearth", "rain"].map((n) => "scene-" + n + ".png");
+  const files = ["tidepool", "study", "night", "glade"].map((n) => "scene-" + n + ".png");
   const missing = files.filter((f) => {
     try { cp.execSync("git cat-file -e " + pinSha + ":assets/" + f, { stdio: "ignore" }); return false; }
     catch { return true; }

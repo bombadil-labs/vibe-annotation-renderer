@@ -447,9 +447,7 @@ him when that is funny, or when it is true.`,
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
     night: { url: SCENE_URL("night"), live: "night", blurb: "indigo sky over a dark hill — stars breathe, a shooting star falls now and then" },
     glade: { url: SCENE_URL("glade"), live: "glade", blurb: "mossy forest light — a shaft wavers and fireflies drift and blink" },
-    study: { url: SCENE_URL("study"), live: "study", blurb: "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate" },
-    hearth: { url: SCENE_URL("hearth"), live: "hearth", blurb: "a fire in a stone surround — flames lick, the room glows, sparks rise" },
-    rain: { url: SCENE_URL("rain"), live: "rain", blurb: "a window onto a grey day — drops slide down the glass and gather on the sill" }
+    study: { url: SCENE_URL("study"), live: "study", blurb: "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate" }
   },
 
   // Mirrors MOOD_EMOJI in src/vibe.js so the Builder previews resolve mood names to the
