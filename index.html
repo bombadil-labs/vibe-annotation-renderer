@@ -678,7 +678,7 @@ renderBio(document.getElementById("face-bio"), FACE_CHOICE, true);
     try { localStorage.setItem("vibeGalleryFill", GALLERY_FILL); } catch (e) {}
     buildGallery();
   });
-  picker.appendChild(swatch);
+  picker.insertBefore(swatch, picker.children[1] || null);       // right after the "solid colour" button (opts[0]) — it's that button's picker, not a trailing control
 })();
 buildGallery();
 
