@@ -1840,24 +1840,25 @@
           } else if (live.kind === "rain") {                   // --- rain falling BEYOND the glass, seen through the four panes ---
             var ur2 = ps / 40;
             ctx.lineCap = "round";
-            // the panes, inset from the muntin cross and frame (which live in the static art).
-            // clipping the rain to the panes is what makes it read as weather OUTSIDE — not
-            // drops on the near glass, and never over the frame or the creature's face.
-            var panes = [[3, 3, 17, 18], [22, 3, 36, 18], [3, 21, 17, 35], [22, 21, 36, 35]];
-            var wind = 0.32;                                    // a slight slant to the fall
+            // the four panes of glass, inset a clear unit from EVERY wood element — the outer
+            // frame, the muntin cross, and the sill at the bottom (all in the static art at a
+            // known 40-grid). clipping here is what makes the rain read as weather OUTSIDE, and
+            // the margin keeps a streak from ever touching the frame.
+            var panes = [[3, 3, 17, 17], [22, 3, 36, 17], [3, 22, 17, 33], [22, 22, 36, 33]];
+            var wind = 0.3;                                     // the slant: streaks fall down-and-to-the-right
             for (var pi = 0; pi < 4; pi++) {
               var pn = panes[pi];
               var qx0 = pt.x + pn[0] * ur2, qy0 = pt.y + pn[1] * ur2, qx1 = pt.x + pn[2] * ur2, qy1 = pt.y + pn[3] * ur2;
               ctx.save();
               ctx.beginPath(); ctx.rect(qx0, qy0, qx1 - qx0, qy1 - qy0); ctx.clip();
-              var ph2 = qy1 - qy0 + 8 * ur2;
+              var ph2 = qy1 - qy0 + 8 * ur2, drift = wind * ph2;   // horizontal travel over the fall = matches the slant, so motion FOLLOWS the angle (no barber-pole)
               for (var si = 0; si < 5; si++) {                  // slanted streaks, each on its own clock, wrapping top→bottom
                 var sr = mulberry32(L.seed + pi * 71 + si * 29 + 3);
                 var su = (t * (0.9 + sr() * 0.5) + sr() * 4) % 1;
-                var sx = qx0 + sr() * (qx1 - qx0);
-                var sy = qy0 - 4 * ur2 + su * ph2;
                 var slen = (3 + sr() * 3) * ur2;
-                ctx.globalAlpha = 0.26; ctx.strokeStyle = "#cfe0ea"; ctx.lineWidth = 0.9;
+                var sx = qx0 + sr() * Math.max(1, (qx1 - qx0 - drift)) + su * drift;   // drifts right as it falls, in step with the slant
+                var sy = qy0 - 4 * ur2 + su * ph2;
+                ctx.globalAlpha = 0.24; ctx.strokeStyle = "#cfe0ea"; ctx.lineWidth = 0.9;
                 ctx.beginPath(); ctx.moveTo(sx - wind * slen, sy - slen); ctx.lineTo(sx, sy); ctx.stroke();
               }
               ctx.restore();
