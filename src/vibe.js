@@ -496,7 +496,10 @@
   // skill is actually about, and the one time it comes out wrong the window just empties with
   // no error. A name cannot be typo'd into a plausible-but-broken URL. Assets are immutable
   // once committed, so any commit containing them serves the same bytes.
-  var SCENE_PIN = "106f3065d81c4c17c13547e7744eb9012e5792ee";
+  // MUST point at a commit that contains EVERY file in SCENES below. When you add a scene,
+  // bump this to the commit that ships its art or that scene 404s on the CDN and its window
+  // just empties (this pin lagged hearth+rain by 28 releases before v0.77.0 caught it).
+  var SCENE_PIN = "86e1d8eeef6c4b292a74804a79cab0cee78f3b45";
   var SCENES = {
     tidepool: { file: "scene-tidepool.png", live: "tidepool" },
     study: { file: "scene-study.png", live: "study" },

@@ -302,6 +302,23 @@ ok(sceneOf("https://cdn.jsdelivr.net/gh/u/r@abc/assets/scene-custom.png") === nu
    || /example|custom/.test(String(sceneOf("https://cdn.jsdelivr.net/gh/u/r@abc/assets/scene-custom.png"))), "a url-shaped string is still taken as a url");
 let namedObj = buildSVG({ avatar: { set: "sepia", item: "content", scene: { name: "tidepool", opacity: 0.9 } }, details: { seems: "a", feel: "b", trying: "c" } });
 ok(/scene-tidepool\.png/.test(namedObj) && /opacity="0\.9"/.test(namedObj), "{ name, opacity } lets you keep the name and still set opacity");
+
+// SCENE_PIN must contain the art for EVERY scene it advertises. It doesn't by default:
+// it lagged hearth+rain by 28 releases (pinned to v0.47.0, which had four scenes), so those
+// two 404'd on the CDN and their windows silently emptied. Resolving a name is not the same
+// as the pinned commit having the bytes — assert the bytes, at the pin, for all six.
+{
+  const cp = require("child_process");
+  const pinSha = (/@([0-9a-f]{40})\//.exec(sceneOf("tidepool")) || [])[1];
+  ok(/^[0-9a-f]{40}$/.test(pinSha || ""), "SCENE_PIN is a full 40-char sha");
+  const files = ["tidepool", "study", "night", "glade", "hearth", "rain"].map((n) => "scene-" + n + ".png");
+  const missing = files.filter((f) => {
+    try { cp.execSync("git cat-file -e " + pinSha + ":assets/" + f, { stdio: "ignore" }); return false; }
+    catch { return true; }
+  });
+  ok(!missing.length, "SCENE_PIN " + (pinSha || "").slice(0, 7) + " ships every scene's art" +
+     (missing.length ? " — these 404 on the CDN: " + missing.join(", ") : ""));
+}
 // The skill is composed, not checked in (v0.49.0) — so these assert the COMPOSER, which is
 // the same function the Builder runs in the browser. The guarantee moves with the generator
 // rather than with an artifact nobody was looking at.
