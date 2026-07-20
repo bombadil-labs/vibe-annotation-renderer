@@ -499,7 +499,7 @@
   // MUST point at a commit that contains EVERY file in SCENES below. When you add a scene,
   // bump this to the commit that ships its art or that scene 404s on the CDN and its window
   // just empties (this pin lagged hearth+rain by 28 releases before v0.77.0 caught it).
-  var SCENE_PIN = "86e1d8eeef6c4b292a74804a79cab0cee78f3b45";
+  var SCENE_PIN = "09a33a58f6d6d1a4b5cfbc7a49a1dd80fc190589";
   var SCENES = {
     tidepool: { file: "scene-tidepool.png", live: "tidepool" },
     study: { file: "scene-study.png", live: "study" },
@@ -1809,10 +1809,10 @@
           } else if (live.kind === "hearth") {                 // --- the hearth: the fire breathes, throws a warm glow, and spits the odd spark ---
             var uh = ps / 40;
             var flick = 0.8 + 0.14 * Math.sin(t * 9.3) + 0.06 * Math.sin(t * 21.7) + 0.07 * Math.sin(t * 3.3);   // incommensurate — candle physics, never a loop
-            var fx0 = pt.x + 20 * uh, fy0 = pt.y + 27 * uh;
-            var fgr = ctx.createRadialGradient(fx0, fy0, 1, fx0, fy0, ps * 0.5);   // the room glows with the fire
-            fgr.addColorStop(0, rgba("#ff9a3a", 0.26 * flick)); fgr.addColorStop(0.4, rgba("#e8641e", 0.12 * flick)); fgr.addColorStop(1, rgba("#e8641e", 0));
-            ctx.globalAlpha = 1; ctx.fillStyle = fgr; ctx.beginPath(); ctx.arc(fx0, fy0, ps * 0.5, 0, 6.2832); ctx.fill();
+            var fx0 = pt.x + 20 * uh, fy0 = pt.y + 33 * uh;      // the fire lives LOW — the creature sits above it, not in it
+            var fgr = ctx.createRadialGradient(fx0, fy0, 1, fx0, fy0, ps * 0.42);   // the room glows warm from below
+            fgr.addColorStop(0, rgba("#ff9a3a", 0.24 * flick)); fgr.addColorStop(0.45, rgba("#e8641e", 0.1 * flick)); fgr.addColorStop(1, rgba("#e8641e", 0));
+            ctx.globalAlpha = 1; ctx.fillStyle = fgr; ctx.beginPath(); ctx.arc(fx0, fy0, ps * 0.42, 0, 6.2832); ctx.fill();
             var flame = function (cx, base, hgt, wob) {          // a tongue of flame, licking upward
               var tip = base - hgt * uh * (0.9 + 0.2 * flick);
               var swy = Math.sin(t * 6 + wob) * 1.6 * uh;
@@ -1824,37 +1824,43 @@
               ctx.moveTo(cx - 1 * uh, base); ctx.quadraticCurveTo(cx - 1 * uh, (base + tip) / 2 + 1, cx + swy * 0.6, (base + tip) / 2 - 1 * uh);
               ctx.quadraticCurveTo(cx + 1 * uh, (base + tip) / 2 + 1, cx + 1 * uh, base); ctx.closePath(); ctx.fill();
             };
-            flame(pt.x + 17 * uh, pt.y + 32 * uh, 9, 0);
-            flame(pt.x + 22 * uh, pt.y + 32 * uh, 11, 2.1);
-            flame(pt.x + 20 * uh, pt.y + 32 * uh, 13 * (0.9 + 0.2 * flick), 4.3);
-            for (var ki = 0; ki < 4; ki++) {                    // sparks rising and winking out
+            flame(pt.x + 17 * uh, pt.y + 35 * uh, 6, 0);         // shorter tongues, all kept in the lower third
+            flame(pt.x + 23 * uh, pt.y + 35 * uh, 7, 2.1);
+            flame(pt.x + 20 * uh, pt.y + 35 * uh, 8.5 * (0.9 + 0.2 * flick), 4.3);
+            for (var ki = 0; ki < 4; ki++) {                    // sparks rising and winking out — low, never past the mantel
               var kr = mulberry32(L.seed + ki * 313 + 7), kper = 1.4 + kr() * 1.6;
               var ku = ((t + kr() * 3) % kper) / kper;
               if (ku > 0.9) continue;
-              var kx = pt.x + (14 + kr() * 12) * uh + Math.sin(ku * 6 + ki) * 2 * uh;
-              var ky = pt.y + 30 * uh - ku * 18 * uh;
+              var kx = pt.x + (15 + kr() * 10) * uh + Math.sin(ku * 6 + ki) * 2 * uh;
+              var ky = pt.y + 33 * uh - ku * 10 * uh;
               ctx.globalAlpha = (1 - ku) * 0.9; ctx.fillStyle = ku < 0.5 ? "#ffd06a" : "#e8641e";
               ctx.beginPath(); ctx.arc(kx, ky, 0.7 * uh, 0, 6.2832); ctx.fill();
             }
             ctx.globalAlpha = 1;
-          } else if (live.kind === "rain") {                   // --- rain: drops slide down the glass, gathering and releasing ---
+          } else if (live.kind === "rain") {                   // --- rain falling BEYOND the glass, seen through the four panes ---
             var ur2 = ps / 40;
             ctx.lineCap = "round";
-            for (var di = 0; di < 12; di++) {                   // sliding drops: each falls, resets, on its own clock
-              var dr = mulberry32(L.seed + di * 173 + 4), dper = 1.6 + dr() * 2.2;
-              var du = ((t * (0.7 + dr() * 0.6) + dr() * 5) % dper) / dper;
-              var dx0 = pt.x + (3 + dr() * 34) * ur2;
-              var dy0 = pt.y + du * (ps - 4 * ur2) + 2 * ur2;
-              var dlen = (2 + dr() * 3) * ur2 * (0.5 + du);      // the tail lengthens as it accelerates
-              ctx.globalAlpha = 0.5; ctx.strokeStyle = "#cfe0ea"; ctx.lineWidth = 1;
-              ctx.beginPath(); ctx.moveTo(dx0, dy0 - dlen); ctx.lineTo(dx0, dy0); ctx.stroke();
-              ctx.globalAlpha = 0.75; ctx.fillStyle = "#e6f0f6";  // the bead at the head
-              ctx.beginPath(); ctx.arc(dx0, dy0, 1.1 * ur2, 0, 6.2832); ctx.fill();
-            }
-            for (var mi3 = 0; mi3 < 16; mi3++) {                // a still fog of clinging droplets on the pane
-              var mr = mulberry32(L.seed + mi3 * 89 + 2);
-              ctx.globalAlpha = 0.18; ctx.fillStyle = "#dbe8ef";
-              ctx.beginPath(); ctx.arc(pt.x + mr() * ps, pt.y + mr() * ps, 0.6 * ur2, 0, 6.2832); ctx.fill();
+            // the panes, inset from the muntin cross and frame (which live in the static art).
+            // clipping the rain to the panes is what makes it read as weather OUTSIDE — not
+            // drops on the near glass, and never over the frame or the creature's face.
+            var panes = [[3, 3, 17, 18], [22, 3, 36, 18], [3, 21, 17, 35], [22, 21, 36, 35]];
+            var wind = 0.32;                                    // a slight slant to the fall
+            for (var pi = 0; pi < 4; pi++) {
+              var pn = panes[pi];
+              var qx0 = pt.x + pn[0] * ur2, qy0 = pt.y + pn[1] * ur2, qx1 = pt.x + pn[2] * ur2, qy1 = pt.y + pn[3] * ur2;
+              ctx.save();
+              ctx.beginPath(); ctx.rect(qx0, qy0, qx1 - qx0, qy1 - qy0); ctx.clip();
+              var ph2 = qy1 - qy0 + 8 * ur2;
+              for (var si = 0; si < 5; si++) {                  // slanted streaks, each on its own clock, wrapping top→bottom
+                var sr = mulberry32(L.seed + pi * 71 + si * 29 + 3);
+                var su = (t * (0.9 + sr() * 0.5) + sr() * 4) % 1;
+                var sx = qx0 + sr() * (qx1 - qx0);
+                var sy = qy0 - 4 * ur2 + su * ph2;
+                var slen = (3 + sr() * 3) * ur2;
+                ctx.globalAlpha = 0.26; ctx.strokeStyle = "#cfe0ea"; ctx.lineWidth = 0.9;
+                ctx.beginPath(); ctx.moveTo(sx - wind * slen, sy - slen); ctx.lineTo(sx, sy); ctx.stroke();
+              }
+              ctx.restore();
             }
             ctx.globalAlpha = 1;
           } else {
