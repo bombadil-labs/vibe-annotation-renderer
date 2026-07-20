@@ -288,8 +288,13 @@
     thinking:   { paths: [{ p: "spiral", r: 0.55, turns: 1.6, align: 0.70, flow: 0.10, spin: 0.25 }] },
     spark:      { paths: [{ p: "point", y: -0.20, share: 0.45, align: 0.95, cluster: 1 },
                           { p: "ring", y: -0.20, r: 0.55, ry: 0.50, share: 0.55, align: 0.35, flow: 0.55 }] },
-    excited:    { paths: [{ p: "arc", y: -0.28, r: 0.80, ry: 0.70, a0: 0.36, a1: 2.78, share: 0.60, align: 0.55, flow: 0.45 },
-                          { p: "ring", r: 0.70, ry: 0.60, share: 0.40, align: 0.20, flow: 0.30, spin: 0.40 }] },
+    // EXCITED spent 60% of the swarm on a mouth arc, so it read as a grin with no face round
+    // it — a mouth floating over some dancing circles. Excitement is not an expression anyway,
+    // it is EVERYONE GOING OFF AT ONCE AND NOT TOGETHER. Two fast loose counter-rotating rings
+    // with a fifth drifting free (nothing to read as a shape), and the mood lives in the light:
+    // every mote flares on its own randomised cadence. The exact inverse of laugh's unison.
+    excited:    { paths: [{ p: "ring", r: 0.86, ry: 0.74, share: 0.42, align: 0.12, flow: 0.95, spin: 0.60 },
+                          { p: "ring", r: 0.50, ry: 0.44, share: 0.38, align: 0.12, flow: -1.05, spin: -0.70 }] },
     surprised:  { paths: [{ p: "ring", r: 0.92, ry: 0.80, align: 0.35, flow: 0.02, spin: 0.05 }],
                   flash: { every: 4.5, hold: 1.5, paths: MARK_BANG } },
     tender:     { paths: [{ p: "heart", r: 0.72, ry: 0.72, y: 0.02, align: 0.88, flow: 0.05 }] },
@@ -585,6 +590,10 @@
     return cyc * (GROAN_T.up + GROAN_T.sink) + eff;         // keeps increasing across cycles
   }
   function moteGlow(mood, t) {
+    // `spark` hands the twinkle to each mote's OWN clock: not one swarm breathing, sixty-four
+    // separate flares going off out of step. Unison (laugh) and total desync (excited) are the
+    // two ends of the same dial, which is why they belong in the same channel.
+    if (mood === "excited") return { gain: 1, sync: 0, fade: 0, spark: 1 };
     if (mood === "laugh") {
       var b2 = (t * 3.2) % 1;                                   // ha-HA-ha — quick repeated bursts, everyone together
       var burst = Math.pow(Math.max(0, Math.sin(b2 * 3.14159)), 0.55);
@@ -2213,7 +2222,13 @@
             var mR = Math.min(pw, ph2) * 0.46, mcx = pw / 2, mcy = ph2 / 2;
             if (!moteState) {
               moteState = [];
-              for (var q = 0; q < MOTE_N; q++) moteState.push({ x: mcx, y: mcy, vx: 0, vy: 0, ph: (q * 2.39) % 6.283 });
+              for (var q = 0; q < MOTE_N; q++) {
+                // ph is an even golden-angle spread — good for a swarm breathing out of step,
+                // useless when each mote needs its OWN cadence, so rate/off are seeded random.
+                var qr = mulberry32(L.seed + q * 9176 + 3);
+                moteState.push({ x: mcx, y: mcy, vx: 0, vy: 0, ph: (q * 2.39) % 6.283,
+                                 rate: 1.7 + qr() * 4.3, off: qr() * 6.283 });
+              }
             }
             var mMood = fm.item;
             if (thrillE > 0.25) mMood = "delighted";           // fed: the swarm leaps before it settles
@@ -2244,6 +2259,10 @@
               if (mGlow.fade > 0) mcol = mixHex(mcol, "#8d8a92", mGlow.fade);   // the colour drains as it deflates
               // sync 1 collapses every mote onto ONE twinkle phase — the swarm pulses as a body
               var tw2 = 0.6 + 0.4 * Math.sin(t * 2.4 + ms.ph * (1 - mGlow.sync));
+              if (mGlow.spark) {                                // each mote on its own clock: a brief bright flare, dark between
+                var flare = Math.pow(Math.max(0, Math.sin(t * ms.rate + ms.off)), 5);
+                tw2 = tw2 * (1 - mGlow.spark) + (0.20 + 1.55 * flare) * mGlow.spark;
+              }
               tw2 = Math.max(0, tw2 * mGlow.gain);
               var mrad = Math.max(1.2, mR * 0.052) * tw2;
               mx.fillStyle = mcol;

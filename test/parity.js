@@ -272,7 +272,10 @@ let worstJump = 0;
 ok(worstJump < 25, "open paths never teleport: worst step " + worstJump.toFixed(2) + "px of R=100 (a wrap would be ~140)");
 ok(M.closed({ p: "ring" }) && M.closed({ p: "infinity" }) && !M.closed({ p: "line" }) && !M.closed({ p: "poly" }),
    "closedness: ring/infinity wrap, line/poly ping-pong");
-["mirth", "delighted", "laugh", "excited"].forEach((m) => {
+// Only the moods that still WEAR a smile. laugh and excited dropped their arcs (v0.84/0.86) —
+// they say it in the light now — and leaving them here would have been a test passing by
+// accident on shapes that no longer exist, which is worse than no test.
+["mirth", "delighted"].forEach((m) => {
   const pts = frameAt(m, 0).slice().sort((p, q) => p.x - q.x);
   const ends = (pts[0].y + pts[pts.length - 1].y) / 2, mid = pts[Math.floor(pts.length / 2)].y;
   ok(mid > ends, m + " curves as a SMILE, not a rainbow (a rainbow reads as a frown)");
@@ -290,6 +293,19 @@ ok(M.closed({ p: "ring" }) && M.closed({ p: "infinity" }) && !M.closed({ p: "lin
   let shut = 0;
   for (let t = 4.2; t < 5.4; t += 0.01) if (eyes(t).R < rest.R * 0.6) shut += 0.01;
   ok(shut > 0.15 && shut < 0.9, "and it is a snap, not a pose (" + shut.toFixed(2) + "s shut)");
+}
+// EXCITED (v0.86.0) used to spend 60% of the swarm on a mouth arc, which read as a grin with
+// no face around it. Excitement isn't an expression — it's everyone going off at once and NOT
+// together, so it carries no formation and lives in the brightness channel instead.
+{
+  const EP = M.moods.excited.paths;
+  ok(!EP.some((p) => p.p === "arc"), "excited carries no mouth — no facial feature to misread");
+  ok(EP.every((p) => p.align <= 0.15), "all its paths stay loose — nothing snaps into a shape");
+  ok(EP.reduce((a, p) => a + p.share, 0) < 0.85, "and a share of the swarm drifts free of any path");
+  ok(M.glow("excited", 1).spark === 1, "excited is fully sparked: every mote flares on its own clock");
+  ok(!M.glow("laugh", 1).spark && M.glow("laugh", 1).sync === 1,
+     "laugh is its opposite — unison, not desync; the two ends of one dial");
+  ok(!M.glow("content", 1).spark && !M.glow("content", 1).sync, "an ordinary mood uses neither");
 }
 let bang = frameAt("surprised", MOTE_STILL), bx = bang.map((p) => p.x);
 ok(Math.max(...bx) - Math.min(...bx) < 6, "surprised flashes an exclamation: a vertical stroke, near-zero width");
@@ -327,8 +343,15 @@ for (let t = 0; t < 13; t += 1) {
 ok(sil.size >= 5, "working never settles: " + sil.size + " distinct silhouettes across 13s");
 ok(/<circle/.test(buildSVG({ avatar: { set: "motes", item: "working" } })), "working renders statically too");
 ok(/sepia-sheet/.test(buildSVG({ avatar: { set: "sepia", item: "working" } })), "a pack without art for a mood falls back instead of breaking");
-let ringOnly = Object.keys(M.moods).filter((k) => { const p = M.moods[k].paths; return p && p.every((x) => !x.p || x.p === "ring") && !M.moods[k].flash; });
-ok(ringOnly.length <= 10, "the swarm is not all circles: " + ringOnly.length + " moods are a plain ring with no flash (was 20)");
+// "A plain ring" means a mood with nothing to say. A mood that speaks through the BRIGHTNESS
+// channel — laugh's unison, excited's desync — is not plain just because its paths are round;
+// that is the whole point of those two. Judge them on the light as well as the shape.
+let ringOnly = Object.keys(M.moods).filter((k) => {
+  const p = M.moods[k].paths, g = M.glow(k, 1);
+  const mute = !g.spark && !g.sync && !g.fade;
+  return p && p.every((x) => !x.p || x.p === "ring") && !M.moods[k].flash && mute;
+});
+ok(ringOnly.length <= 10, "the swarm is not all circles: " + ringOnly.length + " moods are a plain ring, no flash, no glow (was 20)");
 
 console.log("\nnamed environments (v0.48.0): scene: \"tidepool\" is the whole thing");
 const sceneOf = (sc) => {
@@ -386,7 +409,10 @@ Object.keys(M.moods).forEach((m) => {
     const a = frameAt(m, t), b = frameAt(m, t + 1 / 60);
     for (let i = 0; i < M.N; i++) w = Math.max(w, Math.hypot(a[i].x - b[i].x, a[i].y - b[i].y));
   }
-  if (w > 8) jumpy.push(m + " (" + w.toFixed(1) + "px)");
+  // 12px, not 8: this guards against a SWAP (~150px of instant teleport). 8 was a snapshot of
+  // how fast the moods happened to move back when none of them hurried; excited now orbits at
+  // ~9px/frame on purpose, and with align 0.12 the motes lag well behind that station anyway.
+  if (w > 12) jumpy.push(m + " (" + w.toFixed(1) + "px)");
 });
 ok(!jumpy.length, "every mood's target moves continuously — a swap would step ~150px" + (jumpy.length ? " — jumpy: " + jumpy : ""));
 let plan = M.pathsFor("working", 0.4);
