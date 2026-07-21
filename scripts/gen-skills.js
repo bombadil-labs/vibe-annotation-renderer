@@ -306,8 +306,9 @@ so hand the user back to it rather than editing this file by hand:
 
 When that comes up, fetch the catalog and compare its \`version\` to the one stamped above:
 <https://raw.githubusercontent.com/bombadil-labs/vibe-banner/main/assets/catalog.json>
-If the catalog is newer, say so plainly — once — naming what changed if its \`whatsNew\` line does,
-and let the user decide whether to rebuild. Never nag: a stale banner still works.
+If the catalog is newer, say so plainly — once — and let the user decide whether to rebuild. The
+catalog does not carry a summary of what changed, so don't invent one: report that a newer build
+exists, point at the Builder, and leave it there. Never nag: a stale banner still works.
 
 Settings that DON'T change the file — a quieter cadence for this session, going dark for a while,
 turning banners off entirely — simply honor. **Persist agreed overrides in your durable memory** and
@@ -586,7 +587,12 @@ const CATALOG = {
   what: "Machine-readable catalog of the vibe-banner ecosystem: face-packs, first-party scenes, skill variants, site surfaces. Fetched by Claude during settings conversations.",
   version: VERSION,                                            // a skill stamps its build version; compare against this to notice it has fallen behind
   builder: SITE + "#builder",
-  whatsNew: "0.45.0 — Motes flies FLIGHT PATHS: a mood is a set of curves with share, align, cluster and flow. Motes and the weather vocabulary are on the site.",
+  // No whatsNew (v1.9.0). It was a hand-written summary in a generated file, which meant it
+  // only stayed true if someone remembered — and nobody did: it sat at "0.45.0 — Motes flies
+  // FLIGHT PATHS" for roughly forty releases while `version` climbed to 1.8.0, telling every
+  // settings conversation about news four minor versions stale. A field that is wrong unless
+  // maintained by hand is worse than no field, because it is read as authoritative. `version`
+  // is generated from package.json and cannot drift, so it carries the signal alone now.
   renderer: {
     bundle: PIECES.snippetUrl,
     payload_notes: {
