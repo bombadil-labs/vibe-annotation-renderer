@@ -1228,17 +1228,23 @@
     } else {
       sceneSVG = '<rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10" fill="#8a7a86" fill-opacity="0.07"/>' + frameRect;
     }
-    // THE SPOTLIGHT, IN THE WINDOW ITSELF (v1.5.0): dramatic isn't banner weather — the
-    // scene BEHIND her darkens and a beam cuts through around her, first-class to the
-    // avatar-in-scene, not a room-wide dim. Sepia, Kip, Drollery only: bodies that stand
-    // in the window and can be lit. Static twin of the live canvas version below.
+    // THE SPOTLIGHT, IN THE WINDOW ITSELF (v1.6.0): a stage light from ABOVE, in a cone —
+    // not a centred glow (that read as generic weather, the maintainer's note). Sepia, Kip,
+    // Drollery only: bodies that stand in the window and can be lit. Static twin below is a
+    // simpler additive glow (no destination-out compositing in plain SVG); the live canvas
+    // version genuinely reveals the scene through the cone.
     if (p.face && typeof p.face === "object" && p.face.item === "dramatic" && DRAMA_FACES[p.face.set]) {
-      var dcid = "vdrw" + (++SCENE_IDS), dcx2 = portrait.x + portrait.s / 2, dcy2 = portrait.y + portrait.s / 2;
+      var dcid = "vdrw" + (++SCENE_IDS);
+      var dax = portrait.x + portrait.s * 0.5, day = portrait.y;                    // cone apex, top-centre of the window
+      var dbaseY = portrait.y + portrait.s * 0.78, dbaseH = portrait.s * 0.32, dapexH = portrait.s * 0.045;
       sceneSVG += '<defs><clipPath id="' + dcid + '"><rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10"/></clipPath>' +
-        '<radialGradient id="' + dcid + 'g" cx="50%" cy="50%" r="62%">' +
-        '<stop offset="0%" stop-color="#08060e" stop-opacity="0"/><stop offset="38%" stop-color="#08060e" stop-opacity="0"/><stop offset="100%" stop-color="#08060e" stop-opacity="0.74"/>' +
-        '</radialGradient></defs>' +
-        '<g clip-path="url(#' + dcid + ')"><rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" fill="url(#' + dcid + 'g)"/></g>';
+        '<linearGradient id="' + dcid + 'g" x1="' + g(dax - dbaseH) + '" x2="' + g(dax + dbaseH) + '" y1="0" y2="0" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#fff3d6" stop-opacity="0"/><stop offset="50%" stop-color="#fff3d6" stop-opacity="0.5"/><stop offset="100%" stop-color="#fff3d6" stop-opacity="0"/>' +
+        '</linearGradient></defs>' +
+        '<g clip-path="url(#' + dcid + ')">' +
+        '<rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" fill="#08060e" fill-opacity="0.66"/>' +
+        '<polygon points="' + g(dax - dapexH) + ',' + g(day) + ' ' + g(dax + dapexH) + ',' + g(day) + ' ' + g(dax + dbaseH) + ',' + g(dbaseY) + ' ' + g(dax - dbaseH) + ',' + g(dbaseY) + '" fill="url(#' + dcid + 'g)"/>' +
+        '</g>';
     }
 
     var L = {
@@ -2307,10 +2313,12 @@
           }                                                    // (end tidepool branch — study returned above with its own restore)
         }
 
-        // THE SPOTLIGHT, IN THE WINDOW ITSELF (v1.5.0): live twin of the static version in
-        // layout() — runs regardless of scene (even no scene at all), darkening whatever's
-        // behind her and cutting a beam around where she stands. The face is a DOM layer
-        // above this canvas, so it and anything the beam catches with her stay fully lit.
+        // THE SPOTLIGHT, IN THE WINDOW ITSELF (v1.6.0): a stage light from ABOVE, in a cone —
+        // a centred glow read as generic weather, not a light source (the maintainer's note).
+        // Dark the whole window, then punch a soft-edged cone from the top edge down to about
+        // her shoulders using destination-out, so the scene UNDER the cone is genuinely
+        // revealed rather than just brightened. Runs regardless of scene, even none at all;
+        // the face is a DOM layer above this canvas either way.
         if (p.face && typeof p.face === "object" && p.face.item === "dramatic" && DRAMA_FACES[p.face.set] && L.portrait) {
           var dpt = L.portrait, dps = dpt.s;
           ctx.save();
@@ -2321,10 +2329,18 @@
           ctx.arcTo(dpt.x, dpt.y + dps, dpt.x, dpt.y, 10);
           ctx.arcTo(dpt.x, dpt.y, dpt.x + dps, dpt.y, 10);
           ctx.closePath(); ctx.clip();
-          var dcx3 = dpt.x + dps / 2, dcy3 = dpt.y + dps / 2;
-          var dgr = ctx.createRadialGradient(dcx3, dcy3, dps * 0.24, dcx3, dcy3, dps * 0.62);
-          dgr.addColorStop(0, "rgba(8,6,14,0)"); dgr.addColorStop(0.6, "rgba(8,6,14,0)"); dgr.addColorStop(1, "rgba(8,6,14,0.74)");
-          ctx.fillStyle = dgr; ctx.fillRect(dpt.x, dpt.y, dps, dps);
+          ctx.fillStyle = "rgba(8,6,14,0.68)";
+          ctx.fillRect(dpt.x, dpt.y, dps, dps);
+          var dax = dpt.x + dps * 0.5, day = dpt.y, dbaseY = dpt.y + dps * 0.78, dbaseH = dps * 0.32, dapexH = dps * 0.045;
+          ctx.globalCompositeOperation = "destination-out";
+          var dcg = ctx.createLinearGradient(dax - dbaseH, 0, dax + dbaseH, 0);
+          dcg.addColorStop(0, "rgba(255,255,255,0)"); dcg.addColorStop(0.5, "rgba(255,255,255,0.92)"); dcg.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = dcg;
+          ctx.beginPath();
+          ctx.moveTo(dax - dapexH, day); ctx.lineTo(dax + dapexH, day);
+          ctx.lineTo(dax + dbaseH, dbaseY); ctx.lineTo(dax - dbaseH, dbaseY);
+          ctx.closePath(); ctx.fill();
+          ctx.globalCompositeOperation = "source-over";
           ctx.restore();
         }
 
@@ -2672,10 +2688,12 @@
                 thinking: { 1: { x: 41, y: 46, cx: 28, cy: 57 },       // sweeps right, across the body
                             3: { x: 23, y: 46, cx: 36, cy: 57 },       // sweeps left, across the first
                             2: { x: 37, y: 38, cx: 46, cy: 53 } },     // and one up under the chin
-                // GLOVES UP (v1.3.0): the two outer arms lift into a guard, fists in front of
-                // the mantle rather than trailing in the current — flint, not flourish.
-                resolute: { 0: { x: 19, y: 36, cx: 20, cy: 48 },
-                            4: { x: 45, y: 36, cx: 44, cy: 48 } }
+                // GLOVES UP: the two outer arms lift into a guard, fists in front of the
+                // mantle rather than trailing in the current — flint, not flourish. Lower and
+                // straighter than the first cut (v1.6.0): up near eye level read as a boxer
+                // guarding her face, not squaring up — this sits at chest height instead.
+                resolute: { 0: { x: 17, y: 44, cx: 18, cy: 49 },
+                            4: { x: 47, y: 44, cx: 46, cy: 49 } }
               };
               var POSE = POSES[MOODS[fm.index]] || null;
               // WORKING REACHES FOR IT (v0.99.0). The glass stands on its own now, down and to
@@ -2702,10 +2720,11 @@
                 var wkPoke = wkPT < 0.18 ? ease(wkPT / 0.18) : wkPT < 0.30 ? 1 - ease((wkPT - 0.18) / 0.12) : 0;
                 POSE[4] = { x: 51, y: 55.5 + 2.2 * wkPoke, cx: 46, cy: 47 };
               }
-              // THE PUNCH (v1.5.0). Guard alone read as static; every couple of seconds one
-              // glove — alternating — jabs up and inward, toward the viewer, while the other
+              // THE PUNCH. Guard alone read as static; every couple of seconds one glove —
+              // alternating — jabs out and slightly up, toward the viewer, while the other
               // holds the guard. The control point follows the target in, so the sweep
               // straightens instead of staying bowed: a thrown punch, not a raised fist.
+              // Shallower than the first cut (v1.6.0): mostly straight out now, barely up.
               var rpPunch = 0, rpIdx = -1;
               if (MOODS[fm.index] === "resolute") {
                 var RPP = 2.6, rpCyc = Math.floor(t / RPP), rpU = (t % RPP) / RPP;
@@ -2713,10 +2732,10 @@
                 rpPunch = rpU < 0.16 ? ease(rpU / 0.16) : rpU < 0.30 ? 1 - ease((rpU - 0.16) / 0.14) : 0;
                 POSE = { 0: POSES.resolute[0], 4: POSES.resolute[4] };
                 if (rpPunch > 0.02) {
-                  var rpBaseX = rpIdx === 0 ? 19 : 45;
+                  var rpBaseX = rpIdx === 0 ? 17 : 47;
                   POSE[rpIdx] = {
-                    x: rpBaseX + (32 - rpBaseX) * 0.35 * rpPunch, y: 36 - 15 * rpPunch,
-                    cx: rpBaseX + (32 - rpBaseX) * 0.15 * rpPunch, cy: 48 - 10 * rpPunch
+                    x: rpBaseX + (32 - rpBaseX) * 0.18 * rpPunch, y: 44 - 6 * rpPunch,
+                    cx: rpBaseX + (32 - rpBaseX) * 0.08 * rpPunch, cy: 49 - 4 * rpPunch
                   };
                 }
               }
@@ -2806,9 +2825,11 @@
                 var hw = 6.5 * fsc, hh = 9.5 * fsc;                    // bigger: it is the other character in the frame
                 fx2.save();
                 fx2.translate(9 * fsc, 63 * fsc); fx2.rotate(hrot);    // standing on its own, down and to her left
-                fx2.fillStyle = rgba("#c8b6c2", 0.30);                 // the glass
-                fx2.beginPath(); fx2.moveTo(-hw, -hh); fx2.lineTo(hw, -hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.fill();
-                fx2.beginPath(); fx2.moveTo(-hw, hh); fx2.lineTo(hw, hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.fill();
+                // the glass: an OUTLINE, not a filled wash (v1.6.0) — the fill at 0.30 alpha
+                // read as a flat solid patch showing through around the sand, not glass texture
+                fx2.strokeStyle = rgba("#c8b6c2", 0.55); fx2.lineWidth = Math.max(0.8, fsc * 0.7); fx2.lineJoin = "round";
+                fx2.beginPath(); fx2.moveTo(-hw, -hh); fx2.lineTo(hw, -hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.stroke();
+                fx2.beginPath(); fx2.moveTo(-hw, hh); fx2.lineTo(hw, hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.stroke();
                 var up = 1 - drain;
                 fx2.fillStyle = rgba("#d9a877", 0.96);                 // sand: a shrinking cone above, a rising trapezoid below
                 if (up > 0.02) { fx2.beginPath(); fx2.moveTo(0, 0); fx2.lineTo(-hw * up, -hh * up); fx2.lineTo(hw * up, -hh * up); fx2.closePath(); fx2.fill(); }
@@ -2967,35 +2988,43 @@
               } else if (propN === "qmark") {                                        // REALLY perplexed: a proper cluster, held above the crown —
                 for (var qpi = 0; qpi < 5; qpi++) {                                 // the old drift barely cleared her head and read too faint to register
                   var qpr = mulberry32(L.seed + qpi * 173 + 37);
-                  // FIX (v1.5.0): the v1.3.0 rewrite centred this arc at y=2 with up to 20 units
-                  // of upward radius — canvas coordinates below 0 are off-canvas, so most of the
-                  // cluster was being drawn ABOVE the visible cell and simply never appeared.
-                  // Recentred lower with a smaller radius: the worst case (straight up, max
-                  // radius) now lands at y≈2.8, comfortably on-canvas.
-                  var qbirth = qpr() * 3.4, qang2 = -1.5708 + (qpr() - 0.5) * 2.2, qrad2 = 8 + qpr() * 8;   // an arc above her, never wrapping down to face level
+                  // v1.5.0 fixed the off-canvas mistake (centred too high, too wide a radius,
+                  // pushed the cluster above y=0 where canvas coordinates don't render). v1.6.0:
+                  // tighter and higher still, plus an outline — worst case (straight up, max
+                  // radius, stroke half-width) lands at y≈3.1, comfortably on-canvas.
+                  var qbirth = qpr() * 3.4, qang2 = -1.5708 + (qpr() - 0.5) * 2.2, qrad2 = 6 + qpr() * 5;   // an arc above her, never wrapping down to face level
                   var qage2 = (((t - qbirth) % 3.4) + 3.4) % 3.4;
                   if (qage2 > 2.4) continue;
                   var qu2 = qage2 / 2.4;
                   var qrise2 = qu2 < 0.15 ? 1.6 * (qu2 / 0.15) : 1.6 - 8 * ((qu2 - 0.15) / 0.85);
-                  fx2.globalAlpha = 0.9 * (qu2 < 0.18 ? qu2 / 0.18 : Math.max(0, 1 - (qu2 - 0.18) / 0.82));
-                  fx2.font = "700 " + (10.5 * (0.9 + 0.3 * qpr()) * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
-                  fx2.fillStyle = qpi % 3 === 0 ? "#9a8a6a" : "#7a6a55";
-                  fx2.fillText("?", 32 * fsc + Math.cos(qang2) * qrad2 * fsc, (10 + qrise2) * fsc + Math.sin(qang2) * qrad2 * 0.55 * fsc);
+                  var qx = 32 * fsc + Math.cos(qang2) * qrad2 * fsc, qy = (8 + qrise2) * fsc + Math.sin(qang2) * qrad2 * 0.55 * fsc;
+                  fx2.globalAlpha = 0.92 * (qu2 < 0.18 ? qu2 / 0.18 : Math.max(0, 1 - (qu2 - 0.18) / 0.82));
+                  fx2.font = "700 " + (12.5 * (0.9 + 0.3 * qpr()) * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
+                  fx2.lineJoin = "round"; fx2.miterLimit = 2; fx2.lineWidth = Math.max(0.8, fsc * 0.9);
+                  fx2.strokeStyle = rgba("#2a2018", 0.8); fx2.strokeText("?", qx, qy);
+                  fx2.fillStyle = qpi % 3 === 0 ? "#e0d0a0" : "#c9b880";
+                  fx2.fillText("?", qx, qy);
                 }
-              } else if (propN === "thought") {                                      // awe: "waow..." — REDESIGNED (v1.5.0). The bubble-and-dots version was too small to
-                // read and its own anchor sat near y=0, clipping off the top of the canvas — the
-                // same off-canvas mistake as the old qmark. No bubble now: just the word itself,
-                // bold and big, fading in and holding and fading out, at a new spot each time.
+              } else if (propN === "thought") {                                      // awe: "waow..." — just the word, bold, fading in/out at a new spot each cycle
                 var thPer = 4.5, thCyc = Math.floor(t / thPer), thU = (t % thPer) / thPer;
                 var thFade = thU < 0.15 ? ease(thU / 0.15) : thU < 0.75 ? 1 : thU < 0.95 ? 1 - ease((thU - 0.75) / 0.2) : 0;
                 if (thFade > 0.02) {
                   var thR = mulberry32(L.seed + thCyc * 941 + 17);
-                  var thX = (22 + thR() * 20) * fsc, thY = (9 + thR() * 8) * fsc;   // stays clear of y=0 — safely on-canvas at any station
+                  // BASELINE, not middle (v1.6.0): with textBaseline "middle" the glyph's own
+                  // height could push its top edge back off-canvas depending on font metrics —
+                  // the same mistake as the old qmark, just camouflaged by a different property.
+                  // "waow..." has no descenders, so baseline is a clean, predictable floor: the
+                  // glyph only extends UP from here, by a known cap-height. Kept high and tight
+                  // (10-13) so the whole word sits clear above her head, never near it.
+                  var thX = (22 + thR() * 20) * fsc, thBase = (10 + thR() * 3) * fsc;
                   fx2.globalAlpha = thFade * 0.95;
-                  fx2.fillStyle = "#4a3a44";
-                  fx2.font = "800 " + (11 * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
-                  fx2.textAlign = "center"; fx2.textBaseline = "middle";
-                  fx2.fillText("waow...", thX, thY);
+                  fx2.font = "800 " + (10 * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
+                  fx2.textAlign = "center"; fx2.textBaseline = "alphabetic";
+                  fx2.lineJoin = "round"; fx2.miterLimit = 2; fx2.lineWidth = Math.max(1, fsc * 1.3);
+                  fx2.strokeStyle = rgba("#20161c", 0.85);                             // dark outline: legible over any scene, light or dark
+                  fx2.strokeText("waow...", thX, thBase);
+                  fx2.fillStyle = "#fdf6ea";
+                  fx2.fillText("waow...", thX, thBase);
                 }
               }
               fx2.globalAlpha = 1; fx2.textAlign = "start"; fx2.textBaseline = "alphabetic";
