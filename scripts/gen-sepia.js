@@ -218,6 +218,10 @@ const MOUTH = {}; Object.keys(MOUTH16).forEach(k => { MOUTH[k] = up2(MOUTH16[k])
 MOUTH.smile = [[12,19],[13,20],[14,21],[15,21],[16,21],[17,21],[18,20],[19,19]];   // real arcs, 2px grid
 MOUTH.frown = [[12,21],[13,20],[14,19],[15,19],[16,19],[17,19],[18,20],[19,21]];
 MOUTH.wavy  = [[12,20],[13,21],[14,20],[15,19],[16,20],[17,21],[18,20],[19,19]];
+// A SMIRK IS ASYMMETRIC. A smile lifts both corners; a smirk lifts ONE and leaves the other
+// where it was — and the wink beat widens it rather than swapping it for a grin.
+MOUTH.smirk    = [[12,21],[13,21],[14,21],[15,21],[16,20],[17,20],[18,19],[19,19]];
+MOUTH.smirkbig = [[12,22],[13,22],[14,21],[15,21],[16,20],[17,19],[18,18],[19,18]];
 MOUTH.flatdrop = [[12,20],[13,20],[14,20],[15,20],[16,20],[17,20],[18,21],[19,22]];   // frustrated: flat, but one corner gives up and turns down
 // THE GUFFAW (v0.33.0): laugh's frame 1 is not a blink — it's the mouth thrown wide.
 // The renderer cycles the two feature frames fast for laugh, and the face HA-HA-HAs.
@@ -311,7 +315,7 @@ const MOODS = [
   ["puzzled",    ["dot/narrow","uptiny/open"], "tiny",  "#c0b08a", QBROW],
   ["asking",     "uptiny/half",      "sm",    "#9ac0b0"],
   ["weary",      "dot/narrow",       "flat",  "#8b93a0"],
-  ["wink",       "dot/narrow",       "smile", "#e0a877"],
+  ["wink",       "dot",              "smirk", "#e0a877"],
   ["love",       "heart",            "open",  "#e87a90", X.boop],
   ["working",    "side/narrow",      "flat",  "#6f8fa8"]   // v0.68.0: her own cell, so she stops borrowing focused
 ];
@@ -383,7 +387,10 @@ MOODS.forEach((mood, i) => {
       : pair;
     drawEyes(feat, gpair[0], gpair[1], blink);
     if (mood[0] === "laugh" && frame === 1) feat.push(...GUFFAW);
-    else if (!FINE_MOUTH[mood[0]]) feat.push(...MOUTH[mood[2]].map(q => [q[0], q[1], "p"]));
+    else if (!FINE_MOUTH[mood[0]]) {
+      const mn = (mood[0] === "wink" && frame === 1) ? "smirkbig" : mood[2];   // the beat widens the smirk
+      feat.push(...MOUTH[mn].map(q => [q[0], q[1], "p"]));
+    }
     feat.push(...(mood[4] || []));
     if (mood[0] === "dramatic") {
       // THE COMEDY MASK, take three (v0.40.0, the maintainer's reference): the classic
