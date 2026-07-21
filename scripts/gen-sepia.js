@@ -100,6 +100,15 @@ const PUPR = {
 const HEARTR = [[0,0],[1,0],[3,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]];
 const STARR = [[2,0],[1,1],[2,1],[3,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]];
 const POFF = [0, 2, 3];                                        // 3 pupil stations in a 5-wide box; mirror station = 3 - POFF
+// How much white the lid leaves, as [first, last] row of the 10..15 socket. This is the part
+// a reader actually sees at banner size — pupils are for the close-up.
+const LIDS = {
+  open:   [10, 15],                                            // the full socket: startled, bright, alert
+  half:   [12, 15],                                            // upper lid lowered — relaxed, warm, wry
+  narrow: [12, 14],                                            // lidded above AND below — concentration
+  squint: [13, 14],                                            // tighter still — scrutiny, effort
+  low:    [13, 15]                                             // heavy upper lid, gaze sitting low — worn, grave
+};
 function drawEyes(out, lp, rp, blink) {
   [[8, lp, false], [19, rp, true]].forEach(spec => {
     const bx = spec[0], preset = spec[1], mir = spec[2];
@@ -143,14 +152,30 @@ function drawEyes(out, lp, rp, blink) {
       out.push([bx + soff, 13, "p"], [bx + soff + 1, 13, "p"], [bx + soff, 14, "p"], [bx + soff + 1, 14, "p"]);
       return;
     }
-    for (let y = 10; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
-    if (preset === "heart" || preset === "star") {
-      (preset === "heart" ? HEARTR : STARR).forEach(q =>
-        out.push([bx + (mir ? 4 - q[0] : q[0]), 10 + q[1], preset === "heart" ? "F" : "A"]));   // star glints in dark amber (no yellow pupils)
+    // THE LID IS THE EXPRESSION (v0.89.0). Every mood but a handful drew the same fully-open
+    // socket and moved a two-pixel pupil inside it — and at banner size a two-pixel pupil is
+    // invisible, so thirty-odd moods all read as the same two big circles. What actually reads
+    // is how much white is showing and where the lid cuts it. So the lid is a dimension now:
+    // "pupil/lid", defaulting to open. The lid rows fill dark, which is what makes a narrowed
+    // eye legible at 8px instead of merely smaller.
+    const parts = String(preset).split("/");
+    const pu = parts[0], lid = LIDS[parts[1]] || LIDS.open;
+    for (let y = 10; y < lid[0]; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "p"]);
+    for (let y = lid[1] + 1; y <= 15; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "p"]);
+    for (let y = lid[0]; y <= lid[1]; y++) for (let x = bx; x <= bx + 4; x++) out.push([x, y, "W"]);
+    if (pu === "heart" || pu === "star") {
+      (pu === "heart" ? HEARTR : STARR).forEach(q =>
+        out.push([bx + (mir ? 4 - q[0] : q[0]), 10 + q[1], pu === "heart" ? "F" : "A"]));   // star glints in dark amber (no yellow pupils)
       return;
     }
-    PUPR[preset].forEach(q => {
-      const off = mir ? 3 - POFF[q[0]] : POFF[q[0]], py = 10 + 2 * q[1];
+    PUPR[pu].forEach(q => {
+      const off = mir ? 3 - POFF[q[0]] : POFF[q[0]];
+      // MAP the gaze into the band, don't clamp it. Clamping shoved every pupil onto the same
+      // row the moment a lid narrowed, so "looking up" and "looking level" became the same
+      // drawing — it collapsed content into thinking. Scaling keeps the direction as long as
+      // the band has room, and a squint genuinely has none, which is honest.
+      const avail = lid[1] - 1 - lid[0];
+      const py = lid[0] + (q[1] >= 2 ? avail : q[1] > 0 ? Math.floor(avail / 2) : 0);
       out.push([bx + off, py, "p"], [bx + off + 1, py, "p"], [bx + off, py + 1, "p"], [bx + off + 1, py + 1, "p"]);
     });
   });
@@ -217,37 +242,37 @@ const VBROWS = [];
 // fins (posture code) and spots (live layer) are the renderer's components.
 const MOODS = [
   ["neutral",    "w",                "sm",    "#b89ab0"],
-  ["content",    "dot",              "smile", "#d9a877"],
+  ["content",    "dot/half",         "smile", "#d9a877"],
   ["delighted",  "happy",            "smile", "#e8b04a"],
-  ["focused",    "dot",              "flat",  "#7d8fb8"],
-    ["sheepish",   "side",             "wavy",  "#d99a8a", X.sweat],
+  ["focused",    "dot/narrow",       "flat",  "#7d8fb8"],
+    ["sheepish",   "side/half",        "wavy",  "#d99a8a", X.sweat],
   ["booped",     "wide",             "open",  "#e88aa0", X.boop],
-  ["thinking",   ["dot","uptiny"],   "sm",    "#8f9ac0"],
+  ["thinking",   ["dot/half","uptiny/half"], "sm",    "#8f9ac0"],
   ["spark",      "star",             "smile", "#ffd76a"],   // the 💡 is a renderer-drawn prop now
   ["excited",    "star",             "open",  "#ffb84a", X.sparkles],
   ["surprised",  "wide",             "open",  "#b79ad0"],
   ["tender",     "heart",            "smile", "#e8a0b0"],
-  ["melancholy", "down",             "flat",  "#8f96a8", X.mote],
+  ["melancholy", "down/low",         "flat",  "#8f96a8", X.mote],
   ["anxious",    "dot",              "wavy",  "#7a8296", X.sweat],
-  ["mirth",      "happy",            "smile", "#e0b060"],
+  ["mirth",      "happy/half",       "smile", "#e0b060"],
   ["laugh",      "cross",            "open",  "#ffd24a"],   // guffaw: the blink frame carries the wide-open mouth; the renderer cycles them
-  ["groan",      "dot",              "frown", "#9a9488"],   // deadpan base; frame 1 squeezes the eyes to slits as the body contracts live
+  ["groan",      "dot/low",          "frown", "#9a9488"],   // deadpan base; frame 1 squeezes the eyes to slits as the body contracts live
   ["oops",       "wide",             "open",  "#d98a6a", X.sweat],
   ["frustrated", "glower",           "flatdrop", "#a05050", VBROWS],
   ["angry",      "fury",             "flat",  "#c04040"],   // fury lids carry it alone — no brows (the dark lids ARE the brows), seethe mouth in the fine pass
   ["dramatic",   "wide",             "smile", "#b0413e"],   // the Greek mask overlay is drawn in the frame pass below
   ["at_peace",   "closed",           "smile", "#8fae8f", X.flower],
-  ["solemn",     "closed",           "flat",  "#8a8f9a"],
+  ["solemn",     "dot/squint",       "flat",  "#8a8f9a"],
   ["rhyme",      "w",                "sm",    "#9a8fae"],   // the baked ghost retired in v0.40.0 — rhyme's echo is a live replica now
   ["awe",        "uptiny",           "open",  "#5a6a8a"],
   ["vertigo",    "spiral",           "wavy",  "#b79ad0"],
   ["resolute",   "steely",           "sm",    "#e0994e"],   // steely narrowed eyes + tight fine-mouth; headband drawn in the fine pass
-  ["puzzled",    ["dot","uptiny"],   "tiny",  "#c0b08a"],
-  ["asking",     "uptiny",           "sm",    "#9ac0b0"],
-  ["weary",      "down",             "flat",  "#8b93a0"],
+  ["puzzled",    ["dot/squint","uptiny/open"], "tiny",  "#c0b08a"],
+  ["asking",     "uptiny/half",      "sm",    "#9ac0b0"],
+  ["weary",      "down/half",        "flat",  "#8b93a0"],
   ["wink",       ["happy","closed"], "smile", "#e0a877"],
   ["love",       "heart",            "open",  "#e87a90", X.boop],
-  ["working",    "steely",           "flat",  "#6f8fa8"]   // v0.68.0: her own cell, so she stops borrowing focused
+  ["working",    "side/narrow",      "flat",  "#6f8fa8"]   // v0.68.0: her own cell, so she stops borrowing focused
 ];
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);   // 33 until sleepy was cut in v0.88.0
 BASE.forEach((r, i) => { if (r.length !== 32) throw new Error("BASE row " + i + " length " + r.length); });
