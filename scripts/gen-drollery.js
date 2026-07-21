@@ -47,14 +47,14 @@ const C = {
 // How hard the pen is pressed, per mood. Default 1; below 1 the creature is drawn faintly
 // and reads as fading, above 1 it is bitten into the page. Sepia and Kip cannot do this.
 const INKW = {
-  sleepy: 0.66, weary: 0.70, melancholy: 0.74, at_peace: 0.82, tender: 0.88, sheepish: 0.9,
+  weary: 0.70, melancholy: 0.74, at_peace: 0.82, tender: 0.88, sheepish: 0.9,
   groan: 0.92, anxious: 0.94, focused: 1.16, working: 1.12, solemn: 1.26, resolute: 1.32,
   frustrated: 1.28, angry: 1.40, dramatic: 1.18, awe: 1.1
 };
 const CELL = 64, SS = 4;                       // 4x4 supersampling -> smooth bold strokes
 const COLS = 8, FRAMES = 3;
 
-const MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
+const MOODS = ["neutral", "content", "delighted", "focused", "sheepish", "booped", "thinking",
   "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
   "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
   "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love", "working"];
@@ -171,7 +171,6 @@ const M = {
   content:    ["narrow", "smile", "soft", 0.2, 0, 1, 0, 0.7, "fold", "grip", 0],
   delighted:  ["wide", "grin", "arch", 0.7, -0.06, 1, 1, 1.3, "spread", "up", 0],
   focused:    ["narrow", "flat", "furrow", -0.2, 0, 0, 0, 0.45, "fold", "one", "quill"],
-  sleepy:     ["shut", "small", "soft", -0.4, 0.09, 0, 0, 0.35, "droop", "grip", 0],
   sheepish:   ["side", "small", "cocked", -0.2, 0.08, 1, 0, 0.9, "droop", "cover", 0],
   booped:     ["wide", "open", "high", 0.5, -0.04, 1, 0, 1.8, "spread", "up", 0],
   thinking:   ["up", "line", "cocked", 0.3, -0.07, 0, 0, 0.8, "fold", "one", "quill"],

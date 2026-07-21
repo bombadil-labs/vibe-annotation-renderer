@@ -172,11 +172,29 @@
   // THE CANONICAL MOODS (v0.44.0). One vocabulary, declared once, shared by every pack:
   // Sepia's sheet order, the emoji map, Motes' formations, and the skill text all read
   // from here. A pack that supports fewer declares its own subset and falls back.
-  var MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
+  var MOODS = ["neutral", "content", "delighted", "focused", "sheepish", "booped", "thinking",
     "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
     "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
     "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love",
-    "working"];
+    "working"];   // 32 cells. `sleepy` was cut in v0.88.0 — it and weary were one report twice.
+  // Per-mood settings are keyed by NAME and resolved to cell indices here. They used to be
+  // written as raw indices ({ 19: 1 }) and as strings with one character per cell, which meant
+  // deleting a mood silently slid every prop, fin posture and beat after it onto the wrong
+  // face — art that still rendered, just as the wrong creature. Nothing downstream changes;
+  // the maps are still index-keyed by the time anything reads them.
+  function byMood(map) {
+    var out = {}, k, i;
+    for (k in map) if (Object.prototype.hasOwnProperty.call(map, k)) {
+      i = MOODS.indexOf(k);
+      if (i >= 0) out[i] = map[k];
+    }
+    return out;
+  }
+  function strByMood(map, dflt) {                              // one character per cell, in sheet order
+    var s = "", i;
+    for (i = 0; i < MOODS.length; i++) s += (map[MOODS[i]] || dflt);
+    return s;
+  }
   // booped is NOT an offered mood (v0.71.0): it's the reaction shown when the face is tapped,
   // and laugh's cell doubles as the fed reaction. Both stay in MOODS for cell-index and
   // formation stability; the skill, builder and gallery simply never list booped.
@@ -282,7 +300,6 @@
     delighted:  { paths: [{ p: "arc", y: -0.22, r: 0.72, ry: 0.60, a0: 0.42, a1: 2.72, share: 0.55, align: 0.72, flow: 0.30 },
                           { p: "arc", y: -0.22, r: 0.50, ry: 0.42, a0: 0.42, a1: 2.72, share: 0.35, align: 0.6, flow: 0.42 }] },
     focused:    { paths: [{ p: "ring", r: 0.20, ry: 0.18, align: 0.95, cluster: 0.25, flow: 0.50, spin: 0.50 }] },
-    sleepy:     { paths: [{ p: "line", x1: -0.75, y1: 0.34, x2: 0.75, y2: 0.30, align: 0.45, flow: 0.03 }] },
     sheepish:   { paths: [{ p: "ring", x: 0.10, y: 0.18, r: 0.34, ry: 0.30, share: 0.8, align: 0.5, flow: 0.05 }] },
     booped:     { paths: [{ p: "ring", r: 0.92, ry: 0.80, align: 0.12, flow: 0.50, spin: 0.60 }] },
     thinking:   { paths: [{ p: "spiral", r: 0.55, turns: 1.6, align: 0.70, flow: 0.10, spin: 0.25 }] },
@@ -352,7 +369,7 @@
                           { p: "poly", glyph: "question", x: -0.34, y: 0.46, scale: 0.40, share: 0.16, align: 0.94, flow: -1.30,
                             pulse: { every: 2.9, hold: 2.2, ramp: 0.35, phase: 1.6 } }] },
     asking:     { paths: MARK_QUESTION },
-    // WEARY is a SAG, where sleepy is a flat line: a wide shallow arc drooping under its own
+    // WEARY is a SAG: a wide shallow arc drooping under its own
     // weight, low and barely moving. (The rising Zs are gone — they were sleep's iconography
     // hung on the wrong mood, and they read as clutter besides.)
     weary:      { paths: [{ p: "arc", y: 0.02, r: 0.70, ry: 0.34, a0: 0.30, a1: 2.84, align: 0.62, flow: 0.02 }] },
@@ -645,7 +662,7 @@
 
   // KnownFace registry: face: { set, item } resolves here. Every entry is version-pinned
   // to an allowlisted CDN. "kip" is the repo's own mascot — items are mood names.
-  var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@77d6ca02d7e98a92f368df2fe8ef351aad32d41d/assets/kip-sheet.png";
+  var KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/kip-sheet.png";
   var KIP_MOODS = MOODS;                                       // v0.52.0: Kip speaks the whole vocabulary
   // KIP IS STEPPED. Sepia eases; Kip cuts. His clock is quantised to a handful of frames a
   // second and every offset rounds to a whole art-pixel, so he ARRIVES at each pose instead
@@ -653,14 +670,18 @@
   // One char per mood, in MOODS order: r = rare (long stillness, one twitch), c = calm idle,
   // b = busy (constant alternation). The pattern is what stops a 2-frame loop reading as a
   // vibration: most moods hold frame 0 for several steps before the off-beat lands.
-  var KIP_BEAT = "ccbrrcbrbbccrbbbrbbbcrrcrbrccrccb";
+  // one char per cell: r = rare (long stillness, one twitch), c = calm idle, b = busy
+  var KIP_BEAT = strByMood({ neutral: "c", content: "c", sheepish: "c", surprised: "c", tender: "c",
+                             dramatic: "c", rhyme: "c", puzzled: "c", asking: "c", wink: "c", love: "c",
+                             focused: "r", thinking: "r", melancholy: "r", groan: "r", at_peace: "r",
+                             solemn: "r", awe: "r", resolute: "r", weary: "r" }, "b");
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@1ec8bbc466025305a4ca3bc884f1160fe209a633/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
-  var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@07a55ae18c62eea427a028b0088e4e80ca77278b/assets/drollery-sheet.png";
+  var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/drollery-sheet.png";
   var SEPIA_MOODS = MOODS;                                     // v0.68.0: she covers the whole vocabulary again
 
   // NAMED ENVIRONMENTS (v0.48.0). The renderer owns these URLs so a caller can write
@@ -723,8 +744,9 @@
           frames: 2, frameRows: 5, stride: 40,
           stepped: 6,                                          // frames per second — his whole clock
           beat: KIP_BEAT,
-          props: { 8: "bulb", 10: "excl", 15: "laughs", 16: "sweat", 17: "sweat", 18: "vein",
-                   19: "grawlix", 23: "note", 27: "qmark", 28: "qmark", 7: "qmark", 32: "gear" },
+          props: byMood({ spark: "bulb", surprised: "excl", laugh: "laughs", groan: "sweat", oops: "sweat",
+                          frustrated: "vein", angry: "grawlix", rhyme: "note", puzzled: "qmark",
+                          asking: "qmark", thinking: "qmark", working: "gear" }),
           propScale: 1.9, propAlpha: 1,                         // bigger and fully opaque: at his resolution a faint prop is just noise
           boop: BOOP_CELL, fed: FED_CELL
         }
@@ -737,15 +759,19 @@
         url: SEPIA_SHEET, cellW: 64, cellH: 64, cols: 8, rows: 15, index: i, echo: echoes("sepia", item),
         anim: {
           frames: 2, frameRows: 5, stride: 40, split: true,   // LAYERED sheet: rows 0-3 body (solid, the colour's canvas+mask), 4-7 features, 8-11 blink features
-          fins: "rrftdtfrfffrdtrfdtttfcdrtrcrrdrft",   // 33rd: working holds a tucked, businesslike frill           // per-mood fin posture (derives from gen-sepia's FRILL_OF — keep in sync): r ripple, f flared, d drooped, t tucked, c calm
+          // per-mood fin posture (mirrors gen-sepia's FRILL_OF): r ripple, f flared, d drooped, t tucked, c calm
+          fins: strByMood({ delighted: "f", booped: "f", spark: "f", excited: "f", surprised: "f", laugh: "f", dramatic: "f", love: "f",
+                            focused: "t", sheepish: "t", anxious: "t", oops: "t", frustrated: "t", angry: "t", awe: "t", working: "t",
+                            melancholy: "d", groan: "d", solemn: "d", weary: "d",
+                            at_peace: "c", resolute: "c" }, "r"),
           arms: true,                                          // three independently swaying arms, drawn from the hem (the baked stubs retired)
-          ink: { 17: 1, 13: 0.4 },                             // her namesake pigment: oops sprays a full startled puff, anxious leaks nervous wisps
-          cycle: { 15: 0.32 },                                 // beat moods: laugh's frame 1 is the guffaw, cycled in slow deep HAs (belly laugh, not cackle — the maintainer's note)
-          bounce: { 15: 1 },                                   // beat moods also heave the whole body — up-down AND a chest-wide width pulse
-          contract: { 16: 1 },                                 // groan: the long contraction cycle — deadpan, then the visible squeeze, held ~30s, eventually released
-          strain: { 19: 1 },                                   // angry: RESTRAINED fury — arms strain longer and tense, fins frill out but not far, everything trembling slightly
-          props: { 8: "bulb", 15: "laughs", 16: "sweat", 17: "excl", 18: "vein", 19: "grawlix", 27: "qmark" },   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
-          tint: { 20: 1 },                                     // dramatic: the porcelain mask washes in the palette's lead colour (v0.40.3) — the sheet stays white; the tint is live. Tinted moods must keep both feature frames identical (the tint canvas replaces the features layer)
+          ink: byMood({ oops: 1, anxious: 0.4 }),              // her namesake pigment: oops sprays a full startled puff, anxious leaks nervous wisps
+          cycle: byMood({ laugh: 0.32 }),                      // beat moods: laugh's frame 1 is the guffaw, cycled in slow deep HAs (belly laugh, not cackle — the maintainer's note)
+          bounce: byMood({ laugh: 1 }),                        // beat moods also heave the whole body — up-down AND a chest-wide width pulse
+          contract: byMood({ groan: 1 }),                      // groan: the long contraction cycle — deadpan, then the visible squeeze, held ~30s, eventually released
+          strain: byMood({ angry: 1 }),                        // angry: RESTRAINED fury — arms strain longer and tense, fins frill out but not far, everything trembling slightly
+          props: byMood({ spark: "bulb", laugh: "laughs", groan: "sweat", oops: "excl", frustrated: "vein", angry: "grawlix", puzzled: "qmark" }),   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
+          tint: byMood({ dramatic: 1 }),                       // dramatic: the porcelain mask washes in the palette's lead colour (v0.40.3) — the sheet stays white; the tint is live. Tinted moods must keep both feature frames identical (the tint canvas replaces the features layer)
           boop: BOOP_CELL, fed: FED_CELL                       // the interrupts: tapped flashes the booped cell, fed flashes laugh's guffaw — one pulse, then back to the mood
         }
       };

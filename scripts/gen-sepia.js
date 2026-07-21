@@ -62,7 +62,7 @@ for (let y = 0; y < 32; y++) {
 // crenelate); the renderer's 32-char fins code-string derives from this table
 // (r=ripple f=flared d=drooped t=flat/tucked c=calm) — keep them in sync.
 const FRILL_OF = {
-  neutral:"ripple", content:"ripple", delighted:"flared", focused:"flat", sleepy:"drooped",
+  neutral:"ripple", content:"ripple", delighted:"flared", focused:"flat",
   sheepish:"flat", booped:"flared", thinking:"ripple", spark:"flared", excited:"flared",
   surprised:"flared", tender:"ripple", melancholy:"drooped", anxious:"flat", mirth:"ripple",
   laugh:"flared", groan:"drooped", oops:"flat", frustrated:"flat", angry:"flat",
@@ -220,8 +220,7 @@ const MOODS = [
   ["content",    "dot",              "smile", "#d9a877"],
   ["delighted",  "happy",            "smile", "#e8b04a"],
   ["focused",    "dot",              "flat",  "#7d8fb8"],
-  ["sleepy",     "closed",           "sm",    "#9a90a8", X.zzz],
-  ["sheepish",   "side",             "wavy",  "#d99a8a", X.sweat],
+    ["sheepish",   "side",             "wavy",  "#d99a8a", X.sweat],
   ["booped",     "wide",             "open",  "#e88aa0", X.boop],
   ["thinking",   ["dot","uptiny"],   "sm",    "#8f9ac0"],
   ["spark",      "star",             "smile", "#ffd76a"],   // the 💡 is a renderer-drawn prop now
@@ -248,9 +247,9 @@ const MOODS = [
   ["weary",      "down",             "flat",  "#8b93a0"],
   ["wink",       ["happy","closed"], "smile", "#e0a877"],
   ["love",       "heart",            "open",  "#e87a90", X.boop],
-  ["working",    "steely",           "flat",  "#6f8fa8"]   // v0.68.0: the 33rd, so she stops borrowing focused
+  ["working",    "steely",           "flat",  "#6f8fa8"]   // v0.68.0: her own cell, so she stops borrowing focused
 ];
-if (MOODS.length !== 33) throw new Error("expected 33 moods, got " + MOODS.length);
+if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);   // 33 until sleepy was cut in v0.88.0
 BASE.forEach((r, i) => { if (r.length !== 32) throw new Error("BASE row " + i + " length " + r.length); });
 
 const SCALE = 2, CELL = 64, COLS = 8, ROWS = 15, FRAME_ROWS = 5;   // 2px body grid (the octave pass); rows 0-4: base; 5-9: blink; 10-14: per-mood masks. Fins drawn live (v0.21.0)

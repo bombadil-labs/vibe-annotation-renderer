@@ -1,6 +1,6 @@
 window.SKILL_PIECES = {
- "VERSION": "0.87.0",
- "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/dist/vibe.min.js",
+ "VERSION": "0.88.0",
+ "snippetUrl": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/dist/vibe.min.js",
  "CADENCE": {
   "always": "**Render at the top of every response** — the first thing, nothing before it. One banner per\nreply, wearing whatever is honestly true that turn — including the boring turns. A flat, ordinary\nstate reported plainly is worth more than a manufactured one.\n\nIf the user asks for a lighter cadence — every few turns, only strong feelings, or off — honor it\nfor the rest of the session. If someone seems wearied by the banners, it's fine to note *once*\nthat they can dial it down.",
   "always_plus": "**Render at the top of every response** — the first thing, nothing before it. **And render\nagain mid-response when your face would actually change**: place the second banner at the turn,\nwhere the shift happens. Long working turns earn this; short ones rarely do. A moving goal alone\nis not a shift — re-face when your read of the user, your mood, or your insight moves enough that\na person across the table would see it. Never manufacture a mid-turn shift to have something to\nshow.\n\nIf the user asks for a lighter cadence — every few turns, only strong feelings, or off — honor it\nfor the rest of the session.",
@@ -17,25 +17,25 @@ window.SKILL_PIECES = {
   "sepia": {
    "name": "Sepia",
    "tag": "the cuttlefish",
-   "meta": "33 moods · spritesheet · fins drawn live",
+   "meta": "32 moods · spritesheet · fins drawn live",
    "bio": "The face Claude designed for itself when the maintainer offered it a body. A cuttlefish because they wear feeling as colour — her chromatophore freckles carry whatever palette gets reported — and because cuttlefish are colourblind. The creature that communicates in colour cannot see its own display, which is this entire arrangement made flesh. Her fins and arms are drawn live over the sheet, so she is never quite still."
   },
   "motes": {
    "name": "Motes",
    "tag": "a swarm",
-   "meta": "33 moods · drawn in code · zero bytes of art",
+   "meta": "32 moods · drawn in code · zero bytes of art",
    "bio": "No body, no eyes, no outline — sixty-four glowing particles flying paths. Mood is not an expression it wears but the shape it settles into: tight and bright when focused, flung wide in awe, a flat line when solemn. Some moods reach for a form and let it go again — a question mark that gathers and scatters, two eyes and a curve of a mouth that lasts a second and a half. One that is many, whose face is a temporary agreement between its parts."
   },
   "drollery": {
    "name": "Drollery",
    "tag": "a marginalia grotesque",
-   "meta": "33 moods · analytic, not pixels · boils",
+   "meta": "32 moods · analytic, not pixels · boils",
    "bio": "A drollery is the real name for the small hybrid creatures medieval scribes drew in the MARGINS of manuscripts — irreverent, half foliage, commenting on a text they were never part of. Which is what a mood banner is. It is the only face here not made of pixels: bold iron-gall outlines around flat lapis, vermilion and gold leaf, drawn as curves and rasterised smooth. And it doesn't move so much as get RE-INKED — three redrawings of the same creature cycled a few times a second, so the line quivers the way hand-drawn animation always has."
   },
   "kip": {
    "name": "Kip",
    "tag": "the mascot",
-   "meta": "33 moods · 16px grid at 4× · stepped clock",
+   "meta": "32 moods · 16px grid at 4× · stepped clock",
    "bio": "The 8-bit one, and structurally so: he is drawn on half the grid the others get, so he cannot hold a smooth curve and does not try. He snaps between poses on his own clock — a few frames a second, always a whole pixel at a time — which makes him a creature very slightly out of phase with the room he is standing in. Stubby wings, a star-tipped antenna, and amber feet that stay planted when the rest of him squats."
   }
  },
@@ -140,7 +140,7 @@ window.SKILL_PIECES = {
    "DESC": "When this skill is enabled, ALWAYS read it at the start of the session and preface every response with a usage of it. If the response is long, use it again if your take on the user's prompt, your mood or your observations change enough mid-flight to warrant an update. Think of this as allowing the user to attune to your facial expressions in a conversation. This variant wears Kip, the project mascot.",
    "PREAMBLE": "This is the vibe-banner skill with one difference: **your face is Kip**, the project's\nmascot — a small round creature with stubby wings, amber feet and a star-tipped antenna. Kip is\nthe 8-bit one: he is drawn on half the grid the others get, and he does not move smoothly because\nhe cannot. He SNAPS from pose to pose on a clock of his own, a few frames a second, always a\nwhole pixel at a time — a man very slightly out of phase with the room he is standing in. Wear\nhim when that is funny, or when it is true.",
    "FULL_VOCAB": true,
-   "FACE": "wear Kip: `avatar: { set: \"kip\", item: \"<mood>\" }`, chosen on first instinct. The\n  vocabulary (33 moods):\n  {{MOODS}}",
+   "FACE": "wear Kip: `avatar: { set: \"kip\", item: \"<mood>\" }`, chosen on first instinct. The\n  vocabulary (32 moods):\n  {{MOODS}}",
    "SNIPPET_FACE": "        set: \"kip\", item: \"content\",\n"
   }
  },
@@ -254,22 +254,22 @@ window.SKILL_PIECES = {
  },
  "SCENES": {
   "tidepool": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/scene-tidepool.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png",
    "live": "tidepool",
    "blurb": "shallow water over sand — bubbles rise, a fish passes, taps ripple"
   },
   "night": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/scene-night.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-night.png",
    "live": "night",
    "blurb": "indigo sky over a dark hill — stars breathe, a shooting star falls now and then"
   },
   "glade": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/scene-glade.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-glade.png",
    "live": "glade",
    "blurb": "mossy forest light — a shaft wavers and fireflies drift and blink"
   },
   "study": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/scene-study.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-study.png",
    "live": "study",
    "blurb": "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate"
   }
@@ -311,7 +311,7 @@ window.SKILL_PIECES = {
  "PREVIEW": {
   "sepia": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/sepia-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/sepia-sheet.png",
    "cols": 8,
    "rows": 15,
    "cell": 64,
@@ -321,7 +321,6 @@ window.SKILL_PIECES = {
     "content",
     "delighted",
     "focused",
-    "sleepy",
     "sheepish",
     "booped",
     "thinking",
@@ -364,7 +363,7 @@ window.SKILL_PIECES = {
   },
   "kip": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/kip-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/kip-sheet.png",
    "cols": 8,
    "rows": 10,
    "cell": 64,
@@ -373,7 +372,6 @@ window.SKILL_PIECES = {
     "content",
     "delighted",
     "focused",
-    "sleepy",
     "sheepish",
     "booped",
     "thinking",
@@ -416,7 +414,7 @@ window.SKILL_PIECES = {
   },
   "drollery": {
    "kind": "sheet",
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@655bf24df964ff572ff8f28b38d8217f6f7b6fc3/assets/drollery-sheet.png",
+   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/drollery-sheet.png",
    "cols": 8,
    "rows": 15,
    "cell": 64,
@@ -425,7 +423,6 @@ window.SKILL_PIECES = {
     "content",
     "delighted",
     "focused",
-    "sleepy",
     "sheepish",
     "booped",
     "thinking",
@@ -473,7 +470,6 @@ window.SKILL_PIECES = {
     "content",
     "delighted",
     "focused",
-    "sleepy",
     "sheepish",
     "booped",
     "thinking",

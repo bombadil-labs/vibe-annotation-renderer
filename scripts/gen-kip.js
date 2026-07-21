@@ -48,7 +48,7 @@ const SCALE = 4;                                // → 64px cells, whole pixels 
 const CELL = G * SCALE;
 const COLS = 8, FRAMES = 2;
 
-const MOODS = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped", "thinking",
+const MOODS = ["neutral", "content", "delighted", "focused", "sheepish", "booped", "thinking",
   "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth", "laugh",
   "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
   "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love", "working"];
@@ -122,7 +122,6 @@ const M = {
   content:    ["happy", "smile", 0, "d", "s"],
   delighted:  ["happy", "grin", 1, "u", "h"],
   focused:    ["narrow", "line", 0, "t", "s"],
-  sleepy:     ["shut", "small", -1, "d", "s"],
   sheepish:   ["side", "small", -1, "t", "p", 0, true],
   booped:     ["wide", "open", 1, "u", "h", 0, true],
   thinking:   ["up", "line", 1, "t", "s", 0, false, "qmark"],

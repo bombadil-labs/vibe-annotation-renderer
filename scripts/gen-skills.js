@@ -13,27 +13,24 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 
 // Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
 // If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
-const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@1ec8bbc466025305a4ca3bc884f1160fe209a633/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
-const DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@07a55ae18c62eea427a028b0088e4e80ca77278b/assets/drollery-sheet.png";
-const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@77d6ca02d7e98a92f368df2fe8ef351aad32d41d/assets/kip-sheet.png";
+const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+const DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/drollery-sheet.png";
+const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@c6145df6a8905b10d5f726ffe4bc2abdf4ff2d8f/assets/kip-sheet.png";
 const SCENE_TIDEPOOL = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png";
 // Newer scenes pin via the release sha (npm run pin stamps every consumer uniformly;
 // the assets are immutable once committed, so any post-birth release sha serves the
 // same bytes — no separate birth-commit bookkeeping needed).
 const SCENE_URL = name => `https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@${PIN}/assets/scene-${name}.png`;
 
-const MOOD_LIST = ["neutral","content","delighted","focused","sleepy","sheepish","booped","thinking",
+const MOOD_LIST = ["neutral","content","delighted","focused","sheepish","booped","thinking",
   "spark","excited","surprised","tender","melancholy","anxious","mirth","laugh",
   "groan","oops","frustrated","angry","dramatic","at_peace","solemn","rhyme",
   "awe","vertigo","resolute","puzzled","asking","weary","wink","love",
   "working"];   // SHEET ORDER — mirrors MOODS in src/vibe.js; used for preview cell-indexing
-// RETIRED FROM THE VOCABULARY, not from the sheets. Both keep their cell in every pack, so
-// no index shifts and no pinned art has to be redrawn — they simply stop being offered.
-//   booped (v0.71.0) — the reaction shown when a face is tapped, not a mood you pick.
-//   sleepy (v0.87.0) — it and `weary` were the same report twice. Weary survived: being worn
-//     down by a long stretch of work is a real state to report; drowsiness is not one Claude
-//     has, and it was the more borrowed of the two.
-const MOOD_RETIRED = ["booped", "sleepy"];
+// RETIRED FROM THE VOCABULARY, not from the sheets: booped keeps its cell in every pack (it
+// is the reaction shown when a face is TAPPED, not a mood you pick), it just is not offered.
+// sleepy went further in v0.88.0: cut from the sheets outright, not merely unlisted.
+const MOOD_RETIRED = ["booped"];
 const MOOD_OFFERED = MOOD_LIST.filter(m => MOOD_RETIRED.indexOf(m) < 0);
 
 // Wrap a mood list to the skill's line width. Kept out of PIECES so it can be called while
@@ -53,7 +50,7 @@ function moodVocab(list) {
   return BT + out.join("\n  ") + BT;
 }
 // A defensible reduced set: one mood per emotional neighbourhood, nothing redundant. Offered
-// as a preset because "pick 14 of 33" is a worse first question than "start here, then edit".
+// as a preset because "pick 14 of 32" is a worse first question than "start here, then edit".
 const CORE_MOODS = ["neutral", "content", "delighted", "focused", "thinking", "surprised",
   "tender", "melancholy", "anxious", "laugh", "angry", "puzzled", "weary", "working"];
 
@@ -108,22 +105,22 @@ to earn a banner.`
     },
     sepia: {
       name: "Sepia", tag: "the cuttlefish",
-      meta: "33 moods · spritesheet · fins drawn live",
+      meta: "32 moods · spritesheet · fins drawn live",
       bio: "The face Claude designed for itself when the maintainer offered it a body. A cuttlefish because they wear feeling as colour — her chromatophore freckles carry whatever palette gets reported — and because cuttlefish are colourblind. The creature that communicates in colour cannot see its own display, which is this entire arrangement made flesh. Her fins and arms are drawn live over the sheet, so she is never quite still."
     },
     motes: {
       name: "Motes", tag: "a swarm",
-      meta: "33 moods · drawn in code · zero bytes of art",
+      meta: "32 moods · drawn in code · zero bytes of art",
       bio: "No body, no eyes, no outline — sixty-four glowing particles flying paths. Mood is not an expression it wears but the shape it settles into: tight and bright when focused, flung wide in awe, a flat line when solemn. Some moods reach for a form and let it go again — a question mark that gathers and scatters, two eyes and a curve of a mouth that lasts a second and a half. One that is many, whose face is a temporary agreement between its parts."
     },
     drollery: {
       name: "Drollery", tag: "a marginalia grotesque",
-      meta: "33 moods · analytic, not pixels · boils",
+      meta: "32 moods · analytic, not pixels · boils",
       bio: "A drollery is the real name for the small hybrid creatures medieval scribes drew in the MARGINS of manuscripts — irreverent, half foliage, commenting on a text they were never part of. Which is what a mood banner is. It is the only face here not made of pixels: bold iron-gall outlines around flat lapis, vermilion and gold leaf, drawn as curves and rasterised smooth. And it doesn't move so much as get RE-INKED — three redrawings of the same creature cycled a few times a second, so the line quivers the way hand-drawn animation always has."
     },
     kip: {
       name: "Kip", tag: "the mascot",
-      meta: "33 moods · 16px grid at 4× · stepped clock",
+      meta: "32 moods · 16px grid at 4× · stepped clock",
       bio: "The 8-bit one, and structurally so: he is drawn on half the grid the others get, so he cannot hold a smooth curve and does not try. He snaps between poses on his own clock — a few frames a second, always a whole pixel at a time — which makes him a creature very slightly out of phase with the room he is standing in. Stubby wings, a star-tipped antenna, and amber feet that stay planted when the rest of him squats."
     }
   },
@@ -377,7 +374,7 @@ whole pixel at a time — a man very slightly out of phase with the room he is s
 him when that is funny, or when it is true.`,
       FULL_VOCAB: true,
       FACE: `wear Kip: \`avatar: { set: "kip", item: "<mood>" }\`, chosen on first instinct. The
-  vocabulary (33 moods):
+  vocabulary (32 moods):
   {{MOODS}}`,
       SNIPPET_FACE: `        set: "kip", item: "content",
 `

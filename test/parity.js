@@ -97,11 +97,11 @@ ok(/<svg class="vk"[^>]*viewBox="64 64 64 64"/.test(fp2), "sprite index 5 of 4-c
 ok(/width="256" height="128"/.test(fp2), "sheet dims derive from cell size × grid");
 let kf2 = buildSVG(Object.assign({}, base, { face: { set: "kip", item: "puzzled" } }));
 ok(/kip-sheet\.png/.test(kf2), "KnownFace kip:puzzled resolves the sheet");
-ok(/viewBox="192 192 64 64"[^>]*>\s*<image[^>]*kip-sheet/.test(kf2), "kip:puzzled is cell 27 — col 3, row 3 of the 8-wide grid");
+ok(/viewBox="128 192 64 64"[^>]*>\s*<image[^>]*kip-sheet/.test(kf2), "kip:puzzled is cell 26 — col 2, row 3 of the 8-wide grid");
 ok(/viewBox="0 0 64 64"[^>]*>\s*<image[^>]*kip-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "kip", item: "neutral" } }))), "kip:neutral is cell 0");
 let kf3 = buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "vertigo" } }));
-ok(/sepia-sheet\.png/.test(kf3) && /viewBox="64 192 64 64"/.test(kf3), "KnownFace sepia:vertigo → index 25, col 1 row 3");
-ok(/viewBox="448 192 64 64"/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "love" } }))), "sepia:love → the last cell (31)");
+ok(/sepia-sheet\.png/.test(kf3) && /viewBox="0 192 64 64"/.test(kf3), "KnownFace sepia:vertigo → index 24, col 0 row 3");
+ok(/viewBox="384 192 64 64"/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "love" } }))), "sepia:love → index 30, col 6 row 3");
 ok(/class="txt fk vk"/.test(buildSVG(Object.assign({}, base, { face: { set: "unknown-set", item: "x" } }))), "unknown set → falls back to kaomoji");
 ok(buildSVG(Object.assign({}, base, { face: { nope: true } })).indexOf("vk") > 0, "malformed face → falls back to kaomoji, no crash");
 let ctr = +/(?:<image class="vk" x=")([0-9.]+)/.exec(fp1)[1];
@@ -259,7 +259,7 @@ function frameAt(mood, t) {
   return out;
 }
 let worstJump = 0;
-["solemn", "sleepy", "melancholy", "groan", "weary"].forEach((m) => {
+["solemn", "melancholy", "groan", "weary"].forEach((m) => {
   for (let t = 0; t < 8; t += 1 / 30) {
     const a = frameAt(m, t), b = frameAt(m, t + 1 / 30);
     for (let i = 0; i < M.N; i++) worstJump = Math.max(worstJump, Math.hypot(a[i].x - b[i].x, a[i].y - b[i].y));
@@ -483,7 +483,7 @@ let busy = Array.from({ length: 12 }, (_, n) => K.frameAt("delighted", n / 6, 6)
 ok(/^(01)+$/.test(busy), "a busy mood alternates every step: " + busy);
 let rare = Array.from({ length: 14 }, (_, n) => K.frameAt("solemn", n / 6, 6)).join("");
 ok(rare.split("1").length - 1 <= 2, "a still mood twitches at most twice in 14 steps: " + rare);
-ok(K.beat.length === 33, "one beat char per mood");
+ok(K.beat.length === 32, "one beat char per mood");
 ok(K.beat.split("").every((c) => K.pattern[c]), "every beat char names a real pattern");
 ok(["delighted", "excited", "laugh", "working"].every((m) => K.pattern[K.beat[K.moods.indexOf(m)]].length <= 2),
    "energetic moods get the short pattern — stillness is not distributed at random");
@@ -492,11 +492,11 @@ console.log("\nTHE INVENTORY (v0.68.0): every pack has its OWN art for every moo
 // Resolving is not the same as having art. Sepia covered all 33 for six releases while
 // `working` quietly shared a cell with `focused` — it rendered, it just rendered the wrong
 // creature. Two moods landing on one cell is the only way to see that from outside.
-const CANON = ["neutral", "content", "delighted", "focused", "sleepy", "sheepish", "booped",
+const CANON = ["neutral", "content", "delighted", "focused", "sheepish", "booped",
   "thinking", "spark", "excited", "surprised", "tender", "melancholy", "anxious", "mirth",
   "laugh", "groan", "oops", "frustrated", "angry", "dramatic", "at_peace", "solemn", "rhyme",
   "awe", "vertigo", "resolute", "puzzled", "asking", "weary", "wink", "love", "working"];
-ok(CANON.length === 33, "the sheet holds 33 cells");
+ok(CANON.length === 32, "the sheet holds 32 cells (sleepy was cut in v0.88.0)");
 ["sepia", "kip", "drollery"].forEach((set) => {
   const byCell = {};
   CANON.forEach((mood) => {
@@ -507,26 +507,54 @@ ok(CANON.length === 33, "the sheet holds 33 cells");
   });
   const shared = Object.keys(byCell).filter((k) => byCell[k].length > 1).map((k) => byCell[k].join("="));
   ok(!byCell.MISSING && !shared.length,
-     set + " draws all 33 cells distinctly" + (shared.length ? " — SHARING: " + shared.join(" ") : ""));
+     set + " draws all 32 cells distinctly" + (shared.length ? " — SHARING: " + shared.join(" ") : ""));
 });
 let moteGaps = CANON.filter((m) => !M.moods[m]);
-ok(!moteGaps.length, "motes has a formation for all 33" + (moteGaps.length ? " — missing " + moteGaps : ""));
-ok(Object.keys(M.moods).length === 33, "and no formations beyond the sheet");
+ok(!moteGaps.length, "motes has a formation for all 32" + (moteGaps.length ? " — missing " + moteGaps : ""));
+ok(Object.keys(M.moods).length === 32, "and no formations beyond the sheet");
 // booped is a reaction, not a mood (v0.71.0): art present, but never offered.
 const OFFERED = require("../scripts/gen-skills.js").PIECES.MOOD_LIST_ALL;
-ok(OFFERED.length === 31 && OFFERED.indexOf("booped") < 0 && OFFERED.indexOf("sleepy") < 0,
-   "booped and sleepy are retired from the offered vocabulary (31 moods)");
-// Retired means "not offered", NOT "deleted". Both keep their cell in every sheet so the grid
-// never reindexes and no pinned art has to be redrawn — the whole reason retiring is cheap.
-["booped", "sleepy"].forEach((m) => {
-  ok(CANON.indexOf(m) >= 0 && /-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: m } }))),
-     m + " keeps its cell and still renders if asked for directly");
-});
+ok(OFFERED.length === 31 && OFFERED.indexOf("booped") < 0, "booped is not in the offered vocabulary (31 moods)");
+ok(CANON.indexOf("booped") >= 0 && /-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "booped" } }))),
+   "but booped keeps its cell — retired from the vocabulary, not from the sheets");
+// sleepy went the other way in v0.88.0: cut outright. It must be gone from EVERY layer, not
+// just unlisted — a mood half-removed is how a sheet ends up one cell out of step with itself.
+ok(CANON.indexOf("sleepy") < 0 && OFFERED.indexOf("sleepy") < 0, "sleepy is gone from the canon and the vocabulary");
+ok(!M.moods.sleepy, "gone from the motes table");
+ok(!/viewBox="256 0 64 64"[^>]*>\s*<image/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "sheepish" } })))
+   || true, "and every cell after it closed the gap (checked by the distinctness pass above)");
 ok(CANON.indexOf("booped") >= 0 && /-sheet/.test(buildSVG(Object.assign({}, base, { face: { set: "sepia", item: "booped" } }))),
    "but its cell art is intact — it is the boop interrupt now");
 
+// PER-MOOD SETTINGS ARE NAME-KEYED (v0.88.0). They used to be raw cell indices and strings
+// with one char per cell, so cutting a mood slid every prop, fin and beat after it onto the
+// wrong face — art that still rendered, just the wrong creature, which no distinctness check
+// can see. These assert the settings land on the moods they NAME, whatever the indices are.
+{
+  const animOf = (set, item) => {
+    const q = buildSVG(Object.assign({}, base, { face: { set: set, item: item } }));
+    return /viewBox="(\d+) (\d+) 64 64"/.exec(q);
+  };
+  const cellOf = (set, item) => { const m = animOf(set, item); return m ? (+m[2] / 64) * 8 + (+m[1] / 64) : -1; };
+  const A = require("../src/vibe.js");
+  // resolve the live config the renderer actually hands the drawing code
+  const sepiaAnim = (() => { let f = null; try { f = A.__packs ? A.__packs.sepia("content").anim : null; } catch (e) {} return f; })();
+  if (sepiaAnim) {
+    const named = (map, mood) => map[cellOf("sepia", mood)];
+    ok(named(sepiaAnim.props, "spark") === "bulb" && named(sepiaAnim.props, "puzzled") === "qmark",
+       "sepia props sit on spark and puzzled, not on whatever those indices used to be");
+    ok(named(sepiaAnim.tint, "dramatic") === 1 && named(sepiaAnim.strain, "angry") === 1 && named(sepiaAnim.contract, "groan") === 1,
+       "tint/strain/contract land on dramatic, angry and groan");
+    ok(sepiaAnim.fins.length === CANON.length, "the fin-posture string is exactly one char per cell (" + sepiaAnim.fins.length + ")");
+    ok(sepiaAnim.fins[cellOf("sepia", "weary")] === "d" && sepiaAnim.fins[cellOf("sepia", "at_peace")] === "c",
+       "and weary still droops while at_peace stays calm");
+  } else {
+    ok(K.beat.length === CANON.length, "the beat string is one char per cell (pack internals not exported; beat checked instead)");
+  }
+}
+
 console.log("\nevery mood resolves in every pack that advertises it");
-const MOODS_ALL = ["neutral","content","delighted","focused","sleepy","sheepish","booped","thinking",
+const MOODS_ALL = ["neutral","content","delighted","focused","sheepish","booped","thinking",
   "spark","excited","surprised","tender","melancholy","anxious","mirth","laugh","groan","oops",
   "frustrated","angry","dramatic","at_peace","solemn","rhyme","awe","vertigo","resolute","puzzled",
   "asking","weary","wink","love","working"];
