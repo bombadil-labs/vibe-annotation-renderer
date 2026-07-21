@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@f2e5e696700715b315c600f5e45f8a8eca3b035e/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@22e4274bfcbb35a4085990d5d0c9336ac7bdb02c/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/drollery-sheet.png";
