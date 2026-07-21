@@ -745,12 +745,12 @@ var galleryBodyWrap = (function () {
   if (db) db.parentNode.insertBefore(wrap, db.nextSibling);      // right after his button — it's HIS picker, not a trailing control
   return wrap;
 })();
-document.querySelectorAll("#face-picker button").forEach(function (b) {
+document.querySelectorAll("#face-picker button[data-face]").forEach(function (b) {
   if (b.dataset.face === FACE_CHOICE) b.classList.add("active");
   b.addEventListener("click", function () {
     FACE_CHOICE = b.dataset.face;
     try { localStorage.setItem("vibeFace", FACE_CHOICE); } catch (e) {}
-    document.querySelectorAll("#face-picker button").forEach(function (x) { x.classList.remove("active"); });
+    document.querySelectorAll("#face-picker button[data-face]").forEach(function (x) { x.classList.remove("active"); });
     b.classList.add("active");
     galleryBodyWrap.style.display = FACE_CHOICE === "drollery" ? "inline-flex" : "none";
     renderBio(document.getElementById("face-bio"), FACE_CHOICE, true);
