@@ -1784,7 +1784,11 @@
     // ends with a blank line: consecutive taps (a boop then a feeding) land as separate
     // paragraphs instead of fusing into one run-on string.
     var VP = "[vibe banner] ";
-    function say(msg) { root.sendPrompt(VP + msg + "\n\n"); }
+    // Silently drops when there is no host to say it to (v1.9.0). The tray now renders on
+    // plain pages — the Builder and Explorer previews, the gallery, anyone's static embed —
+    // where the gestures still animate but their words have nowhere to go. Guarding here
+    // rather than at each call site means no button has to know whether it is in a chat.
+    function say(msg) { if (typeof root.sendPrompt === "function") root.sendPrompt(VP + msg + "\n\n"); }
     // live scene state: drawn natively in the frame loop below (never an animated image —
     // see DESIGN.md). Ambience runs for everyone; only the click affordances gate on play.
     var live = (L.scene && L.scene.live && L.portrait) ? { kind: L.scene.live, ripples: [], feeds: [], plate: 0 } : null;
@@ -1872,7 +1876,15 @@
         kaoEl.style.cursor = "pointer";
         kaoEl.addEventListener("click", function (e) { e.stopPropagation(); say("*boop*"); });
       }
-      if (p.play !== false) {
+    }
+    // THE TRAY RENDERS EVERYWHERE (v1.9.0). It used to sit inside the sendPrompt gate above,
+    // so every surface without a chat host — the Builder and Explorer previews, the gallery,
+    // any static embed — drew no tray at all. But the gestures are mostly ANIMATION, and the
+    // animation is exactly what someone picking a face and a home is trying to see. So the
+    // tray is gated on `play` alone now: the effects fire for everyone, and `say` drops the
+    // words when there is nobody to hear them. Same shape as the boop interrupt, which has
+    // always run on plain pages for this reason.
+    if (p.play !== false) {
       var tray = document.createElement("div");                // hover tray, upper LEFT (Claude's own UI owns the upper right)
       tray.style.cssText = "position:absolute;top:2px;left:6px;z-index:3;opacity:0;transition:opacity .25s";
       var BTN = "background:none;border:none;cursor:pointer;font-size:14px;padding:2px;line-height:1";
@@ -1906,10 +1918,17 @@
       // absence of a task, which nothing on the canvas can honestly depict. A kite because
       // its entire purpose is to be pointless and pleasant; anything more specific (a quill,
       // a book, dice) would pick the activity, and picking is the part being handed over.
+      //
+      // It borrows the BOOP CELL for its reaction rather than inventing one. There is no art
+      // for being handed an afternoon, and the nearest true thing a face already knows how to
+      // do is look up — which is the boop cell: caught mid-something, attention lifted. It
+      // also means the button does something visible on a page with no chat behind it, where
+      // the message goes nowhere and the flash is the entire feedback.
       var pb = document.createElement("button");
       pb.textContent = "🪁"; pb.title = "invite claude to play"; pb.style.cssText = BTN;
       pb.addEventListener("click", function () {
         conReset = true;                                       // being offered the afternoon relaxes her, the same as a boop or a meal
+        boopCellFx = { t0: null };                             // she looks up — the one reaction that already exists for "something just arrived"
         say("*sets the work aside and offers you a little while — no agenda*");
       });
       var sb = document.createElement("button");               // the wrench: asks the reporter to open settings talk
@@ -1920,7 +1939,6 @@
       tray.appendChild(fb); tray.appendChild(pb); tray.appendChild(sb); wrap.appendChild(tray);
       wrap.addEventListener("mouseenter", function () { tray.style.opacity = "0.75"; });
       wrap.addEventListener("mouseleave", function () { tray.style.opacity = "0"; });
-      }
     }
     if (kaoEl) {
       kaoEl.style.transformOrigin = "50% 50%";                 // an HTML face pivots on its own centre — no transform-box juju
