@@ -359,12 +359,21 @@ const sceneOf = (sc) => {
   const m = /href="([^"]*assets\/scene-[^"]*)"/.exec(q);
   return m ? m[1] : null;
 };
-["tidepool", "study", "night", "glade"].forEach((n) => {
+["tidepool", "study", "night"].forEach((n) => {
   const u = sceneOf(n);
   ok(u && u.indexOf("scene-" + n + ".png") > 0, 'scene: "' + n + '" resolves to its art');
   ok(u && /@[0-9a-f]{40}\//.test(u), 'scene: "' + n + '" is pinned to a full sha, never a tag');
 });
 ok(!sceneOf("nonsense"), "an unknown name renders an EMPTY window, not a request for an image called nonsense");
+// THE PARK (v1.1.0, replaces glade): the first live-drawn scene — no art file, nothing to pin.
+// Statically it is its sky fill; the whole picture exists only in the ambience branch.
+ok(!sceneOf("park"), 'scene: "park" fetches no art at all — it is drawn live');
+{
+  const pq = buildSVG({ avatar: { set: "kip", item: "content", scene: "park" }, details: { seems: "a", feel: "b", trying: "c" } });
+  ok(/fill="#9ed4f2"/.test(pq), "the park's static face is its sky fill — reduced-motion and no-JS surfaces get a plain sky");
+  ok(!/scene-glade/.test(pq), "glade is gone from this build (old skills pin old builds that still know it)");
+}
+ok(!sceneOf("glade"), 'scene: "glade" no longer resolves here — hash-pinning means no alias is owed');
 ok(sceneOf("https://cdn.jsdelivr.net/gh/u/r@abc/assets/scene-custom.png") === null
    || /example|custom/.test(String(sceneOf("https://cdn.jsdelivr.net/gh/u/r@abc/assets/scene-custom.png"))), "a url-shaped string is still taken as a url");
 let namedObj = buildSVG({ avatar: { set: "sepia", item: "content", scene: { name: "tidepool", opacity: 0.9 } }, details: { seems: "a", feel: "b", trying: "c" } });
@@ -378,7 +387,7 @@ ok(/scene-tidepool\.png/.test(namedObj) && /opacity="0\.9"/.test(namedObj), "{ n
   const cp = require("child_process");
   const pinSha = (/@([0-9a-f]{40})\//.exec(sceneOf("tidepool")) || [])[1];
   ok(/^[0-9a-f]{40}$/.test(pinSha || ""), "SCENE_PIN is a full 40-char sha");
-  const files = ["tidepool", "study", "night", "glade"].map((n) => "scene-" + n + ".png");
+  const files = ["tidepool", "study", "night"].map((n) => "scene-" + n + ".png");   // park ships no art; glade's stays at old pins for old builds
   const missing = files.filter((f) => {
     try { cp.execSync("git cat-file -e " + pinSha + ":assets/" + f, { stdio: "ignore" }); return false; }
     catch { return true; }

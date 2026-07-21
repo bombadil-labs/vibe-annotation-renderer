@@ -716,14 +716,20 @@
     tidepool: { file: "scene-tidepool.png", live: "tidepool" },
     study: { file: "scene-study.png", live: "study" },
     night: { file: "scene-night.png", live: "night" },
-    glade: { file: "scene-glade.png", live: "glade" }
+    // THE PARK (replaces glade, v1.1.0): the first scene with NO art file — smooth pen-strokes
+    // drawn live in the ambience branch, nothing to pin. The fill is its static face: a plain
+    // sky, which is what reduced-motion and no-JS surfaces see. glade is gone from THIS build
+    // only — skills pin the bundle by sha, so every glade skill keeps loading a build that
+    // knows it, and its art stays committed for those pins to serve.
+    park: { fill: "#9ed4f2", live: "park" }
   };
-  var LIVE_KINDS = { tidepool: 1, study: 1, night: 1, glade: 1 };
+  var LIVE_KINDS = { tidepool: 1, study: 1, night: 1, park: 1 };
   var SOLID_DEFAULT = "#c8c6c0";                               // neutral warm grey — the empty-window replacement
   function hexOr(v, dflt) { v = String(v || ""); return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : dflt; }
   function sceneNamed(name) {
     var s = SCENES[String(name)];
     if (!s) return null;
+    if (!s.file) return { fill: s.fill, live: s.live || null }; // a live-drawn scene: no art, nothing to pin
     return { url: "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@" + SCENE_PIN + "/assets/" + s.file,
              live: s.live || null, opacity: 0.62 };             // naming a place means you want to see it
   }
@@ -982,13 +988,14 @@
       } else if (rawScene === true) rawScene = {};
       else if (rawScene && typeof rawScene === "object" && rawScene.name != null && rawScene.url == null) {
         var nm = sceneNamed(rawScene.name);
-        rawScene = nm ? { url: nm.url, live: rawScene.live !== undefined ? rawScene.live : nm.live,
+        rawScene = nm ? { url: nm.url, fill: nm.fill, live: rawScene.live !== undefined ? rawScene.live : nm.live,
                           opacity: rawScene.opacity == null ? nm.opacity : rawScene.opacity } : null;
       }
       // a solid fill is a scene too: `scene: { fill: "#c8c6c0" }` fills the window instead of an
-      // image — a clean neutral backdrop, the replacement for the old empty "none".
+      // image — a clean neutral backdrop, the replacement for the old empty "none". `live` rides
+      // along: the park is exactly a fill (its static sky) plus a live kind.
       if (rawScene && typeof rawScene === "object" && rawScene.fill != null && rawScene.url == null) {
-        rawScene = { fill: hexOr(rawScene.fill, SOLID_DEFAULT) };
+        rawScene = { fill: hexOr(rawScene.fill, SOLID_DEFAULT), live: rawScene.live };
       }
       scene = rawScene;
       if (scene && typeof scene === "object") {
@@ -997,7 +1004,7 @@
           url: scu,
           fill: scene.fill ? hexOr(scene.fill, SOLID_DEFAULT) : null,
           op: Math.max(0.15, Math.min(0.95, scene.opacity || 0.5)),
-          live: (scu && LIVE_KINDS[scene.live]) ? scene.live : null
+          live: ((scu || scene.fill) && LIVE_KINDS[scene.live]) ? scene.live : null
         };
       } else scene = null;
     }
@@ -1697,6 +1704,12 @@
     // live scene state: drawn natively in the frame loop below (never an animated image —
     // see DESIGN.md). Ambience runs for everyone; only the click affordances gate on play.
     var live = (L.scene && L.scene.live && L.portrait) ? { kind: L.scene.live, ripples: [], feeds: [], plate: 0 } : null;
+    if (live && live.kind === "park") {                        // day or night is the park's own state — it outlives the render
+      live.night = false;
+      try { live.night = root.localStorage && root.localStorage.getItem("vibeParkNight") === "1"; } catch (e0) {}
+      live.nk = live.night ? 1 : 0;                            // the blend factor eases toward the toggle; the tap flips the target
+      live.nkT = null;
+    }
     var feedFx = null;                                         // the feeding THRILL (v0.35.0): any environment, any face that has a thrill cell — eyes wide, mouth thrown open, one delighted pulse, then back
     var moteState = null;                                      // per-mote physics, rebuilt when the canvas resizes
     var groanT0 = 0, conReset = false;                         // the contraction cycle's clock; a boop or a feeding sends her back to relaxed
@@ -1729,6 +1742,19 @@
         var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * L.H;
         var pt = L.portrait;
         if (x >= pt.x && x <= pt.x + pt.s && y >= pt.y && y <= pt.y + pt.s) live.ripples.push({ x: x, y: y, t0: null });
+      });
+    }
+    if (live && live.kind === "park" && p.play !== false) {    // tap the sun, get the moon — and back
+      wrap.addEventListener("click", function (e) {
+        if (faceLayerEl && faceLayerEl.contains(e.target)) return;   // a boop is never a sky tap
+        var r = wrap.getBoundingClientRect(); if (!r.width || !r.height) return;
+        var x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * L.H;
+        var pt = L.portrait, uq = pt.s / 40;
+        var dx = x - (pt.x + 37 * uq), dy = y - (pt.y + 3 * uq);
+        if (dx * dx + dy * dy <= 100 * uq * uq) {              // the sun's corner, generously — a 10-unit reach around it
+          live.night = !live.night;
+          try { root.localStorage && root.localStorage.setItem("vibeParkNight", live.night ? "1" : "0"); } catch (e1) {}
+        }
       });
     }
     // THE BOOP INTERRUPT (v0.71.0). Every face flashes its boop cell when tapped, whatever
@@ -2011,29 +2037,108 @@
             var cmg = ctx.createRadialGradient(cmX, cmY, 1, cmX, cmY, ps * 0.22);
             cmg.addColorStop(0, rgba("#dfe6ff", 0.1 + 0.04 * Math.sin(t * 0.7))); cmg.addColorStop(1, rgba("#dfe6ff", 0));
             ctx.globalAlpha = 1; ctx.fillStyle = cmg; ctx.beginPath(); ctx.arc(cmX, cmY, ps * 0.22, 0, 6.2832); ctx.fill();
-            ctx.globalAlpha = 1;
-          } else if (live.kind === "glade") {                  // --- the glade: fireflies drift and blink, and a shaft of light wavers ---
-            var ug = ps / 40;
-            var shaftX = pt.x + 26 * ug;                       // one light shaft, slowly brightening and dimming
-            var shg = ctx.createLinearGradient(shaftX, pt.y, shaftX + 6 * ug, pt.y + ps);
-            var sha = 0.06 + 0.04 * Math.sin(t * 0.5 + 1);
-            shg.addColorStop(0, rgba("#eaf6c0", sha)); shg.addColorStop(1, rgba("#eaf6c0", 0));
-            ctx.globalAlpha = 1; ctx.fillStyle = shg;
-            ctx.beginPath(); ctx.moveTo(shaftX - 3 * ug, pt.y); ctx.lineTo(shaftX + 5 * ug, pt.y);
-            ctx.lineTo(shaftX + 12 * ug, pt.y + ps); ctx.lineTo(shaftX - 8 * ug, pt.y + ps); ctx.closePath(); ctx.fill();
-            for (var gi = 0; gi < 7; gi++) {                   // fireflies: lissajous drift, blinking on their own clock
-              var gr = mulberry32(L.seed + gi * 149 + 5);
-              var gph = gr() * 6.28, gsp = 0.14 + gr() * 0.16;
-              var gx = pt.x + (6 + gr() * 28) * ug + Math.sin(t * gsp + gph) * 5 * ug;
-              var gy = pt.y + (10 + gr() * 26) * ug + Math.sin(t * gsp * 1.4 + gph * 2) * 4 * ug;
-              var blink = Math.max(0, Math.sin(t * (0.8 + gr() * 0.8) + gph * 3));
-              if (blink <= 0.02) continue;
-              var ggr = ctx.createRadialGradient(gx, gy, 0.3, gx, gy, 2.4 * ug);
-              ggr.addColorStop(0, rgba("#f0ffa0", 0.9 * blink)); ggr.addColorStop(1, rgba("#c8e070", 0));
-              ctx.globalAlpha = 1; ctx.fillStyle = ggr; ctx.beginPath(); ctx.arc(gx, gy, 2.4 * ug, 0, 6.2832); ctx.fill();
-              ctx.fillStyle = rgba("#fbffd0", blink); ctx.beginPath(); ctx.arc(gx, gy, 0.7 * ug, 0, 6.2832); ctx.fill();
+            ctx.globalAlpha = 1; ctx.restore();                // (this restore was missing — the window clip leaked into the weather layer and stacked a save per frame)
+          } else if (live.kind === "park") {                   // --- the park (v1.1.0): the whole scene is drawn here, pen-strokes on canvas — no art file at all ---
+            var up = ps / 40;
+            // day↔night is a BLEND, not a swap: nk eases toward the toggle so the sky dims the
+            // way dusk actually arrives. The tap (listener above) flips the target and persists it.
+            if (live.nkT != null) live.nk += ((live.night ? 1 : 0) - live.nk) * Math.min(1, (t - live.nkT) * 2.4);
+            live.nkT = t;
+            var nk = live.nk, dk = 1 - nk;
+            var mixc = function (d, n) {                       // day hex × night hex → this moment's colour
+              var A = parseInt(d.slice(1), 16), B = parseInt(n.slice(1), 16);
+              return "rgb(" + Math.round(((A >> 16) & 255) * dk + ((B >> 16) & 255) * nk) + "," +
+                Math.round(((A >> 8) & 255) * dk + ((B >> 8) & 255) * nk) + "," +
+                Math.round((A & 255) * dk + (B & 255) * nk) + ")";
+            };
+            var gndY = pt.y + 30 * up;
+            var skg = ctx.createLinearGradient(0, pt.y, 0, gndY);   // high-saturation sky, paling to the horizon
+            skg.addColorStop(0, mixc("#56aee6", "#141d40"));
+            skg.addColorStop(1, mixc("#c4e7fa", "#2b3a68"));
+            ctx.globalAlpha = 1; ctx.fillStyle = skg;
+            ctx.fillRect(pt.x, pt.y, ps, ps);
+            if (nk > 0.03) {                                   // stars arrive with the dark
+              for (var pki = 0; pki < 9; pki++) {
+                var pkr = mulberry32(L.seed + pki * 173 + 23);
+                var pkx = pt.x + (2 + pkr() * 36) * up, pky = pt.y + (2 + pkr() * 22) * up;
+                ctx.globalAlpha = nk * (0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * (0.9 + pkr() * 2.2) + pkr() * 6.28)));
+                ctx.fillStyle = "#eaf0ff";
+                ctx.beginPath(); ctx.arc(pkx, pky, (0.4 + pkr() * 0.5) * up, 0, 6.2832); ctx.fill();
+              }
+              ctx.globalAlpha = 1;
+            }
+            var sxp = pt.x + 37 * up, syp = pt.y + 3 * up;     // the sun, peeking from the corner — and the tap target
+            var phg = ctx.createRadialGradient(sxp, syp, 1, sxp, syp, ps * 0.3);
+            phg.addColorStop(0, rgba("#ffdf8a", (0.2 + 0.05 * Math.sin(t * 0.8)) * dk + 0.07 * nk));
+            phg.addColorStop(1, rgba("#ffdf8a", 0));
+            ctx.fillStyle = phg; ctx.beginPath(); ctx.arc(sxp, syp, ps * 0.3, 0, 6.2832); ctx.fill();
+            if (dk > 0.02) {                                   // the sun by day…
+              ctx.globalAlpha = dk; ctx.fillStyle = "#ffce3a";
+              ctx.beginPath(); ctx.arc(sxp, syp, 5.5 * up, 0, 6.2832); ctx.fill();
+            }
+            if (nk > 0.02) {                                   // …the moon by night: same corner, same tap, other face
+              ctx.globalAlpha = nk; ctx.fillStyle = "#e7edf8";
+              ctx.beginPath(); ctx.arc(sxp, syp, 5 * up, 0, 6.2832); ctx.fill();
+              ctx.fillStyle = rgba("#b9c4da", nk * 0.8);
+              [[-1.6, 1.4, 1.0], [1.7, 3.0, 0.7], [0.2, 5.2, 0.8]].forEach(function (pcr) {
+                ctx.beginPath(); ctx.arc(sxp + pcr[0] * up, syp + pcr[1] * up, pcr[2] * up, 0, 6.2832); ctx.fill();
+              });
             }
             ctx.globalAlpha = 1;
+            var bper = 21, pbu = (t % bper) / bper;            // the bird: a long cycle with one short crossing in it (the hourglass's rhythm)
+            if (dk > 0.5 && pbu < 0.2) {
+              var bcy = Math.floor(t / bper), pbr = mulberry32(L.seed + bcy * 83 + 7);
+              var bdir = bcy % 2 ? -1 : 1, pbp = pbu / 0.2;
+              var pbx = bdir > 0 ? pt.x - 5 * up + pbp * (ps + 10 * up) : pt.x + ps + 5 * up - pbp * (ps + 10 * up);
+              var pby = pt.y + (4 + pbr() * 9) * up + Math.sin(pbp * 8 + pbr() * 6) * 1.4 * up;
+              var flap = Math.sin(t * 11) * 1.5 * up;          // the two-arc silhouette every child draws — because it reads at this size
+              ctx.globalAlpha = 0.85 * dk; ctx.strokeStyle = "#27394d"; ctx.lineWidth = 1.3; ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(pbx - 2.4 * up, pby);
+              ctx.quadraticCurveTo(pbx - 1.2 * up, pby - flap, pbx, pby);
+              ctx.quadraticCurveTo(pbx + 1.2 * up, pby - flap, pbx + 2.4 * up, pby);
+              ctx.stroke();
+              ctx.globalAlpha = 1;
+            }
+            ctx.fillStyle = mixc("#5cb944", "#1d3524");        // the ground plane
+            ctx.fillRect(pt.x, gndY, ps, ps - (gndY - pt.y));
+            ctx.fillStyle = mixc("#49a739", "#172a1e");        // a darker band at the horizon, for depth
+            ctx.fillRect(pt.x, gndY, ps, 1.5 * up);
+            var tbx = pt.x + 9.5 * up;                         // the tree, background left: trunk and branches as pen-strokes, canopy as swaying blobs
+            var tsw = Math.sin(t * 0.45) * 0.5 * up;
+            ctx.strokeStyle = mixc("#7a4b26", "#241d2e"); ctx.lineCap = "round";
+            ctx.lineWidth = 2.4;
+            ctx.beginPath(); ctx.moveTo(tbx - 0.4 * up, gndY + 1.5 * up);
+            ctx.quadraticCurveTo(tbx - 1.4 * up, pt.y + 22 * up, tbx + tsw * 0.4, pt.y + 14 * up);
+            ctx.stroke();
+            ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.moveTo(tbx - 0.9 * up, pt.y + 21 * up);
+            ctx.quadraticCurveTo(tbx - 3.4 * up, pt.y + 18.4 * up, tbx - 4.6 * up + tsw * 0.6, pt.y + 15.5 * up);
+            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(tbx - 0.4 * up, pt.y + 18 * up);
+            ctx.quadraticCurveTo(tbx + 2.4 * up, pt.y + 16 * up, tbx + 3.8 * up + tsw * 0.7, pt.y + 13.5 * up);
+            ctx.stroke();
+            [[-3.6, 0.4, 5.6, "#3f9d3f", "#152c22"], [3.2, 0.8, 5.0, "#57b74a", "#1a3527"], [-0.2, -3.4, 5.2, "#6cc95a", "#20402c"]].forEach(function (pcb, pci) {
+              ctx.fillStyle = mixc(pcb[3], pcb[4]);
+              ctx.beginPath();
+              ctx.arc(tbx + pcb[0] * up + tsw * (0.6 + pci * 0.25), pt.y + 11.5 * up + pcb[1] * up, pcb[2] * up, 0, 6.2832);
+              ctx.fill();
+            });
+            for (var pgi = 0; pgi < 14; pgi++) {               // grass tufts: three strokes each, swaying out of step — the pen the brief asked for
+              var pgr = mulberry32(L.seed + pgi * 227 + 31);
+              var pgx = pt.x + (1.5 + pgr() * 37) * up, pgy = gndY + (2 + pgr() * 6.5) * up;
+              var pgh = (2.4 + pgr() * 1.8) * up;
+              var pgsw = Math.sin(t * (0.6 + pgr() * 0.5) + pgr() * 6.28) * 0.9 * up;
+              ctx.strokeStyle = mixc(pgi % 2 ? "#2f7d2a" : "#7fd45f", pgi % 2 ? "#0f2114" : "#2c4a34");
+              ctx.lineWidth = 1.2; ctx.lineCap = "round";
+              for (var pbl = -1; pbl <= 1; pbl++) {
+                ctx.beginPath(); ctx.moveTo(pgx + pbl * 0.8 * up, pgy);
+                ctx.quadraticCurveTo(pgx + pbl * 1.1 * up, pgy - pgh * 0.55,
+                  pgx + pbl * 1.7 * up + pgsw, pgy - pgh * (pbl === 0 ? 1 : 0.75));
+                ctx.stroke();
+              }
+            }
+            ctx.globalAlpha = 1; ctx.restore();
           } else {
           for (var ui = 0; ui < 7; ui++) {                     // bubbles: seeded columns, rising, wrapping
             var ur = mulberry32(L.seed + ui * 271 + 11);

@@ -13,8 +13,9 @@ let fails = 0;
 const cases = [
   ["sepia / tidepool / all moods", "sepia", { scene: "tidepool" }],
   ["motes / night / core moods", "motes", { scene: "night", moods: G.PIECES.CORE_MOODS }],
-  ["kip / glade / five moods", "kip", { scene: "glade", moods: ["neutral", "content", "laugh", "solemn", "working"] }],
+  ["kip / park / five moods", "kip", { scene: "park", moods: ["neutral", "content", "laugh", "solemn", "working"] }],
   ["drollery / study / cadence", "drollery", { scene: "study", cadence: "every_n", every: 4 }],
+  ["drollery / study / verdigris body", "drollery", { scene: "study", body: "verdigris" }],
   ["kaomoji / no scene", "kaomoji", {}]
 ];
 cases.forEach(([label, face, opts]) => {
@@ -37,6 +38,19 @@ cases.forEach(([label, face, opts]) => {
     }
   }
   console.log("  " + (same ? "ok  " : "FAIL") + "  " + label + "  (" + cli.length + " chars)");
+});
+// The body option itself (not just its parity): a real choice lands in the snippet beside
+// `set`, and the default — or a name that isn't a committed sheet — emits nothing at all.
+[
+  [G.assemble("drollery", { body: "verdigris" }).indexOf('set: "drollery", body: "verdigris"') >= 0,
+    "a chosen body is written into the snippet, beside set"],
+  [G.assemble("drollery", { body: "vermilion" }) === G.assemble("drollery", {}),
+    "the default body emits nothing — vermilion builds byte-match bodyless builds"],
+  [G.assemble("drollery", { body: "chartreuse" }) === G.assemble("drollery", {}),
+    "an unknown body emits nothing rather than advertising a sheet that does not exist"]
+].forEach(([pass, label]) => {
+  if (!pass) fails++;
+  console.log("  " + (pass ? "ok  " : "FAIL") + "  " + label);
 });
 console.log(fails ? "\n  " + fails + " MISMATCH" : "\n  the Builder and the CLI produce identical skills");
 process.exit(fails ? 1 : 0);

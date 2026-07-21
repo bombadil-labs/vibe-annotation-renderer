@@ -163,7 +163,7 @@
     <h2>What you get</h2>
     <ul class="features">
       <li><b>Five faces</b><span>Kaomoji, Sepia the cuttlefish, a procedural swarm, an inkblot, and a pixel mascot — each speaks all 32 moods.</span></li>
-      <li><b>Four living habitats</b><span>A tidepool, a study, a night sky, a glade — the window behind the face, quietly alive.</span></li>
+      <li><b>Four living habitats</b><span>A tidepool, a study, a night sky, a park — the window behind the face, quietly alive.</span></li>
       <li><b>Yours to shape</b><span>Rename the readout lines, set how often it fires, pick a home. Built in the browser, no account.</span></li>
       <li><b>One tiny paste</b><span>Install is a single file on claude.ai, or one download for Claude Code. No dependencies.</span></li>
     </ul>
@@ -257,7 +257,7 @@
     <pre>npm run skill:install</pre>
     <p>Any pairing works, to stdout or to a path:</p>
     <pre>npm run skill -- motes night
-npm run skill -- kip glade -o ./SKILL.md</pre>
+npm run skill -- kip park -o ./SKILL.md</pre>
     <p class="note">There is no checked-in <code>SKILL.md</code> to curl. The skill is composed
     — here, or by that script, both running the same generator — because a copy sitting in the
     repo was only ever a second thing to drift, and it did.</p>
@@ -281,7 +281,7 @@ npm run skill -- kip glade -o ./SKILL.md</pre>
   vibe(document.getElementById('v'), {
     avatar: {                                  // who you are, and where
       set: "sepia", item: "content",           //   any pack; all of them speak the same 32 moods
-      scene: "tidepool"                        //   a name: tidepool · study · night · glade
+      scene: "tidepool"                        //   a name: tidepool · study · night · park
     },
     palette: ["#7d8fb8"],                      // top level: it colours YOU as well as the field
     details: {                                 // everything shown beside the window
@@ -562,6 +562,8 @@ var SCENE_CHOICE = "solid";
 try { SCENE_CHOICE = localStorage.getItem("vibeGalleryScene") || "solid"; } catch (e) {}
 var GALLERY_FILL = "#c8c6c0";
 try { GALLERY_FILL = localStorage.getItem("vibeGalleryFill") || "#c8c6c0"; } catch (e) {}
+var GALLERY_BODY = "vermilion";
+try { GALLERY_BODY = localStorage.getItem("vibeGalleryBody") || "vermilion"; } catch (e) {}
 // The gallery dresses every cell in the chosen face AND the chosen habitat — the same
 // two axes the Explorer plays with, applied across forty real exchanges at once. Scenes
 // come from SKILL_PIECES so the menu can never drift from what actually ships.
@@ -591,7 +593,10 @@ function withFace(p) {
   if (use === "sepia") q.face = { set: "sepia", item: mood };
   else if (use === "motes") q.face = { set: "motes", item: mood };
   else if (use === "kip") q.face = { set: "kip", item: mood };
-  else if (use === "drollery") q.face = { set: "drollery", item: mood };   // Kip speaks all 33 now; no mapping
+  else if (use === "drollery") {                                // Kip speaks all 33 now; no mapping
+    q.face = { set: "drollery", item: mood };
+    if (GALLERY_BODY !== "vermilion") q.face.body = GALLERY_BODY;   // the default stays unwritten
+  }
   else delete q.face;                                           // kaomoji: drop any baked-in face, or it survives the picker
   var sa = sceneArg(SCENE_CHOICE, { opacity: 0.55, fill: GALLERY_FILL });
   if (sa) q.scene = sa;
@@ -708,6 +713,38 @@ function renderBio(el, face, withTile) {
     ' <span class="bio-meta">' + b.meta + '</span><br>' + b.bio;
   el.appendChild(txt);
 }
+// Drollery's body swatches — the same pattern as the scene picker's solid-colour swatch:
+// a control that only appears while the choice it governs is on stage. Colours come from
+// SKILL_PIECES.BODIES so the strip can never advertise a sheet that doesn't ship.
+var galleryBodyWrap = (function () {
+  var B = (window.SKILL_PIECES && window.SKILL_PIECES.BODIES) || {};
+  if (!B[GALLERY_BODY]) GALLERY_BODY = "vermilion";              // a stale stored name falls back rather than 404ing
+  var wrap = document.createElement("span");
+  wrap.style.cssText = "align-items:center;gap:4px;margin-left:4px;display:" +
+    (FACE_CHOICE === "drollery" ? "inline-flex" : "none") + ";";
+  var btns = {};
+  function paint() {
+    Object.keys(btns).forEach(function (bn) {
+      btns[bn].style.border = GALLERY_BODY === bn ? "2px solid var(--accent)" : "1px solid var(--edge)";
+    });
+  }
+  Object.keys(B).forEach(function (bn) {
+    var sw = document.createElement("button");
+    sw.title = "drollery's body: " + bn + (bn === "vermilion" ? " (the default)" : "");
+    sw.setAttribute("aria-label", "drollery's body: " + bn);
+    sw.style.cssText = "width:20px;height:20px;padding:0;border-radius:6px;cursor:pointer;vertical-align:middle;background:" + B[bn] + ";";
+    sw.addEventListener("click", function () {
+      GALLERY_BODY = bn;
+      try { localStorage.setItem("vibeGalleryBody", bn); } catch (e) {}
+      paint(); buildGallery();
+    });
+    btns[bn] = sw; wrap.appendChild(sw);
+  });
+  paint();
+  var db = document.querySelector('#face-picker button[data-face="drollery"]');
+  if (db) db.parentNode.insertBefore(wrap, db.nextSibling);      // right after his button — it's HIS picker, not a trailing control
+  return wrap;
+})();
 document.querySelectorAll("#face-picker button").forEach(function (b) {
   if (b.dataset.face === FACE_CHOICE) b.classList.add("active");
   b.addEventListener("click", function () {
@@ -715,6 +752,7 @@ document.querySelectorAll("#face-picker button").forEach(function (b) {
     try { localStorage.setItem("vibeFace", FACE_CHOICE); } catch (e) {}
     document.querySelectorAll("#face-picker button").forEach(function (x) { x.classList.remove("active"); });
     b.classList.add("active");
+    galleryBodyWrap.style.display = FACE_CHOICE === "drollery" ? "inline-flex" : "none";
     renderBio(document.getElementById("face-bio"), FACE_CHOICE, true);
     buildGallery();
   });
@@ -816,7 +854,7 @@ route();
     // skills shipped sceneless for months: an empty window looks like a considered choice
     // rather than an unmade one. Switching face follows that face's home unless you've picked.
     face: "sepia", cadence: "always", every: 3, scene: "tidepool", sceneUrl: "", sceneOp: 0.5, sceneFill: "#c8c6c0", moods: null,
-    scenePicked: false,
+    scenePicked: false, body: "vermilion",
     fields: clone(P.DEFAULT_FIELDS),
     customLines: "content = https://cdn.jsdelivr.net/gh/you/faces@commit/content.png\ndelighted = https://cdn.jsdelivr.net/gh/you/faces@commit/delighted.png"
   };
@@ -845,7 +883,10 @@ route();
       var ce = customEntries().entries;
       var hit = ce.filter(function (e) { return e[0] === mood.m; })[0] || ce[0];
       if (hit) pay.face = hit[1]; else pay.face = mood.k || "( ˘ ᵕ ˘ )";
-    } else pay.face = { set: S.face, item: mood.m };
+    } else {
+      pay.face = { set: S.face, item: mood.m };
+      if (S.face === "drollery" && S.body !== "vermilion") pay.face.body = S.body;   // the default stays unwritten, here as in the skill
+    }
     var sa = sceneArg(S.scene, { opacity: S.sceneOp, url: sceneUrl(), fill: S.sceneFill });
     if (sa) pay.scene = sa;
     try { window.vibe(inner, pay); } catch (e) { }
@@ -940,6 +981,34 @@ route();
   bBio.style.cssText = "border-top:none;padding-top:0;margin:10px 0 2px;";
   c2.appendChild(bBio);
   renderBio(bBio, S.face, false);                              // paint on creation, not before it exists
+
+  // DROLLERY'S BODY (v1.0.0): five swatches, shown only when he is worn — the same pattern as
+  // the solid-colour picker that only appears for "solid". The swatch colours come from
+  // P.BODIES, so the menu can never drift from the sheets that actually ship.
+  var bodyRow = document.createElement("div");
+  bodyRow.style.cssText = "display:none;align-items:center;gap:6px;font-size:13px;color:var(--sub);margin:10px 0 2px;";
+  bodyRow.appendChild(document.createTextNode("body"));
+  var bodyBtns = {};
+  Object.keys(P.BODIES || {}).forEach(function (bn) {
+    var sw = document.createElement("button");
+    sw.title = bn + (bn === "vermilion" ? " (the default)" : "");
+    sw.setAttribute("aria-label", "body: " + bn);
+    sw.style.cssText = "width:24px;height:24px;padding:0;border-radius:7px;cursor:pointer;background:" + P.BODIES[bn] + ";";
+    sw.addEventListener("click", function () { S.body = bn; paintBody(); refreshScene(); });   // refreshScene re-dresses the live preview, the composite chip, the narrators and the file
+    bodyBtns[bn] = sw; bodyRow.appendChild(sw);
+  });
+  var bodyName = document.createElement("span");
+  bodyName.style.cssText = "font-size:12px;color:var(--sub);";
+  bodyRow.appendChild(bodyName);
+  function paintBody() {
+    bodyRow.style.display = S.face === "drollery" ? "flex" : "none";
+    Object.keys(bodyBtns).forEach(function (bn) {
+      bodyBtns[bn].style.border = S.body === bn ? "2px solid var(--accent)" : "1px solid var(--edge)";
+    });
+    bodyName.textContent = S.body + (S.body === "vermilion" ? " (default)" : "");
+  }
+  paintBody();
+  c2.appendChild(bodyRow);
 
   // MOOD SUBSET (v0.70.0). Every skill listed all 33. Trimming saves a little text, but the
   // bigger effect is on the reporter: a menu of twelve is answered faster and more honestly
@@ -1049,7 +1118,10 @@ route();
       var ce = customEntries().entries;
       var hit = ce.filter(function (e) { return e[0] === previewMood; })[0] || ce[0];
       if (hit) pay.face = hit[1];
-    } else pay.face = { set: S.face, item: previewMood };
+    } else {
+      pay.face = { set: S.face, item: previewMood };
+      if (S.face === "drollery" && S.body !== "vermilion") pay.face.body = S.body;
+    }
     var sa2 = sceneArg(S.scene, { opacity: S.sceneOp, url: sceneUrl(), fill: S.sceneFill });
     if (sa2) pay.scene = sa2;
     try { window.vibe(liveMount, pay); } catch (e) { liveMount.textContent = "(preview failed: " + e.message + ")"; }
@@ -1067,8 +1139,9 @@ route();
   faceSel.addEventListener("change", function () {
     S.face = faceSel.value;
     renderBio(document.getElementById("b-bio"), S.face, false);
-    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" };
+    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "park", drollery: "study" };
     if (!S.scenePicked && homes[S.face]) { S.scene = homes[S.face]; scSel.value = S.scene; }   // each face has a place it reads best in
+    paintBody();
     refreshLive(); refreshCustom(); refreshScene(); renderNarrators(); status();
   });
   customTa.addEventListener("input", function () { S.customLines = customTa.value; refreshCustom(); status(); });
@@ -1105,7 +1178,7 @@ route();
   var scPrev = document.createElement("div");                  // always visible: the composite window — chosen face inside, environment behind
   cE.appendChild(scPrev);
   function refreshScene() {
-    var isImage = S.scene === "custom" || !!P.SCENES[S.scene];
+    var isImage = S.scene === "custom" || !!(P.SCENES[S.scene] && P.SCENES[S.scene].url);   // the park is live-drawn, no image — opacity has nothing to act on
     scUrlIn.style.display = S.scene === "custom" ? "block" : "none";
     scOpRow.style.display = isImage ? "flex" : "none";
     scFillRow.style.display = S.scene === "solid" ? "flex" : "none";
@@ -1252,7 +1325,7 @@ route();
   function assembleAll() {
     return P.ASSEMBLE(S.face, {
       name: NAME, cadence: S.cadence, every: S.every, fields: S.fields,
-      scene: sceneArgForSkill(), moods: S.moods,
+      scene: sceneArgForSkill(), moods: S.moods, body: S.body,
       flags: true, cues: true, play: true
     }, P);
   }
@@ -1297,7 +1370,7 @@ route();
   var ctl = document.getElementById("x-controls"), mnt = document.getElementById("x-mount"), cap = document.getElementById("x-caption");
   if (!P || !ctl) return;
   var SEL = "font-size:13.5px;padding:7px 9px;border:1px solid var(--edge);border-radius:8px;background:var(--paper);color:var(--ink);";
-  var X = { set: "sepia", item: "content", scene: "tidepool", sceneUrl: "", op: 0.55, fill: "#c8c6c0" };
+  var X = { set: "sepia", item: "content", scene: "tidepool", sceneUrl: "", op: 0.55, fill: "#c8c6c0", body: "vermilion" };
 
   function mkSel(label, opts, val, onch) {
     var w = document.createElement("label");
@@ -1312,6 +1385,27 @@ route();
 
   var faceSel = mkSel("face", [["kaomoji", "kaomoji"], ["sepia", "sepia"], ["motes", "motes"], ["drollery", "drollery"], ["kip", "kip"]], X.set,
     function (v) { X.set = v; refreshItems(); render(); renderBio(document.getElementById("x-bio"), v, false); });
+
+  // Drollery's body swatches — visible only while he is the chosen face (refreshItems toggles
+  // them), the same only-when-relevant pattern as the solid-colour swatch below.
+  var bodyWrap = document.createElement("span");
+  bodyWrap.style.cssText = "display:none;align-items:center;gap:4px;";
+  var bodyBtns = {};
+  function paintBody() {
+    Object.keys(bodyBtns).forEach(function (bn) {
+      bodyBtns[bn].style.border = X.body === bn ? "2px solid var(--accent)" : "1px solid var(--edge)";
+    });
+  }
+  Object.keys(P.BODIES || {}).forEach(function (bn) {
+    var sw = document.createElement("button");
+    sw.title = "body: " + bn + (bn === "vermilion" ? " (the default)" : "");
+    sw.setAttribute("aria-label", "body: " + bn);
+    sw.style.cssText = "width:22px;height:22px;padding:0;border-radius:6px;cursor:pointer;background:" + P.BODIES[bn] + ";";
+    sw.addEventListener("click", function () { X.body = bn; paintBody(); render(); });
+    bodyBtns[bn] = sw; bodyWrap.appendChild(sw);
+  });
+  paintBody();
+  ctl.appendChild(bodyWrap);
 
   var itemSel = mkSel("mood", [["content", "content"]], X.item, function (v) { X.item = v; render(); });
 
@@ -1348,6 +1442,7 @@ route();
     var pv = P.PREVIEW[X.set];
     itemSel.parentNode.style.display = X.set === "kaomoji" ? "none" : "flex";
     kaoIn.style.display = X.set === "kaomoji" ? "block" : "none";
+    bodyWrap.style.display = X.set === "drollery" ? "inline-flex" : "none";
     if (X.set === "kaomoji" || !pv) return;
     itemSel.innerHTML = "";
     var items = pv.moods || pv.strip || [];
@@ -1520,6 +1615,7 @@ route();
     var sc = P.SCENES[X.scene];
     var su = sc ? sc.url : (X.scene === "custom" ? (X.sceneUrl || "").trim() : "");
     var avatar = X.set === "kaomoji" ? { face: kaoIn.value || "( ˘ ᵕ ˘ )" } : { set: X.set, item: X.item };
+    if (X.set === "drollery" && X.body !== "vermilion") avatar.body = X.body;   // the emitted payload teaches the knob only when it's turned
     // the Explorer ALWAYS shows the square block — populated when an environment is
     // chosen, empty (frame only) when not, so composition is visible either way
     avatar.scene = sceneArg(X.scene, { opacity: X.op, url: su, fill: X.fill }) || {};
