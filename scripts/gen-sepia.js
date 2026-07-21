@@ -318,7 +318,7 @@ const MOODS = [
   ["puzzled",    ["dot/narrow","uptiny/open"], "tiny",  "#c0b08a", QBROW],
   ["asking",     "uptiny/half",      "sm",    "#9ac0b0"],
   ["weary",      "dot/narrow",       "flat",  "#8b93a0"],
-  ["wink",       "dot",              "smirk", "#e0a877"],
+  ["wink",       "dot",              "flat" , "#e0a877"],
   ["love",       "heart",            "open",  "#e87a90", X.boop],
   ["working",    "dot/squint",       "flat",  "#6f8fa8", TONGUE]   // v0.68.0: her own cell, so she stops borrowing focused
 ];
@@ -391,7 +391,10 @@ MOODS.forEach((mood, i) => {
     drawEyes(feat, gpair[0], gpair[1], blink);
     if (mood[0] === "laugh" && frame === 1) feat.push(...GUFFAW);
     else if (!FINE_MOUTH[mood[0]]) {
-      const mn = (mood[0] === "wink" && frame === 1) ? "smirkbig" : mood[2];   // the beat widens the smirk
+      // A FACE DOES THIS IN ORDER: deadpan, then the wink pulls the corner up WITH it. The
+      // smirk arriving on the beat rather than sitting there all along is what makes the two
+      // read as one gesture instead of an expression that happens to blink.
+      const mn = (mood[0] === "wink" && frame === 1) ? "smirk" : mood[2];
       feat.push(...MOUTH[mn].map(q => [q[0], q[1], "p"]));
     }
     feat.push(...(mood[4] || []));
