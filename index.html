@@ -216,6 +216,7 @@
     <div id="x-mount" style="min-height:80px; border:1px solid var(--edge); border-radius:12px; padding:6px; background:var(--chat, transparent);"></div>
     <p id="x-caption" style="font-size:12.5px; color:var(--sub); margin-top:10px;"></p>
     <div id="x-bio" class="gal-bio" style="border-top:none; padding-top:0; margin-top:12px;"></div>
+    <div id="x-scene-bio" class="gal-bio" style="margin-top:10px;"></div>
   </section>
 
   <section class="tab-panel" id="tab-builder" role="tabpanel" aria-labelledby="tabbtn-builder" tabindex="0">
@@ -708,6 +709,20 @@ function renderBio(el, face, withTile) {
     pay.palette = ["#d99a5e", "#7d8fb8"];
     try { vibe(tile, pay); } catch (e) { tile.remove(); }
   }
+  var txt = document.createElement("div");
+  txt.innerHTML = '<span class="bio-name">' + b.name + '</span> — ' + b.tag +
+    ' <span class="bio-meta">' + b.meta + '</span><br>' + b.bio;
+  el.appendChild(txt);
+}
+// The window gets one too. Same shape, different question: a face is a WHO, a place is a
+// what-does-it-do — and since several of them do nothing, the meta line has to say so
+// rather than leaving you to find out by tapping a picture that was never going to answer.
+function renderSceneBio(el, scene) {
+  if (!el) return;
+  var S = (window.SKILL_PIECES && window.SKILL_PIECES.SCENE_BIOS) || {};
+  var b = S[scene];
+  el.innerHTML = "";
+  if (!b) return;
   var txt = document.createElement("div");
   txt.innerHTML = '<span class="bio-name">' + b.name + '</span> — ' + b.tag +
     ' <span class="bio-meta">' + b.meta + '</span><br>' + b.bio;
@@ -1660,6 +1675,7 @@ route();
     try { vibe(mnt, payload); } catch (e) { mnt.textContent = "err: " + e.message; }
     cap.textContent = sc && sc.blurb ? "the " + X.scene + " — " + sc.blurb : (su ? "custom scene" : X.scene === "solid" ? "solid colour — a clean neutral backdrop" : "the empty window");
     renderBio(document.getElementById("x-bio"), X.set, false);
+    renderSceneBio(document.getElementById("x-scene-bio"), X.scene);
   }
 
   refreshItems(); render();

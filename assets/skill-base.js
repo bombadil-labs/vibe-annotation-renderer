@@ -282,6 +282,44 @@ window.SKILL_PIECES = {
    "blurb": "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate"
   }
  },
+ "SCENE_BIOS": {
+  "solid": {
+   "name": "solid colour",
+   "tag": "a clean neutral backdrop",
+   "meta": "static · no motion, nothing to tap",
+   "bio": "A flat fill in whatever colour you pick, and nothing else. It is the honest choice when you want the window to frame the face and then get out of the way — the field behind the readout is already doing the emotional work, and a busy place can argue with it. The only environment here with no life at all, which is occasionally exactly right."
+  },
+  "tidepool": {
+   "name": "the tidepool",
+   "tag": "shallow water over sand",
+   "meta": "live · tap the water",
+   "bio": "Sepia's home water, and the most responsive place that ships. Bubbles wobble up on their own schedule, a small fish crosses now and then, and the surface takes your taps — each one spreading a ring that runs out to the frame and dies. Sunlight caustics slide over the sand underneath the whole time."
+  },
+  "night": {
+   "name": "the night",
+   "tag": "indigo sky over a dark hill",
+   "meta": "live · ambient, nothing to tap",
+   "bio": "Stars breathe at slightly different rates so the sky never pulses in unison, and every so often one falls. It is alive but not interactive — there is no affordance here, only weather. The darkest window of the four, which makes a bright palette read loud against it and a dim one nearly disappear."
+  },
+  "park": {
+   "name": "the park",
+   "tag": "sun over swaying grass",
+   "meta": "live · drawn in code · tap the sun",
+   "bio": "The only place with no picture behind it: every blade, the tree, the bird and the light are drawn fresh each frame, so it ships zero bytes of art. Tap the sun and the whole scene turns over into night — grass goes blue, stars come out — then tap again to bring the day back. The one environment that holds a state you set."
+  },
+  "study": {
+   "name": "the study",
+   "tag": "lamplight and tea",
+   "meta": "live · answers the claudemeal gesture",
+   "bio": "Warm interior: a lamp that flickers unevenly, tea going up in threads from a little table. Its trick is that it listens — when a feeding arrives through the banner, the study is where it lands, as a heaped plate set down beside the cup. The only window that responds to something outside itself."
+  },
+  "custom": {
+   "name": "your own image",
+   "tag": "anything you can host",
+   "meta": "static · any URL, framed and centred",
+   "bio": "Point it at a picture you host — the same way a face-pack is hosted — and it fills the window, with the face centred over it and the opacity slider deciding how far it sits behind. It will not move and it will not answer a tap; it is a backdrop, not a place. Pin a commit rather than a branch if you host it on GitHub."
+  }
+ },
  "MOOD_EMOJI_PREVIEW": {
   "neutral": "1f642",
   "content": "1f60a",
