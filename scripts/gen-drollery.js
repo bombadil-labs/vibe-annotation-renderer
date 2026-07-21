@@ -30,11 +30,28 @@
 const fs = require("fs");
 const zlib = require("zlib");
 
+// HIS BODY IS A CHOICE (v1.0.0). His open mouth is the most detailed thing he owns — a dark
+// interior with a red tongue — and on the original vermilion body it had nothing to push
+// against, because the mouth is #6e1814 and the body was #c13a2c: the same hue family. Rather
+// than tint at runtime (sprite packs render as a CSS background, so there are no pixels to
+// reach) each body gets its own sheet. They are 8KB each and deterministic, so shipping five
+// costs less than one photograph and the renderer just picks a URL — exactly how named scenes
+// already work. Only the body ramp changes; mouth, gold, lapis and parchment never move.
+const BODIES = {
+  vermilion: [[193, 58, 44], [224, 96, 74], [140, 34, 26]],
+  verdigris: [[63, 122, 92], [95, 163, 124], [39, 84, 61]],
+  murex:     [[106, 74, 143], [143, 111, 181], [71, 47, 99]],
+  iron:      [[58, 58, 66], [92, 92, 104], [36, 36, 43]],
+  olive:     [[125, 122, 52], [163, 160, 79], [86, 84, 33]]
+};
+const BODY = process.env.DROLLERY_BODY || "vermilion";
+if (!BODIES[BODY]) throw new Error("unknown drollery body: " + BODY + " (have " + Object.keys(BODIES).join(", ") + ")");
+const BRAMP = BODIES[BODY];
 const C = {
   ink:    [26, 20, 16, 255],      // iron gall — warm near-black, the outline of everything
-  body:   [193, 58, 44, 255],     // vermilion — the BODY now, not an accent
-  bodyL:  [224, 96, 74, 255],     // its lit side
-  bodyD:  [140, 34, 26, 255],     // its shade
+  body:   BRAMP[0].concat(255),   // the BODY, per the chosen palette
+  bodyL:  BRAMP[1].concat(255),   // its lit side
+  bodyD:  BRAMP[2].concat(255),   // its shade
   wing:   [44, 74, 154, 255],     // lapis — wings and ear-backs only
   wingL:  [74, 107, 196, 255],
   gold:   [212, 165, 42, 255],    // gold leaf — horns, claws, tail
@@ -521,9 +538,10 @@ ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4);
 ihdr[8] = 8; ihdr[9] = 6;
 const raw = Buffer.alloc((W * 4 + 1) * H);
 for (let y = 0; y < H; y++) { raw[y * (W * 4 + 1)] = 0; px.copy(raw, y * (W * 4 + 1) + 1, y * W * 4, (y + 1) * W * 4); }
-fs.writeFileSync("assets/drollery-sheet.png", Buffer.concat([
+const OUTNAME = BODY === "vermilion" ? "drollery-sheet.png" : "drollery-" + BODY + "-sheet.png";
+fs.writeFileSync("assets/" + OUTNAME, Buffer.concat([
   Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
   chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(raw, { level: 9 })), chunk("IEND", Buffer.alloc(0))
 ]));
-console.log("drollery-sheet.png: " + W + "x" + H + " (" + COLS + "x" + (RPF * FRAMES) + " cells of " + CELL + "), "
+console.log(OUTNAME + ": " + W + "x" + H + " (" + COLS + "x" + (RPF * FRAMES) + " cells of " + CELL + "), "
   + MOODS.length + " moods x " + FRAMES + " boil frames");
