@@ -2397,13 +2397,19 @@
                 var aamp = (1.2 + fp2[1] * 0.9) * fsc * (1 - 0.6 * conAmt) * (1 - 0.45 * strainA), alen = Math.max(6, Math.round(armS[2] * (1 - 0.38 * conAmt) * (1 + 0.28 * strainA))), ay0 = 49;   // contraction draws the skirt in; strain reaches it LONGER and holds it tense
                 var aw0 = 2.3 * fsc;
                 var lEdge = [], rEdge = [];
-                var holding = askHold && (ai2 === 0 || ai2 === 4);
+                // SHE IS TAKING NOTES (v0.94.0). Both props ride the RIGHT flank now: the pad
+                // held out and low, the pen poised above it with the nib angled down onto the
+                // page. One prop per side read as "holding two objects"; the asymmetry is what
+                // makes it an ACTION. The two arms reach to different heights so they read as
+                // two limbs doing different jobs rather than a pair.
+                var HOLD = { 4: { x: 52, y: 40, cx: 61, cy: 56 },                    // outermost arm: the pad, out and low
+                             3: { x: 43, y: 27, cx: 53, cy: 51 } };                  // its neighbour: the pen, up and inboard, over the page
+                var holding = askHold && HOLD[ai2];
                 if (holding) {
-                  var sgn = ai2 === 0 ? -1 : 1;                                      // left arm takes the pad, right the pen
                   var bob = Math.sin(t * 1.15 + ai2 * 1.7) * 1.2 * fsc;              // the hold breathes, never locks
                   var x0 = acx * fsc, y0 = ay0 * fsc;
-                  var cxp = (32 + sgn * 26) * fsc, cyp = 56 * fsc;                   // bow out and low, then rise
-                  var x1 = (32 + sgn * 22) * fsc, y1 = 33 * fsc + bob;
+                  var cxp = holding.cx * fsc, cyp = holding.cy * fsc;                // bow out, then rise to the hand
+                  var x1 = holding.x * fsc, y1 = holding.y * fsc + bob;
                   for (var sI = 0; sI <= 16; sI++) {
                     var su = sI / 16, iv = 1 - su;
                     var bx = iv * iv * x0 + 2 * iv * su * cxp + su * su * x1;
@@ -2457,12 +2463,12 @@
               });
               // (no hem gap segments anymore: the arms tile the narrow hem edge-to-edge,
               // and their own side strokes are the grooves — one continuous boundary)
-              if (askHold && armTips[0] && armTips[4]) {        // the props, riding the lifted tips
-                var padT = armTips[0], penT = armTips[4];
+              if (askHold && armTips[3] && armTips[4]) {        // the props, riding the lifted tips
+                var padT = armTips[4], penT = armTips[3];
                 var padW = 13 * fsc, padH = 15 * fsc;
-                var padTilt = -0.20 + Math.sin(t * 0.9) * 0.05;
+                var padTilt = -0.17 + Math.sin(t * 0.9) * 0.04;   // tipped toward her, the way a held page is
                 fx2.save();
-                fx2.translate(padT.x, padT.y - padH * 0.32); fx2.rotate(padTilt);
+                fx2.translate(padT.x, padT.y - padH * 0.38); fx2.rotate(padTilt);
                 fx2.fillStyle = rgba("#fbf6ec", 0.97);                                // the leaf
                 fx2.strokeStyle = rgba("#6a5a52", 0.6); fx2.lineWidth = Math.max(0.8, fsc * 0.7);
                 fx2.beginPath(); fx2.rect(-padW / 2, -padH / 2, padW, padH); fx2.fill(); fx2.stroke();
@@ -2471,9 +2477,10 @@
                 fx2.fillStyle = rgba("#c85a4a", 0.85);                                // a bound edge along the top
                 fx2.fillRect(-padW / 2, -padH / 2, padW, Math.max(1, fsc * 1.4));
                 fx2.restore();
-                var penL = 14 * fsc, penTilt = -0.85 + Math.sin(t * 1.05 + 1.2) * 0.07;
+                // nib DOWN AND INBOARD, so the pen points at the page rather than away from it
+                var penL = 14 * fsc, penTilt = 2.35 + Math.sin(t * 1.05 + 1.2) * 0.06;
                 fx2.save();
-                fx2.translate(penT.x, penT.y - penL * 0.15); fx2.rotate(penTilt);
+                fx2.translate(penT.x, penT.y); fx2.rotate(penTilt);
                 fx2.strokeStyle = rgba("#4a3f52", 0.95); fx2.lineCap = "round";       // the barrel
                 fx2.lineWidth = Math.max(1.1, fsc * 1.5);
                 fx2.beginPath(); fx2.moveTo(0, penL * 0.42); fx2.lineTo(0, -penL * 0.34); fx2.stroke();
