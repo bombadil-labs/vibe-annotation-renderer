@@ -881,6 +881,46 @@
    * nearest weather instead of silently rendering nothing. */
   var WEATHER = ["storm", "spotlight", "hush", "fog", "glow", "bloom", "converge"];
   var DRAMA_FACES = { sepia: 1, kip: 1, drollery: 1 };            // bodies that stand in the window and can be lit — motes has its own dramatic cluster, kaomoji has no window presence to darken
+  // THE CURTAINS (v1.8.0): a proper stage frame for dramatic — red velvet in the margins, a
+  // scalloped swag along the top, gold trim, three tassels. Shared geometry between the static
+  // SVG (here) and the live canvas twin in frame() — both walk the same fractions of the
+  // window so they stay in sync without literally sharing code (one emits markup, one draws).
+  function curtainSVG(pt, uid) {
+    var X = pt.x, Y = pt.y, S = pt.s;
+    var leftPath = "M" + g(X + 0.19 * S) + "," + g(Y) +
+      " Q" + g(X + 0.25 * S) + "," + g(Y + 0.13 * S) + " " + g(X + 0.19 * S) + "," + g(Y + 0.26 * S) +
+      " Q" + g(X + 0.13 * S) + "," + g(Y + 0.38 * S) + " " + g(X + 0.19 * S) + "," + g(Y + 0.5 * S) +
+      " Q" + g(X + 0.25 * S) + "," + g(Y + 0.62 * S) + " " + g(X + 0.19 * S) + "," + g(Y + 0.75 * S) +
+      " Q" + g(X + 0.13 * S) + "," + g(Y + 0.88 * S) + " " + g(X + 0.19 * S) + "," + g(Y + S) +
+      " L" + g(X) + "," + g(Y + S) + " L" + g(X) + "," + g(Y) + " Z";
+    var rightPath = "M" + g(X + S - 0.19 * S) + "," + g(Y) +
+      " Q" + g(X + S - 0.25 * S) + "," + g(Y + 0.13 * S) + " " + g(X + S - 0.19 * S) + "," + g(Y + 0.26 * S) +
+      " Q" + g(X + S - 0.13 * S) + "," + g(Y + 0.38 * S) + " " + g(X + S - 0.19 * S) + "," + g(Y + 0.5 * S) +
+      " Q" + g(X + S - 0.25 * S) + "," + g(Y + 0.62 * S) + " " + g(X + S - 0.19 * S) + "," + g(Y + 0.75 * S) +
+      " Q" + g(X + S - 0.13 * S) + "," + g(Y + 0.88 * S) + " " + g(X + S - 0.19 * S) + "," + g(Y + S) +
+      " L" + g(X + S) + "," + g(Y + S) + " L" + g(X + S) + "," + g(Y) + " Z";
+    var valancePath = "M" + g(X) + "," + g(Y) + " L" + g(X + S) + "," + g(Y) +
+      " L" + g(X + S) + "," + g(Y + 0.05 * S) +
+      " Q" + g(X + 0.83 * S) + "," + g(Y + 0.17 * S) + " " + g(X + 0.67 * S) + "," + g(Y + 0.06 * S) +
+      " Q" + g(X + 0.5 * S) + "," + g(Y + 0.18 * S) + " " + g(X + 0.33 * S) + "," + g(Y + 0.06 * S) +
+      " Q" + g(X + 0.17 * S) + "," + g(Y + 0.17 * S) + " " + g(X) + "," + g(Y + 0.05 * S) + " Z";
+    var cid = "vcurt" + uid;
+    var tassels = [[0.33, 0.17], [0.5, 0.19], [0.67, 0.17]].map(function (tp) {
+      return '<circle cx="' + g(X + tp[0] * S) + '" cy="' + g(Y + tp[1] * S) + '" r="' + g(S * 0.018) + '" fill="#d4a017"/>';
+    }).join("");
+    return '<defs><clipPath id="' + cid + '"><rect x="' + g(X) + '" y="' + g(Y) + '" width="' + g(S) + '" height="' + g(S) + '" rx="10"/></clipPath>' +
+      '<linearGradient id="' + cid + 'l" x1="0%" x2="100%"><stop offset="0%" stop-color="#5e1010"/><stop offset="70%" stop-color="#b53434"/><stop offset="100%" stop-color="#8a2222"/></linearGradient>' +
+      '<linearGradient id="' + cid + 'r" x1="0%" x2="100%"><stop offset="0%" stop-color="#8a2222"/><stop offset="30%" stop-color="#b53434"/><stop offset="100%" stop-color="#5e1010"/></linearGradient>' +
+      '<linearGradient id="' + cid + 'v" x1="0%" x2="0%" y1="0%" y2="100%"><stop offset="0%" stop-color="#4a0d0d"/><stop offset="100%" stop-color="#9c2b2b"/></linearGradient></defs>' +
+      '<g clip-path="url(#' + cid + ')">' +
+      '<path d="' + valancePath + '" fill="url(#' + cid + 'v)"/>' +
+      '<path d="' + leftPath + '" fill="url(#' + cid + 'l)"/>' +
+      '<path d="' + rightPath + '" fill="url(#' + cid + 'r)"/>' +
+      '<path d="' + valancePath + '" fill="none" stroke="#d4a017" stroke-width="1.4" stroke-opacity="0.85"/>' +
+      '<path d="' + leftPath + '" fill="none" stroke="#d4a017" stroke-width="1.4" stroke-opacity="0.85"/>' +
+      '<path d="' + rightPath + '" fill="none" stroke="#d4a017" stroke-width="1.4" stroke-opacity="0.85"/>' +
+      tassels + "</g>";
+  }
   // No alias table: every deployed skill pins a full commit SHA, so an old skill loads the
   // OLD renderer bytes. Backwards compatibility is structurally unnecessary here — the pin
   // IS the compatibility story, which is a nice dividend of the supply-chain discipline.
@@ -1244,7 +1284,8 @@
         '<g clip-path="url(#' + dcid + ')">' +
         '<rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" fill="#08060e" fill-opacity="0.66"/>' +
         '<polygon points="' + g(dax - dapexH) + ',' + g(day) + ' ' + g(dax + dapexH) + ',' + g(day) + ' ' + g(dax + dbaseH) + ',' + g(dbaseY) + ' ' + g(dax - dbaseH) + ',' + g(dbaseY) + '" fill="url(#' + dcid + 'g)"/>' +
-        '</g>';
+        '</g>' +
+        curtainSVG(portrait, dcid);                                // she gets a proper stage now — velvet in the margins, a swag along the top
     }
 
     var L = {
@@ -2345,6 +2386,54 @@
           ctx.lineTo(dax + dbaseH, dbaseY); ctx.lineTo(dax - dbaseH, dbaseY);
           ctx.closePath(); ctx.fill();
           ctx.globalCompositeOperation = "source-over";
+          ctx.restore();
+          // THE CURTAINS (v1.8.0): red velvet in the margins, a scalloped swag along the top,
+          // gold trim and three tassels — the static twin lives in layout()'s curtainSVG(),
+          // same fractions of the window, walked here with quadraticCurveTo instead of markup.
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(dpt.x + 10, dpt.y);
+          ctx.arcTo(dpt.x + dps, dpt.y, dpt.x + dps, dpt.y + dps, 10);
+          ctx.arcTo(dpt.x + dps, dpt.y + dps, dpt.x, dpt.y + dps, 10);
+          ctx.arcTo(dpt.x, dpt.y + dps, dpt.x, dpt.y, 10);
+          ctx.arcTo(dpt.x, dpt.y, dpt.x + dps, dpt.y, 10);
+          ctx.closePath(); ctx.clip();
+          var cX = dpt.x, cY = dpt.y, cS = dps;
+          var drape = function (mirror) {
+            var ox = mirror ? cX + cS : cX, dir = mirror ? -1 : 1;
+            ctx.beginPath();
+            ctx.moveTo(ox + dir * 0.19 * cS, cY);
+            ctx.quadraticCurveTo(ox + dir * 0.25 * cS, cY + 0.13 * cS, ox + dir * 0.19 * cS, cY + 0.26 * cS);
+            ctx.quadraticCurveTo(ox + dir * 0.13 * cS, cY + 0.38 * cS, ox + dir * 0.19 * cS, cY + 0.5 * cS);
+            ctx.quadraticCurveTo(ox + dir * 0.25 * cS, cY + 0.62 * cS, ox + dir * 0.19 * cS, cY + 0.75 * cS);
+            ctx.quadraticCurveTo(ox + dir * 0.13 * cS, cY + 0.88 * cS, ox + dir * 0.19 * cS, cY + cS);
+            ctx.lineTo(ox, cY + cS); ctx.lineTo(ox, cY); ctx.closePath();
+          };
+          ctx.beginPath();                                     // the valance first, so the side drapes overlap it at the corners
+          ctx.moveTo(cX, cY); ctx.lineTo(cX + cS, cY);
+          ctx.lineTo(cX + cS, cY + 0.05 * cS);
+          ctx.quadraticCurveTo(cX + 0.83 * cS, cY + 0.17 * cS, cX + 0.67 * cS, cY + 0.06 * cS);
+          ctx.quadraticCurveTo(cX + 0.5 * cS, cY + 0.18 * cS, cX + 0.33 * cS, cY + 0.06 * cS);
+          ctx.quadraticCurveTo(cX + 0.17 * cS, cY + 0.17 * cS, cX, cY + 0.05 * cS);
+          ctx.closePath();
+          var vg = ctx.createLinearGradient(0, cY, 0, cY + 0.18 * cS);
+          vg.addColorStop(0, "#4a0d0d"); vg.addColorStop(1, "#9c2b2b");
+          ctx.fillStyle = vg; ctx.fill();
+          ctx.strokeStyle = "rgba(212,160,23,0.85)"; ctx.lineWidth = 1.4; ctx.stroke();
+          drape(false);
+          var lg = ctx.createLinearGradient(cX, 0, cX + 0.19 * cS, 0);
+          lg.addColorStop(0, "#5e1010"); lg.addColorStop(0.7, "#b53434"); lg.addColorStop(1, "#8a2222");
+          ctx.fillStyle = lg; ctx.fill();
+          ctx.strokeStyle = "rgba(212,160,23,0.85)"; ctx.lineWidth = 1.4; ctx.stroke();
+          drape(true);
+          var rg = ctx.createLinearGradient(cX + cS - 0.19 * cS, 0, cX + cS, 0);
+          rg.addColorStop(0, "#8a2222"); rg.addColorStop(0.3, "#b53434"); rg.addColorStop(1, "#5e1010");
+          ctx.fillStyle = rg; ctx.fill();
+          ctx.strokeStyle = "rgba(212,160,23,0.85)"; ctx.lineWidth = 1.4; ctx.stroke();
+          ctx.fillStyle = "#d4a017";                           // three tassels, hanging from the valance's dips
+          [[0.33, 0.17], [0.5, 0.19], [0.67, 0.17]].forEach(function (tp) {
+            ctx.beginPath(); ctx.arc(cX + tp[0] * cS, cY + tp[1] * cS, cS * 0.018, 0, 6.2832); ctx.fill();
+          });
           ctx.restore();
         }
 
