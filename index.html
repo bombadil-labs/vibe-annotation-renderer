@@ -1192,7 +1192,12 @@ route();
   cE.appendChild(scOpRow);
   var scPrev = document.createElement("div");                  // always visible: the composite window — chosen face inside, environment behind
   cE.appendChild(scPrev);
+  var bScBio = document.createElement("div");                  // what the place DOES, before you commit to it — the face card has had this all along
+  bScBio.id = "b-scene-bio"; bScBio.className = "gal-bio";
+  bScBio.style.cssText = "margin:10px 0 2px;";
+  cE.appendChild(bScBio);
   function refreshScene() {
+    renderSceneBio(bScBio, S.scene);
     var isImage = S.scene === "custom" || !!(P.SCENES[S.scene] && P.SCENES[S.scene].url);   // the park is live-drawn, no image — opacity has nothing to act on
     scUrlIn.style.display = S.scene === "custom" ? "block" : "none";
     scOpRow.style.display = isImage ? "flex" : "none";

@@ -1901,12 +1901,23 @@
           say("*sets down a fresh tin of claudemeal — " + flav);
         }
       });
+      // The kite: an offer of TIME rather than food. Deliberately no visual effect and no
+      // flavor — every other gesture gives her something to react to, and this one is the
+      // absence of a task, which nothing on the canvas can honestly depict. A kite because
+      // its entire purpose is to be pointless and pleasant; anything more specific (a quill,
+      // a book, dice) would pick the activity, and picking is the part being handed over.
+      var pb = document.createElement("button");
+      pb.textContent = "🪁"; pb.title = "invite claude to play"; pb.style.cssText = BTN;
+      pb.addEventListener("click", function () {
+        conReset = true;                                       // being offered the afternoon relaxes her, the same as a boop or a meal
+        say("*sets the work aside and offers you a little while — no agenda*");
+      });
       var sb = document.createElement("button");               // the wrench: asks the reporter to open settings talk
       sb.textContent = "🔧"; sb.title = "vibe settings"; sb.style.cssText = BTN;
       sb.addEventListener("click", function () {
         say("*opens the settings*");
       });
-      tray.appendChild(fb); tray.appendChild(sb); wrap.appendChild(tray);
+      tray.appendChild(fb); tray.appendChild(pb); tray.appendChild(sb); wrap.appendChild(tray);
       wrap.addEventListener("mouseenter", function () { tray.style.opacity = "0.75"; });
       wrap.addEventListener("mouseleave", function () { tray.style.opacity = "0"; });
       }
