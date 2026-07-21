@@ -92,12 +92,20 @@ const up2 = list => list.flatMap(q => [
 // socket, lidded. Left box at x=8; the right eye mirrors at x=19.
 const PUPR = {
   w: [[0,1],[1,2],[2,1]], dot: [[1,1]], down: [[1,2]], uptiny: [[1,0]],
-  sideDown: [[0,2]],   // averted AND down — the beat after a mistake lands, not a startled stare
+  // A SIDEWAYS GAZE NEEDS A MATCHED PAIR (v1.5.0 fix). drawEyes mirrors the RIGHT eye's
+  // column automatically (`3 - POFF[col]`), so naming the SAME preset for both eyes sends
+  // them divergent — sheepish's old "side" and the previous "sideDown" both did this: left
+  // eye reads outward-left, right eye outward-right, "each eye facing a different
+  // direction" (the maintainer's exact words about oops). To make both pupils land on the
+  // SAME absolute side, pair a column-0 preset with a column-2 preset — the mirror then
+  // resolves them to the same offset. sideA+sideB (left eye first) → both look screen-left;
+  // sideB+sideA → both look screen-right.
+  sideA: [[0,1]], sideB: [[2,1]],           // averted, level (sheepish)
+  sideDownA: [[0,2]], sideDownB: [[2,2]],   // averted AND down (oops, working)
   closed: [[0,2],[1,2],[2,2]], happy: [[0,2],[1,1],[2,2]],
   wide: [[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]],
   cross: [[0,0],[2,0],[1,1],[0,2],[2,2]],
-  spiral: [[0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]],
-  side: [[0,1]]
+  spiral: [[0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]]
 };
 const HEARTR = [[0,0],[1,0],[3,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]];
 const STARR = [[2,0],[1,1],[2,1],[3,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]];
@@ -291,7 +299,7 @@ const MOODS = [
   ["content",    "dot/half",         "smile", "#d9a877"],
   ["delighted",  "happy",            "smile", "#e8b04a"],
   ["focused",    "dot/squint",       "flat",  "#7d8fb8"],
-    ["sheepish",   "side/half",        "wavy",  "#d99a8a", X.sweat],
+    ["sheepish",   ["sideA/half","sideB/half"], "wavy",  "#d99a8a", X.sweat],   // both eyes averted the SAME way now — fixed (v1.5.0), see PUPR note
   ["booped",     "wide",             "open",  "#e88aa0", X.boop],
   ["thinking",   "dot/mid",          "sm",    "#8f9ac0"],
   ["spark",      "star",             "smile", "#ffd76a"],   // the 💡 is a renderer-drawn prop now
@@ -303,7 +311,7 @@ const MOODS = [
   ["mirth",      "happy/half",       "smile", "#e0b060"],
   ["laugh",      "arch",             "open",  "#ffd24a"],   // guffaw: the blink frame carries the wide-open mouth; the renderer cycles them
   ["groan",      "dot/low",          "frown", "#9a9488"],   // deadpan base; frame 1 squeezes the eyes to slits as the body contracts live
-  ["oops",       "sideDown/half",    "open",  "#d98a6a", X.sweat],   // wide/open read as chibi adoration, not "oh no" — averted and down instead
+  ["oops",       ["sideDownA/narrow","sideDownB/narrow"], "open", "#d98a6a", X.sweat],   // averted and down, narrowed a bit — the beat after a mistake lands. Frame 1 flips to the other side (live renderer cycles it), not a blink
   ["frustrated", "glower",           "flatdrop", "#a05050", VBROWS],
   ["angry",      "fury",             "flat",  "#c04040"],   // fury lids carry it alone — no brows (the dark lids ARE the brows), seethe mouth in the fine pass
   ["dramatic",   "wide",             "smile", "#b0413e"],   // the Greek mask overlay is drawn in the frame pass below
@@ -318,7 +326,7 @@ const MOODS = [
   ["weary",      "dot/narrow",       "flat",  "#8b93a0"],
   ["wink",       "dot",              "flat" , "#e0a877"],
   ["love",       "heart",            "open",  "#e87a90", X.boop],
-  ["working",    "down/squint",      "flat",  "#6f8fa8"]   // v0.68.0: her own cell, so she stops borrowing focused — down: she's looking at the laptop
+  ["working",    ["sideDownB/narrow","sideDownA/narrow"], "flat", "#6f8fa8"]   // v0.68.0: her own cell, so she stops borrowing focused — down AND right, at the laptop; narrow, not squint (v1.5.0)
 ];
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);   // 33 until sleepy was cut in v0.88.0
 BASE.forEach((r, i) => { if (r.length !== 32) throw new Error("BASE row " + i + " length " + r.length); });
@@ -379,12 +387,13 @@ MOODS.forEach((mood, i) => {
   // renderer OVER the wandering colour
   for (let frame = 0; frame < 2; frame++) {
     const cx = colX, cy = rowY + (1 + frame) * FRAME_ROWS * CELL;
-    let blink = frame === 1 && mood[0] !== "laugh" && mood[0] !== "groan" && mood[0] !== "mirth";   // laugh's frame 1 is the guffaw beat; groan's is the SQUEEZE; mirth's is a smile that won't quite hold still — none of them are a blink
+    let blink = frame === 1 && mood[0] !== "laugh" && mood[0] !== "groan" && mood[0] !== "mirth" && mood[0] !== "oops";   // laugh's frame 1 is the guffaw beat; groan's is the SQUEEZE; mirth's is a smile that won't quite hold still; oops's is the glance to the OTHER side — none of them are a blink
     if (mood[0] === "wink") blink = [false, frame === 1];                    // the wink IS the blink, and only on one side
     const eyeSpec = mood[1], pair = Array.isArray(eyeSpec) ? eyeSpec : [eyeSpec, eyeSpec];
     const feat = [];
     const gpair = mood[0] === "laugh" && frame === 1 ? ["wide", "wide"]   // the guffaw frame goes WIDE-eyed — it doubles as the feeding-thrill face
       : mood[0] === "groan" && frame === 1 ? ["slit", "slit"]             // the squeeze frame: deadpan gives way, eyes clenched to slits mid-contraction
+      : mood[0] === "oops" && frame === 1 ? ["sideDownB/narrow", "sideDownA/narrow"]   // the glance flips: periodically caught looking the other way
       : pair;
     drawEyes(feat, gpair[0], gpair[1], blink);
     if (mood[0] === "laugh" && frame === 1) feat.push(...GUFFAW);
