@@ -457,11 +457,13 @@ him when that is funny, or when it is true.`,
   // in src/vibe.js and BODIES in scripts/gen-drollery.js — keep all three in step. vermilion is
   // the default and is never emitted into a snippet: a written-out default would read as a choice.
   BODIES: { vermilion: "#c13a2c", verdigris: "#3f7a5c", murex: "#6a4a8f", iron: "#3a3a42", olive: "#7d7a34" },
-  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" },
+  CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "park", drollery: "study" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
     night: { url: SCENE_URL("night"), live: "night", blurb: "indigo sky over a dark hill — stars breathe, a shooting star falls now and then" },
-    glade: { url: SCENE_URL("glade"), live: "glade", blurb: "mossy forest light — a shaft wavers and fireflies drift and blink" },
+    // the park has NO url: it is the first scene drawn entirely live (pen-strokes on canvas),
+    // so there is no art to pin — the renderer owns the whole picture
+    park: { live: "park", blurb: "sun over swaying grass, a tree, sometimes a bird — tap the sun and it's night" },
     study: { url: SCENE_URL("study"), live: "study", blurb: "lamplight that flickers, tea steaming on a little table; feedings arrive as a heaped plate" }
   },
 
@@ -507,7 +509,7 @@ function assemble(faceKey, opts) { return PIECES.ASSEMBLE(faceKey, opts, PIECES)
 // nobody looked at it. The composer below is the single path, and the Builder runs this exact
 // function in the browser. `npm run skill:sepia` prints the sepia/tidepool build for install.
 // The face + home pairings the project considers canonical, kept for the CLI and the tests.
-const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" };
+const HOMES = { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "park", drollery: "study" };
 // Functions survive the trip into the browser bundle as source, so the Builder runs the
 // SAME generator the shipped skills do — no client-side mirror to drift out of sync.
 // (They must therefore be closure-free: everything they need arrives as arguments.)
@@ -535,7 +537,7 @@ const CATALOG = {
     bundle: PIECES.snippetUrl,
     payload_notes: {
       face: "one union: kaomoji string | image URL | sprite slice {url,cellW,cellH,cols,rows,index} | KnownFace {set,item}",
-      scene: 'a name — "tidepool", "study", "night" or "glade" — fills the framed portrait window on the banner\'s left (face centred inside). The renderer owns the art, the opacity and whether the place is alive, so the name is the whole thing. A custom image still takes { url, opacity }. The window always draws; without a scene it renders empty (frame only)',
+      scene: 'a name — "tidepool", "study", "night" or "park" — fills the framed portrait window on the banner\'s left (face centred inside). The renderer owns the art, the opacity and whether the place is alive, so the name is the whole thing (the park has no art at all: it is drawn live, and tapping its sun turns day to night). A custom image still takes { url, opacity }. The window always draws; without a scene it renders empty (frame only)',
       flag: "a single optional string; one per banner at most"
     }
   },
@@ -546,7 +548,10 @@ const CATALOG = {
     kip: { kind: "sheet", payload: { set: "kip", item: "<mood>" }, items: PIECES.PREVIEW.kip.moods,
       note: "the project mascot; 8-bit, stepped motion, snaps between poses" },
     motes: { kind: "proc", payload: { set: "motes", item: "<mood>" }, items: PIECES.PREVIEW.motes.moods,
-      note: "a swarm drawn in code; the mood is the formation it flies" }
+      note: "a swarm drawn in code; the mood is the formation it flies" },
+    drollery: { kind: "sheet", payload: { set: "drollery", item: "<mood>", body: "<optional: vermilion|verdigris|murex|iron|olive>" },
+      items: PIECES.PREVIEW.drollery.moods, bodies: Object.keys(PIECES.BODIES),
+      note: "a marginalia grotesque, inked and boiling; his body colour is pickable (vermilion is the default)" }
   },
   scenes: PIECES.SCENES,
   // No skill URLs: there are no checked-in skill files to link. The skill is composed — point

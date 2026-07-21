@@ -5,8 +5,9 @@
  *   tidepool — 680x132 (170x33 logical @4px): shallow water, sand, rocks, glints.
  *              KEEP BYTE-IDENTICAL: its birth commit is pinned in consumers.
  *   night    — 160x160 (40x40 @4px): indigo sky, stars, a crescent, a dark hill.
- *   glade    — 160x160: mossy forest light, canopy, light shafts, fireflies.
  *   study    — 160x160: lamplight interior, shelf of books, warm desk.
+ * (glade retired in v1.1.0 — replaced by the park, which is drawn live in the renderer
+ *  and has no art file. Its PNG stays committed at SCENE_PIN for pinned old builds.)
  * Regenerate: node scripts/gen-scene.js → assets/scene-*.png */
 const fs = require("fs");
 const zlib = require("zlib");
@@ -129,40 +130,6 @@ function canvas(LW, LH, SCALE) {
   }
   lput(9, 36, "#e8b86a"); lput(27, 37, "#d89a52");
   save("scene-night.png");
-}
-
-/* ---- glade: mossy forest light, canopy, light shafts, fireflies ---- */
-{
-  const { LW, LH, lput, save } = canvas(40, 40, 4);
-  const r = rng(20260719);
-  const AIR = ["#2e4432", "#39523a", "#455f42", "#526c4a"];
-  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
-    const band = Math.min(AIR.length - 1, Math.floor((y + Math.sin(x / 5) * 1.8) / 10));
-    lput(x, y, AIR[Math.max(0, band)]);
-  }
-  // canopy: dark leaf clumps along the top
-  for (let k = 0; k < 26; k++) {
-    const cx = Math.floor(r() * LW), cy = Math.floor(r() * 7), rad = 1 + Math.floor(r() * 2);
-    for (let y = cy - rad; y <= cy + rad; y++) for (let x = cx - rad; x <= cx + rad; x++)
-      if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= rad * rad + 1) lput(x, y, r() < 0.3 ? "#1c2e20" : "#24382a");
-  }
-  // light shafts: two soft diagonals
-  for (const [sx0, w] of [[8, 3], [24, 4]]) {
-    for (let y = 2; y < 34; y++) for (let dx = 0; dx < w; dx++) {
-      const x = sx0 + Math.floor(y / 3) + dx;
-      if ((x + y) % 2 === 0) lput(x, y, "#7c9468");
-    }
-  }
-  // undergrowth: ferns + moss floor
-  for (let y = 34; y < LH; y++) for (let x = 0; x < LW; x++)
-    lput(x, y, (x * 5 + y * 11) % 13 === 0 ? "#3a5230" : "#44603a");
-  for (let k = 0; k < 9; k++) {
-    const fx = 2 + Math.floor(r() * (LW - 4)), h = 3 + Math.floor(r() * 3);
-    for (let d = 0; d < h; d++) { lput(fx + Math.round(Math.sin(d + k) * 1.2), 34 - d, "#5f7e4c"); }
-  }
-  // fireflies
-  for (let k = 0; k < 7; k++) lput(Math.floor(r() * LW), 12 + Math.floor(r() * 20), r() < 0.5 ? "#e8d87a" : "#f4ea9c");
-  save("scene-glade.png");
 }
 
 /* ---- study: lamplight interior, shelf of books, warm desk ---- */

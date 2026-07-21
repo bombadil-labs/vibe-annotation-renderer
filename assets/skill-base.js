@@ -262,7 +262,7 @@ window.SKILL_PIECES = {
   "kaomoji": "study",
   "motes": "night",
   "sepia": "tidepool",
-  "kip": "glade",
+  "kip": "park",
   "drollery": "study"
  },
  "SCENES": {
@@ -276,10 +276,9 @@ window.SKILL_PIECES = {
    "live": "night",
    "blurb": "indigo sky over a dark hill — stars breathe, a shooting star falls now and then"
   },
-  "glade": {
-   "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-glade.png",
-   "live": "glade",
-   "blurb": "mossy forest light — a shaft wavers and fireflies drift and blink"
+  "park": {
+   "live": "park",
+   "blurb": "sun over swaying grass, a tree, sometimes a bird — tap the sun and it's night"
   },
   "study": {
    "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-study.png",

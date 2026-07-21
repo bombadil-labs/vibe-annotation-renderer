@@ -7,7 +7,7 @@
     "bundle": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/dist/vibe.min.js",
     "payload_notes": {
       "face": "one union: kaomoji string | image URL | sprite slice {url,cellW,cellH,cols,rows,index} | KnownFace {set,item}",
-      "scene": "a name — \"tidepool\", \"study\", \"night\" or \"glade\" — fills the framed portrait window on the banner's left (face centred inside). The renderer owns the art, the opacity and whether the place is alive, so the name is the whole thing. A custom image still takes { url, opacity }. The window always draws; without a scene it renders empty (frame only)",
+      "scene": "a name — \"tidepool\", \"study\", \"night\" or \"park\" — fills the framed portrait window on the banner's left (face centred inside). The renderer owns the art, the opacity and whether the place is alive, so the name is the whole thing (the park has no art at all: it is drawn live, and tapping its sun turns day to night). A custom image still takes { url, opacity }. The window always draws; without a scene it renders empty (frame only)",
       "flag": "a single optional string; one per banner at most"
     }
   },
@@ -141,6 +141,56 @@
         "working"
       ],
       "note": "a swarm drawn in code; the mood is the formation it flies"
+    },
+    "drollery": {
+      "kind": "sheet",
+      "payload": {
+        "set": "drollery",
+        "item": "<mood>",
+        "body": "<optional: vermilion|verdigris|murex|iron|olive>"
+      },
+      "items": [
+        "neutral",
+        "content",
+        "delighted",
+        "focused",
+        "sheepish",
+        "booped",
+        "thinking",
+        "spark",
+        "excited",
+        "surprised",
+        "tender",
+        "melancholy",
+        "anxious",
+        "mirth",
+        "laugh",
+        "groan",
+        "oops",
+        "frustrated",
+        "angry",
+        "dramatic",
+        "at_peace",
+        "solemn",
+        "rhyme",
+        "awe",
+        "vertigo",
+        "resolute",
+        "puzzled",
+        "asking",
+        "weary",
+        "wink",
+        "love",
+        "working"
+      ],
+      "bodies": [
+        "vermilion",
+        "verdigris",
+        "murex",
+        "iron",
+        "olive"
+      ],
+      "note": "a marginalia grotesque, inked and boiling; his body colour is pickable (vermilion is the default)"
     }
   },
   "scenes": {
@@ -154,10 +204,9 @@
       "live": "night",
       "blurb": "indigo sky over a dark hill — stars breathe, a shooting star falls now and then"
     },
-    "glade": {
-      "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-glade.png",
-      "live": "glade",
-      "blurb": "mossy forest light — a shaft wavers and fireflies drift and blink"
+    "park": {
+      "live": "park",
+      "blurb": "sun over swaying grass, a tree, sometimes a bird — tap the sun and it's night"
     },
     "study": {
       "url": "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@0000000000000000000000000000000000000000/assets/scene-study.png",
@@ -171,7 +220,7 @@
       "kaomoji": "study",
       "motes": "night",
       "sepia": "tidepool",
-      "kip": "glade",
+      "kip": "park",
       "drollery": "study"
     }
   },

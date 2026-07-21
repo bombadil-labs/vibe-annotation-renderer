@@ -13,7 +13,7 @@ let fails = 0;
 const cases = [
   ["sepia / tidepool / all moods", "sepia", { scene: "tidepool" }],
   ["motes / night / core moods", "motes", { scene: "night", moods: G.PIECES.CORE_MOODS }],
-  ["kip / glade / five moods", "kip", { scene: "glade", moods: ["neutral", "content", "laugh", "solemn", "working"] }],
+  ["kip / park / five moods", "kip", { scene: "park", moods: ["neutral", "content", "laugh", "solemn", "working"] }],
   ["drollery / study / cadence", "drollery", { scene: "study", cadence: "every_n", every: 4 }],
   ["drollery / study / verdigris body", "drollery", { scene: "study", body: "verdigris" }],
   ["kaomoji / no scene", "kaomoji", {}]

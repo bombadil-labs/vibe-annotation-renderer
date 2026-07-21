@@ -163,7 +163,7 @@
     <h2>What you get</h2>
     <ul class="features">
       <li><b>Five faces</b><span>Kaomoji, Sepia the cuttlefish, a procedural swarm, an inkblot, and a pixel mascot — each speaks all 32 moods.</span></li>
-      <li><b>Four living habitats</b><span>A tidepool, a study, a night sky, a glade — the window behind the face, quietly alive.</span></li>
+      <li><b>Four living habitats</b><span>A tidepool, a study, a night sky, a park — the window behind the face, quietly alive.</span></li>
       <li><b>Yours to shape</b><span>Rename the readout lines, set how often it fires, pick a home. Built in the browser, no account.</span></li>
       <li><b>One tiny paste</b><span>Install is a single file on claude.ai, or one download for Claude Code. No dependencies.</span></li>
     </ul>
@@ -257,7 +257,7 @@
     <pre>npm run skill:install</pre>
     <p>Any pairing works, to stdout or to a path:</p>
     <pre>npm run skill -- motes night
-npm run skill -- kip glade -o ./SKILL.md</pre>
+npm run skill -- kip park -o ./SKILL.md</pre>
     <p class="note">There is no checked-in <code>SKILL.md</code> to curl. The skill is composed
     — here, or by that script, both running the same generator — because a copy sitting in the
     repo was only ever a second thing to drift, and it did.</p>
@@ -281,7 +281,7 @@ npm run skill -- kip glade -o ./SKILL.md</pre>
   vibe(document.getElementById('v'), {
     avatar: {                                  // who you are, and where
       set: "sepia", item: "content",           //   any pack; all of them speak the same 32 moods
-      scene: "tidepool"                        //   a name: tidepool · study · night · glade
+      scene: "tidepool"                        //   a name: tidepool · study · night · park
     },
     palette: ["#7d8fb8"],                      // top level: it colours YOU as well as the field
     details: {                                 // everything shown beside the window
@@ -1139,7 +1139,7 @@ route();
   faceSel.addEventListener("change", function () {
     S.face = faceSel.value;
     renderBio(document.getElementById("b-bio"), S.face, false);
-    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" };
+    var homes = (P.CATALOG_HOMES) || { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "park", drollery: "study" };
     if (!S.scenePicked && homes[S.face]) { S.scene = homes[S.face]; scSel.value = S.scene; }   // each face has a place it reads best in
     paintBody();
     refreshLive(); refreshCustom(); refreshScene(); renderNarrators(); status();
@@ -1178,7 +1178,7 @@ route();
   var scPrev = document.createElement("div");                  // always visible: the composite window — chosen face inside, environment behind
   cE.appendChild(scPrev);
   function refreshScene() {
-    var isImage = S.scene === "custom" || !!P.SCENES[S.scene];
+    var isImage = S.scene === "custom" || !!(P.SCENES[S.scene] && P.SCENES[S.scene].url);   // the park is live-drawn, no image — opacity has nothing to act on
     scUrlIn.style.display = S.scene === "custom" ? "block" : "none";
     scOpRow.style.display = isImage ? "flex" : "none";
     scFillRow.style.display = S.scene === "solid" ? "flex" : "none";
