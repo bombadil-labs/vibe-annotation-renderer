@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@ddcbc0e9e13b64a89596671c7889336afb1bc606/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@459e9bf122a6f370d51ea76426421c03482d47ed/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/drollery-sheet.png";
@@ -779,6 +779,7 @@
           contract: byMood({ groan: 1 }),                      // groan: the long contraction cycle — deadpan, then the visible squeeze, held ~30s, eventually released
           strain: byMood({ angry: 1 }),                        // angry: RESTRAINED fury — arms strain longer and tense, fins frill out but not far, everything trembling slightly
           props: byMood({ spark: "bulb", laugh: "laughs", groan: "sweat", oops: "excl", frustrated: "vein", angry: "grawlix", puzzled: "qmark" }),   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
+          pinch: byMood({ anxious: 1 }),                       // anxious narrows: the contraction reflex, on the other axis
           sag: byMood({ weary: 1 }),                           // weary sinks, catches itself, comes back — then does it again
           tint: byMood({ dramatic: 1 }),                       // dramatic: the porcelain mask washes in the palette's lead colour (v0.40.3) — the sheet stays white; the tint is live. Tinted moods must keep both feature frames identical (the tint canvas replaces the features layer)
           boop: BOOP_CELL, fed: FED_CELL                       // the interrupts: tapped flashes the booped cell, fed flashes laugh's guffaw — one pulse, then back to the mood
@@ -2133,6 +2134,12 @@
         // and open for a beat, then the visible squeeze (eyes clench in the sheet frame,
         // fins and arms haul in, the mantle sinks), HELD ~30s, released, and round again.
         // A boop or a feeding resets her to the relaxed top of the cycle.
+        // ANXIOUS DRAWS IN (v0.98.0). groan's contraction pulls her DOWN; this is the same
+        // reflex turned ninety degrees — she narrows, trying to take up less room. It breathes
+        // rather than holding, because bracing is not a posture anything can keep, and it never
+        // fully releases, because that is what being anxious is.
+        var pinchBase = (fm && fm.anim && fm.anim.pinch && fm.anim.pinch[fm.index]) || 0;
+        var pinchAmt = pinchBase ? 0.55 + 0.45 * Math.sin(t * 0.85) : 0;
         var conAmt = 0, conFrame = 0;
         var conBase = (fm && fm.anim && fm.anim.contract && fm.anim.contract[fm.index]) || 0;
         if (conReset) { groanT0 = t + 0.9; conReset = false; }
@@ -2335,7 +2342,7 @@
             var fcode = fm.anim.fins.charAt(fm.index) || "r";
             var fp2 = FINP[fcode] || FINP.r;
             var fsc = fcw / 64;
-            var baseW = fp2[0] * fsc * (1 - 0.55 * conAmt) * (1 + 0.55 * strainA), famp = fp2[1] * fsc * (1 - 0.6 * conAmt) * (1 + 0.3 * strainA), frate = fp2[2];   // contraction pulls the membranes in; strain frills them out — but not far
+            var baseW = fp2[0] * fsc * (1 - 0.55 * conAmt) * (1 - 0.5 * pinchAmt) * (1 + 0.55 * strainA), famp = fp2[1] * fsc * (1 - 0.6 * conAmt) * (1 + 0.3 * strainA), frate = fp2[2];   // contraction pulls the membranes in; strain frills them out — but not far
             // the fins ATTACH ALONG THE MANTLE'S CURVE (mirrors gen-sepia's PROFILE):
             // the flank bows out to the eye band and tapers away below — the membrane
             // follows it, so the fin reads as grown from the body line, not pinned to a wall
@@ -2415,7 +2422,7 @@
                 var acx = armS[0], ai2 = armS[1];
                 var arr2 = mulberry32(L.seed + ai2 * 3671 + 17);
                 var aph = arr2() * 6.28, arate = (0.5 + arr2() * 0.5) * (0.4 + fp2[2] * 0.35);
-                var aamp = (1.2 + fp2[1] * 0.9) * fsc * (1 - 0.6 * conAmt) * (1 - 0.45 * strainA), alen = Math.max(6, Math.round(armS[2] * (1 - 0.38 * conAmt) * (1 + 0.28 * strainA))), ay0 = 49;   // contraction draws the skirt in; strain reaches it LONGER and holds it tense
+                var aamp = (1.2 + fp2[1] * 0.9) * fsc * (1 - 0.6 * conAmt) * (1 - 0.4 * pinchAmt) * (1 - 0.45 * strainA), alen = Math.max(6, Math.round(armS[2] * (1 - 0.38 * conAmt) * (1 + 0.28 * strainA))), ay0 = 49;   // contraction draws the skirt in; strain reaches it LONGER and holds it tense
                 var aw0 = 2.3 * fsc;
                 var lEdge = [], rEdge = [];
                 // SHE IS TAKING NOTES (v0.94.0). Both props ride the RIGHT flank now: the pad
@@ -2751,7 +2758,7 @@
           ky += (32 - boopFx.cy) * 0.08 * bev;
         }
         if (kaoEl) {
-          if (kx || ky || ks !== 1 || beatKw) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + (ks * (1 + beatKw)).toFixed(3) + "," + ks.toFixed(3) + ")";
+          if (kx || ky || ks !== 1 || beatKw || pinchAmt) kaoEl.style.transform = "translate(" + (kx * pxScale).toFixed(2) + "px," + (ky * pxScale).toFixed(2) + "px) rotate(" + krot.toFixed(1) + "deg) scale(" + (ks * (1 + beatKw) * (1 - 0.13 * pinchAmt)).toFixed(3) + "," + ks.toFixed(3) + ")";
           else if (kaoEl.style.transform) kaoEl.style.transform = "";                // rest cleanly
         }
         if (echoKao) {
