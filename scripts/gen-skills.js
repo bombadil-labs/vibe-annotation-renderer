@@ -455,7 +455,7 @@ him when that is funny, or when it is true.`,
   // Mirrors MOOD_EMOJI in src/vibe.js so the Builder previews resolve mood names to the
   // same art the renderer will draw. Keep in sync when either side changes.
   MOOD_EMOJI_PREVIEW: {
-    neutral: "1f642", content: "1f60a", delighted: "1f604", focused: "1f9d0", sleepy: "1f634",
+    neutral: "1f642", content: "1f60a", delighted: "1f604", focused: "1f9d0",
     sheepish: "1f605", booped: "1f633", thinking: "1f914", spark: "1f4a1", excited: "1f929",
     surprised: "1f62e", tender: "1f970", melancholy: "1f61e", anxious: "1f630", mirth: "1f606",
     laugh: "1f602", groan: "1f62b", oops: "1f62c", frustrated: "1f624", angry: "1f620",
@@ -476,7 +476,7 @@ him when that is funny, or when it is true.`,
     drollery: { kind: "sheet", url: DROLLERY_SHEET, cols: 8, rows: 15, cell: 64,
       moods: MOOD_LIST,
       strip: ["content","delighted","thinking","awe","angry","at_peace","love","working"] },
-    motes: { kind: "proc", moods: MOOD_LIST, strip: ["content","focused","awe","delighted","sleepy","angry","love","vertigo"] },
+    motes: { kind: "proc", moods: MOOD_LIST, strip: ["content","focused","awe","delighted","weary","angry","love","vertigo"] },
     kaomoji: { kind: "text", strip: ["( ˶ˆ ꒳ ˆ˵ )","( ・_・)","( ˃ ᯅ ˂ )","( ˘ ᵕ ˘ )","( ⊙ ᵕ ⊙ )","( ˶˃ ᵕ ˂˶ )","  ∧,,∧\n( ̳• · • ̳)\n/    づ♡"] }
   }
 };
