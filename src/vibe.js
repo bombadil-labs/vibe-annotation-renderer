@@ -2608,11 +2608,18 @@
           if (fcw > 4) {
             if (finC.width !== fcw) { finC.width = fcw; finC.height = Math.round(fch * 1.43); }   // matches the 143% CSS height (25% above, 118% below)
             var fx2 = finC.getContext("2d");
+            // RESET BEFORE CLEARING (v1.7.1 fix): clearRect operates in whatever transform is
+            // currently active, and a transform set last frame survives into this one — a stale
+            // offset here means clearRect wipes the wrong region, leaving a stripe of last
+            // frame's drawing behind it every single tick. Identity first, then clear, THEN
+            // (below) apply this frame's headroom offset for the actual drawing.
+            fx2.setTransform(1, 0, 0, 1, 0, 0);
             fx2.clearRect(0, 0, fcw, fch * 1.43);
             var fx3 = null;                                    // the topmost layer, above the chromatophore wash — worn items only
             if (topC) {
               if (topC.width !== fcw) { topC.width = fcw; topC.height = Math.round(fch * 1.43); }
               fx3 = topC.getContext("2d");
+              fx3.setTransform(1, 0, 0, 1, 0, 0);
               fx3.clearRect(0, 0, fcw, fch * 1.43);
             }
             var fcode = fm.anim.fins.charAt(fm.index) || "r";
@@ -2620,11 +2627,16 @@
             var fsc = fcw / 64;
             // HEADROOM OFFSET: the canvas now starts 25% (16 prop-space units) above the face
             // box, but every existing coordinate in this function was written assuming y=0 IS
-            // the box's top edge. Translating by that offset keeps all of them meaning exactly
-            // what they always meant — only NEW code that deliberately uses negative y reaches
-            // into the new sky above her.
-            fx2.translate(0, 16 * fsc);
-            if (fx3) fx3.translate(0, 16 * fsc);
+            // the box's top edge. Offsetting keeps all of them meaning exactly what they always
+            // meant — only NEW code that deliberately uses negative y reaches into the new sky.
+            // setTransform, NOT translate: translate() is RELATIVE to whatever the matrix
+            // already is, and nothing before this reset it — so the original cut compounded
+            // every single frame (16fsc, then 32, then 48...), shoving fins/arms/props further
+            // off-canvas each tick until everything but the base sprite had scrolled out of the
+            // visible area entirely. setTransform sets the matrix ABSOLUTELY, so the same call
+            // every frame is idempotent regardless of what the previous frame left behind.
+            fx2.setTransform(1, 0, 0, 1, 0, 16 * fsc);
+            if (fx3) fx3.setTransform(1, 0, 0, 1, 0, 16 * fsc);
             // ENERGY IS A MOOD, NOT JUST A POSTURE (v1.3.0): flared already runs hotter than
             // ripple, but excited itself wants to run hotter still — flailing, not just flared.
             // Mirth gets a much smaller lift: joyful, the maintainer's word was explicit that
