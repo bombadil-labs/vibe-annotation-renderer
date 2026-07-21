@@ -81,8 +81,13 @@
    readable behind it, and it carries the bio so the creature you picked introduces itself
    where you actually change faces. */
 .gal-bar{position:sticky;top:0;z-index:20;margin:16px 0 0;padding:9px 10px 10px;
-  background:color-mix(in srgb, var(--bg) 88%, transparent);backdrop-filter:blur(8px);
+  background:var(--paper);
   border:1px solid var(--edge);border-radius:11px;box-shadow:0 6px 18px -12px rgba(0,0,0,0.55)}
+.gal-jump{display:flex;flex-wrap:wrap;gap:2px 7px;max-height:3.4em;overflow-y:auto}
+.gal-jump a{font-family:var(--font-mono,ui-monospace,monospace);font-size:11px;color:var(--sub);
+  text-decoration:none;font-weight:400;white-space:nowrap}
+.gal-jump a:hover{color:var(--accent);text-decoration:underline}
+.cell{scroll-margin-top:120px}
 .gal-row{display:flex;align-items:center;gap:8px;margin:0 0 5px}
 .gal-row:last-of-type{margin-bottom:0}
 .gal-lbl{font-family:var(--font-mono,ui-monospace,monospace);font-size:11px;color:var(--sub);
@@ -187,6 +192,10 @@
           <button class="tab-btn" data-face="drollery">drollery</button>
           <button class="tab-btn" data-face="kip">kip</button>
         </div>
+      </div>
+      <div class="gal-row">
+        <span class="gal-lbl">jump</span>
+        <div id="mood-jump" class="gal-jump"></div>
       </div>
       <div class="gal-row">
         <span class="gal-lbl">habitat</span>
@@ -528,9 +537,9 @@ var GROUPS = [
       "can you rewrite my landing page copy?",
       {kaomoji:"( ˶ ˘ ᵕ ˘ ˶ )", seems:"ready to hand it over; hasn't said who it's for", feel:"open · holding back", noticing:"the answer changes completely depending on the audience", trying:"ask the one question that unlocks the rest", flag:"asking", palette:["#9ac0b0","#8f9ac0"], focus:0.5, engagement:0.8, stance:0.15},
       "Happy to. One thing first, because it changes everything: who's landing here — people who already know they need this, or people who've never heard of it?"],
-    ["weary — not upset, just running on rails",
+    ["working — the ninth pass, head down",
       "this is the ninth config file. same conversion. ninth.",
-      {kaomoji:"( ˘_˘ )", seems:"not frustrated, just worn down by repetition", feel:"flat · running on rails", noticing:"nobody has offered to automate this and they haven't asked", trying:"do the ninth, then say the thing", flag:"weary", palette:["#8b93a0","#7d8fb8"], focus:0.7, engagement:0.35},
+      {kaomoji:"( ˘_˘ )", seems:"grinding something that should have been scripted five files ago", feel:"steady · head down", noticing:"nobody has offered to automate this and they haven't asked", trying:"finish the ninth, then say the thing", flag:"working", palette:["#6f8fa8","#7d8fb8"], focus:0.82, engagement:0.55},
       "Done. Ninth. — Do you want the script? Twenty minutes now and there is no tenth."],
     ["wink — complicit, and not sorry",
       "purely hypothetically, if someone had already bought the tickets before asking their partner…",
@@ -599,8 +608,9 @@ function buildChat(promptText) {
   chat.appendChild(bar); chat.appendChild(body);
   return { chat: chat, body: body };
 }
+var JUMPS = [];
 function buildGallery() {
-  g.innerHTML = ""; MOUNT_QUEUE["gallery"] = [];
+  g.innerHTML = ""; MOUNT_QUEUE["gallery"] = []; JUMPS = [];
   GROUPS.forEach(function (grp) {
   var shown = grp[1].filter(function (s) { return appliesTo(s[2]); });
   if (!shown.length) return;                                 // a group with nothing to show gets no heading either
@@ -610,6 +620,8 @@ function buildGallery() {
     var cap = document.createElement("p"); cap.className = "cap";
     var lbl = typeof s[0] === "function" ? s[0](FACE_CHOICE) : s[0];
     var t = lbl.split(" — "); cap.innerHTML = "<b>" + t[0] + "</b>" + (t[1] ? " — " + t[1] : "");
+    cell.id = "m-" + t[0].trim().replace(/\s+/g, "_");         // the jump row targets these
+    JUMPS.push(t[0].trim());
     var c = buildChat(s[1]);
     var banner = document.createElement("div"); banner.className = "banner";
     var r = document.createElement("p"); r.className = "resp";
@@ -622,6 +634,22 @@ function buildGallery() {
     queueMount("gallery", banner, withFace(s[2]));
   });
   });
+  // the jump row: one link per cell actually on screen, so it tracks the mood-subset filter
+  var jw = document.getElementById("mood-jump");
+  if (jw) {
+    jw.innerHTML = "";
+    JUMPS.forEach(function (nm) {
+      var a2 = document.createElement("a");
+      a2.href = "#m-" + nm.replace(/\s+/g, "_");
+      a2.textContent = nm;
+      a2.addEventListener("click", function (e) {              // plain anchors would rewrite the hash and re-route the tab
+        e.preventDefault();
+        var el = document.getElementById("m-" + nm.replace(/\s+/g, "_"));
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      jw.appendChild(a2);
+    });
+  }
 
 var SHIFT_DEMO = {
   prompt: "I transcribed my grandfather's letters from the war, but the dates make no sense — the April one is postmarked from a port he shouldn't have reached until June. Did I mess up the transcription?",

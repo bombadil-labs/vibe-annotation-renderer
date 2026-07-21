@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@3fe658d3ebb72546602c52f32e55af45c8374896/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@3ccfb34f2242740ffc2da93177d391d20d2cded2/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/drollery-sheet.png";
@@ -2394,8 +2394,11 @@
               // each arm's hand goes and how its sweep bows to get there — so staging a new one
               // costs four numbers instead of a rewrite.
               var POSES = {
-                asking:   { 4: { x: 52, y: 40, cx: 61, cy: 56 },       // the pad, out and low
-                            3: { x: 43, y: 27, cx: 53, cy: 51 } },     // the pen, up and inboard over the page
+                // The pad sat at eye level, where her mantle is at its WIDEST — so it landed on
+                // her face and dissolved into it. Down and out instead: at this height the body
+                // has tapered to the hem and the page has clear water around it.
+                asking:   { 4: { x: 55, y: 57, cx: 63, cy: 64 },       // the pad, low and well clear of the body
+                            3: { x: 51, y: 38, cx: 60, cy: 52 } },     // the pen, above the page and outboard
                 // crossed, and one hand up under the chin. The crossing pair reach PAST each
                 // other so the overlap is real rather than two parallel curves.
                 thinking: { 1: { x: 41, y: 46, cx: 28, cy: 57 },       // sweeps right, across the body
@@ -2478,7 +2481,7 @@
               // and their own side strokes are the grooves — one continuous boundary)
               if (askHold && armTips[3] && armTips[4]) {        // the props, riding the lifted tips
                 var padT = armTips[4], penT = armTips[3];
-                var padW = 13 * fsc, padH = 15 * fsc;
+                var padW = 15 * fsc, padH = 17 * fsc;   // bigger: it has room down here
                 var padTilt = -0.17 + Math.sin(t * 0.9) * 0.04;   // tipped toward her, the way a held page is
                 fx2.save();
                 fx2.translate(padT.x, padT.y - padH * 0.38); fx2.rotate(padTilt);
@@ -2491,13 +2494,13 @@
                 fx2.fillRect(-padW / 2, -padH / 2, padW, Math.max(1, fsc * 1.4));
                 fx2.restore();
                 // nib DOWN AND INBOARD, so the pen points at the page rather than away from it
-                var penL = 14 * fsc, penTilt = 2.35 + Math.sin(t * 1.05 + 1.2) * 0.06;
+                var penL = 16 * fsc, penTilt = 2.35 + Math.sin(t * 1.05 + 1.2) * 0.06;
                 fx2.save();
                 fx2.translate(penT.x, penT.y); fx2.rotate(penTilt);
                 fx2.strokeStyle = rgba("#4a3f52", 0.95); fx2.lineCap = "round";       // the barrel
-                fx2.lineWidth = Math.max(1.1, fsc * 1.5);
+                fx2.lineWidth = Math.max(1.8, fsc * 2.6);    // it was a hairline and simply vanished at banner size
                 fx2.beginPath(); fx2.moveTo(0, penL * 0.42); fx2.lineTo(0, -penL * 0.34); fx2.stroke();
-                fx2.strokeStyle = rgba("#e8dcd0", 0.95); fx2.lineWidth = Math.max(0.9, fsc * 1.2);
+                fx2.strokeStyle = rgba("#f4ead8", 0.98); fx2.lineWidth = Math.max(1.4, fsc * 2.0);
                 fx2.beginPath(); fx2.moveTo(0, -penL * 0.34); fx2.lineTo(0, -penL * 0.5); fx2.stroke();   // the nib
                 fx2.restore();
               }
