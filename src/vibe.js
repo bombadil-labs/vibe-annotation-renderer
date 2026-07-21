@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@01e71ea04a551dbd564a392bb1fd889d62b9044e/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@454f2112080b788cd85d881d1c0b1040ed375e5f/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   // HIS BODY IS PICKABLE (v1.0.0), the way a solid-colour window is. One sheet per body
@@ -791,7 +791,7 @@
                             at_peace: "c", resolute: "c" }, "r"),
           arms: true,                                          // three independently swaying arms, drawn from the hem (the baked stubs retired)
           ink: byMood({ oops: 1, anxious: 0.4 }),              // her namesake pigment: oops sprays a full startled puff, anxious leaks nervous wisps
-          cycle: byMood({ laugh: 0.32, mirth: 0.55 }),          // beat moods: laugh's frame 1 is the guffaw; mirth's is a smile that keeps almost sliding into a wobble (gen-sepia gives it a different mouth, not a blink)
+          cycle: byMood({ laugh: 0.32, mirth: 0.55, oops: 1.15 }),   // beat moods: laugh's frame 1 is the guffaw; mirth's is a smile that keeps almost sliding into a wobble; oops's is a clean glance to the other side, held, not fluttered (gen-sepia gives each its own frame-1 art, not a blink)
           bounce: byMood({ laugh: 1 }),                        // beat moods also heave the whole body — up-down AND a chest-wide width pulse
           contract: byMood({ groan: 1 }),                      // groan: the long contraction cycle — deadpan, then the visible squeeze, held ~30s, eventually released
           strain: byMood({ angry: 1 }),                        // angry: RESTRAINED fury — arms strain longer and tense, fins frill out but not far, everything trembling slightly
@@ -880,6 +880,7 @@
    * The thirteen retired names still resolve (below) so deployed skills degrade into the
    * nearest weather instead of silently rendering nothing. */
   var WEATHER = ["storm", "spotlight", "hush", "fog", "glow", "bloom", "converge"];
+  var DRAMA_FACES = { sepia: 1, kip: 1, drollery: 1 };            // bodies that stand in the window and can be lit — motes has its own dramatic cluster, kaomoji has no window presence to darken
   // No alias table: every deployed skill pins a full commit SHA, so an old skill loads the
   // OLD renderer bytes. Backwards compatibility is structurally unnecessary here — the pin
   // IS the compatibility story, which is a nice dividend of the supply-chain discipline.
@@ -941,10 +942,10 @@
     var stance = p.stance == null ? 0 : clamp01(p.stance, 0);  // 0 asking (pure falloff, today's look) → 1 telling (defined edge)
     var conson = clamp01(p.coherence != null ? p.coherence : p.consonance, 1);   // v0.41.0: coherence is the emotional dual of focus; consonance still accepted                     // 1 integrated (compact, solid) → 0 split (diffuse washes); omitted = 1
     var activeFlag = weatherOf(p);                             // the contract: weather?: one of WEATHER, or none
-    // DRAMATIC IS ITS OWN WEATHER (v1.3.0). The mood already stages the mask; the room around
-    // it should dim to match without asking the reporter to also set weather:"spotlight". An
-    // explicit weather choice still wins — this only fills in when none was given.
-    if (!activeFlag && !square && p.face && typeof p.face === "object" && p.face.item === "dramatic") activeFlag = "spotlight";
+    // (v1.3.0 auto-defaulted dramatic to weather:"spotlight" here — retired in v1.5.0. Dramatic
+    // now lights the WINDOW directly (see DRAMA_FACES below), which is the first-class version
+    // of the same idea; stacking the banner-wide weather dim on top of it read as double-dark.
+    // An explicit weather:"spotlight" (or anything else) is still available and still honoured.)
     if (square) activeFlag = null;                             // a bare tile has no weather — weather is a detail
 
     var vr = mulberry32(seed + 7);
@@ -1226,6 +1227,18 @@
       sceneSVG = '<rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10" fill="' + scene.fill + '"/>' + frameRect;
     } else {
       sceneSVG = '<rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10" fill="#8a7a86" fill-opacity="0.07"/>' + frameRect;
+    }
+    // THE SPOTLIGHT, IN THE WINDOW ITSELF (v1.5.0): dramatic isn't banner weather — the
+    // scene BEHIND her darkens and a beam cuts through around her, first-class to the
+    // avatar-in-scene, not a room-wide dim. Sepia, Kip, Drollery only: bodies that stand
+    // in the window and can be lit. Static twin of the live canvas version below.
+    if (p.face && typeof p.face === "object" && p.face.item === "dramatic" && DRAMA_FACES[p.face.set]) {
+      var dcid = "vdrw" + (++SCENE_IDS), dcx2 = portrait.x + portrait.s / 2, dcy2 = portrait.y + portrait.s / 2;
+      sceneSVG += '<defs><clipPath id="' + dcid + '"><rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" rx="10"/></clipPath>' +
+        '<radialGradient id="' + dcid + 'g" cx="50%" cy="50%" r="62%">' +
+        '<stop offset="0%" stop-color="#08060e" stop-opacity="0"/><stop offset="38%" stop-color="#08060e" stop-opacity="0"/><stop offset="100%" stop-color="#08060e" stop-opacity="0.74"/>' +
+        '</radialGradient></defs>' +
+        '<g clip-path="url(#' + dcid + ')"><rect x="' + portrait.x + '" y="' + g(portrait.y) + '" width="' + portrait.s + '" height="' + portrait.s + '" fill="url(#' + dcid + 'g)"/></g>';
     }
 
     var L = {
@@ -1698,6 +1711,17 @@
       };
       mimg.onerror = function () { chromo.style.display = "none"; };
       mimg.src = fm.url;
+    }
+    // A LAYER FOR WORN ITEMS (v1.5.0): the chromatophore wash above sits over finC in DOM
+    // order, so anything drawn there — like resolute's gloves — reads as painted UNDER the
+    // colour wherever it crosses the mantle. Appended last, after chromo/featEl/tintC: this
+    // one is guaranteed topmost, for props that need to sit above the colour, not under it.
+    var topC = null;
+    if (kaoEl && fm && fm.kind === "sprite" && fm.anim && fm.anim.arms) {
+      topC = document.createElement("canvas");
+      topC.style.cssText = "position:absolute;left:0;top:0;width:100%;height:118%;pointer-events:none";
+      kaoEl.style.position = "relative";
+      kaoEl.appendChild(topC);
     }
     // THE ECHO (v0.40.0, rhyme): an exact replica of the face, 25 banner-px to the LEFT,
     // 25% alpha, non-interactive, mirroring every action — transform, sprite frames, and
@@ -2283,6 +2307,27 @@
           }                                                    // (end tidepool branch — study returned above with its own restore)
         }
 
+        // THE SPOTLIGHT, IN THE WINDOW ITSELF (v1.5.0): live twin of the static version in
+        // layout() — runs regardless of scene (even no scene at all), darkening whatever's
+        // behind her and cutting a beam around where she stands. The face is a DOM layer
+        // above this canvas, so it and anything the beam catches with her stay fully lit.
+        if (p.face && typeof p.face === "object" && p.face.item === "dramatic" && DRAMA_FACES[p.face.set] && L.portrait) {
+          var dpt = L.portrait, dps = dpt.s;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(dpt.x + 10, dpt.y);
+          ctx.arcTo(dpt.x + dps, dpt.y, dpt.x + dps, dpt.y + dps, 10);
+          ctx.arcTo(dpt.x + dps, dpt.y + dps, dpt.x, dpt.y + dps, 10);
+          ctx.arcTo(dpt.x, dpt.y + dps, dpt.x, dpt.y, 10);
+          ctx.arcTo(dpt.x, dpt.y, dpt.x + dps, dpt.y, 10);
+          ctx.closePath(); ctx.clip();
+          var dcx3 = dpt.x + dps / 2, dcy3 = dpt.y + dps / 2;
+          var dgr = ctx.createRadialGradient(dcx3, dcy3, dps * 0.24, dcx3, dcy3, dps * 0.62);
+          dgr.addColorStop(0, "rgba(8,6,14,0)"); dgr.addColorStop(0.6, "rgba(8,6,14,0)"); dgr.addColorStop(1, "rgba(8,6,14,0.74)");
+          ctx.fillStyle = dgr; ctx.fillRect(dpt.x, dpt.y, dps, dps);
+          ctx.restore();
+        }
+
         // --- ink: a sepia cloud expelled behind the body, dispersing in the window ---
         if (inkAmt || inkBursts.length) {
           if (inkAmt >= 0.7) { if (!inkFired && t > 0.7) { inkBursts.push({ t0: t, s: inkAmt, k: inkSeq++ }); inkFired = true; } }
@@ -2544,6 +2589,12 @@
             if (finC.width !== fcw) { finC.width = fcw; finC.height = Math.round(fch * 1.18); }   // matches the 118% CSS height — cell y-space runs 0..75
             var fx2 = finC.getContext("2d");
             fx2.clearRect(0, 0, fcw, fch);
+            var fx3 = null;                                    // the topmost layer, above the chromatophore wash — worn items only
+            if (topC) {
+              if (topC.width !== fcw) { topC.width = fcw; topC.height = Math.round(fch * 1.18); }
+              fx3 = topC.getContext("2d");
+              fx3.clearRect(0, 0, fcw, fch);
+            }
             var fcode = fm.anim.fins.charAt(fm.index) || "r";
             var fp2 = FINP[fcode] || FINP.r;
             var fsc = fcw / 64;
@@ -2650,6 +2701,24 @@
                 var wkPT = t % 1.3;
                 var wkPoke = wkPT < 0.18 ? ease(wkPT / 0.18) : wkPT < 0.30 ? 1 - ease((wkPT - 0.18) / 0.12) : 0;
                 POSE[4] = { x: 51, y: 55.5 + 2.2 * wkPoke, cx: 46, cy: 47 };
+              }
+              // THE PUNCH (v1.5.0). Guard alone read as static; every couple of seconds one
+              // glove — alternating — jabs up and inward, toward the viewer, while the other
+              // holds the guard. The control point follows the target in, so the sweep
+              // straightens instead of staying bowed: a thrown punch, not a raised fist.
+              var rpPunch = 0, rpIdx = -1;
+              if (MOODS[fm.index] === "resolute") {
+                var RPP = 2.6, rpCyc = Math.floor(t / RPP), rpU = (t % RPP) / RPP;
+                rpIdx = rpCyc % 2 === 0 ? 0 : 4;
+                rpPunch = rpU < 0.16 ? ease(rpU / 0.16) : rpU < 0.30 ? 1 - ease((rpU - 0.16) / 0.14) : 0;
+                POSE = { 0: POSES.resolute[0], 4: POSES.resolute[4] };
+                if (rpPunch > 0.02) {
+                  var rpBaseX = rpIdx === 0 ? 19 : 45;
+                  POSE[rpIdx] = {
+                    x: rpBaseX + (32 - rpBaseX) * 0.35 * rpPunch, y: 36 - 15 * rpPunch,
+                    cx: rpBaseX + (32 - rpBaseX) * 0.15 * rpPunch, cy: 48 - 10 * rpPunch
+                  };
+                }
               }
               var askHold = MOODS[fm.index] === "asking";
               var armTips = {};
@@ -2798,17 +2867,19 @@
                 fx2.beginPath(); fx2.moveTo(0, -penL * 0.34); fx2.lineTo(0, -penL * 0.5); fx2.stroke();   // the nib
                 fx2.restore();
               }
-              if (MOODS[fm.index] === "resolute" && armTips[0] && armTips[4]) {   // gloves on the guard's two raised fists
-                [armTips[0], armTips[4]].forEach(function (gTip, gi) {
-                  var gsc = 7 * fsc, gbob = Math.sin(t * 1.3 + gi * 2.1) * 0.8 * fsc;   // a little live-in-the-stance breathing, not a held pose
-                  fx2.save();
-                  fx2.translate(gTip.x, gTip.y + gbob);
-                  fx2.fillStyle = rgba("#c0483a", 0.96);
-                  fx2.beginPath(); fx2.arc(0, 0, gsc, 0, 6.2832); fx2.fill();                                        // the mitt
-                  fx2.beginPath(); fx2.ellipse(gi === 0 ? gsc * 0.55 : -gsc * 0.55, -gsc * 0.15, gsc * 0.42, gsc * 0.34, 0, 0, 6.2832); fx2.fill();   // the thumb, toward the body's centre
-                  fx2.fillStyle = rgba("#8a3230", 0.9);
-                  fx2.beginPath(); fx2.rect(-gsc * 0.75, gsc * 0.55, gsc * 1.5, gsc * 0.55); fx2.fill();             // the wrist wrap
-                  fx2.restore();
+              if (MOODS[fm.index] === "resolute" && armTips[0] && armTips[4] && fx3) {   // gloves, on the layer ABOVE the chromatophore wash — drawn under it otherwise
+                [[armTips[0], 0], [armTips[4], 4]].forEach(function (gArm) {
+                  var gTip = gArm[0], gArmIdx = gArm[1], gi = gArmIdx === 0 ? 0 : 1;
+                  var punching = gArmIdx === rpIdx ? rpPunch : 0;                     // the thrown glove grows toward the viewer; the guard hand doesn't
+                  var gsc = 7 * fsc * (1 + 0.85 * punching), gbob = Math.sin(t * 1.3 + gi * 2.1) * 0.8 * fsc * (1 - punching);
+                  fx3.save();
+                  fx3.translate(gTip.x, gTip.y + gbob);
+                  fx3.fillStyle = rgba("#c0483a", 0.96);
+                  fx3.beginPath(); fx3.arc(0, 0, gsc, 0, 6.2832); fx3.fill();                                        // the mitt
+                  fx3.beginPath(); fx3.ellipse(gi === 0 ? gsc * 0.55 : -gsc * 0.55, -gsc * 0.15, gsc * 0.42, gsc * 0.34, 0, 0, 6.2832); fx3.fill();   // the thumb, toward the body's centre
+                  fx3.fillStyle = rgba("#8a3230", 0.9);
+                  fx3.beginPath(); fx3.rect(-gsc * 0.75, gsc * 0.55, gsc * 1.5, gsc * 0.55); fx3.fill();             // the wrist wrap
+                  fx3.restore();
                 });
               }
             }
@@ -2893,10 +2964,15 @@
                   fx2.fillStyle = gpi % 3 === 0 ? "#ffd24a" : "#ff5a4a";
                   fx2.fillText(gword, gpx, gpy);
                 }
-              } else if (propN === "qmark") {                                        // REALLY perplexed (v1.3.0): a proper cluster, held clearly above the crown —
+              } else if (propN === "qmark") {                                        // REALLY perplexed: a proper cluster, held above the crown —
                 for (var qpi = 0; qpi < 5; qpi++) {                                 // the old drift barely cleared her head and read too faint to register
                   var qpr = mulberry32(L.seed + qpi * 173 + 37);
-                  var qbirth = qpr() * 3.4, qang2 = -1.5708 + (qpr() - 0.5) * 2.2, qrad2 = 10 + qpr() * 10;   // an arc above her, never wrapping down to face level
+                  // FIX (v1.5.0): the v1.3.0 rewrite centred this arc at y=2 with up to 20 units
+                  // of upward radius — canvas coordinates below 0 are off-canvas, so most of the
+                  // cluster was being drawn ABOVE the visible cell and simply never appeared.
+                  // Recentred lower with a smaller radius: the worst case (straight up, max
+                  // radius) now lands at y≈2.8, comfortably on-canvas.
+                  var qbirth = qpr() * 3.4, qang2 = -1.5708 + (qpr() - 0.5) * 2.2, qrad2 = 8 + qpr() * 8;   // an arc above her, never wrapping down to face level
                   var qage2 = (((t - qbirth) % 3.4) + 3.4) % 3.4;
                   if (qage2 > 2.4) continue;
                   var qu2 = qage2 / 2.4;
@@ -2904,21 +2980,23 @@
                   fx2.globalAlpha = 0.9 * (qu2 < 0.18 ? qu2 / 0.18 : Math.max(0, 1 - (qu2 - 0.18) / 0.82));
                   fx2.font = "700 " + (10.5 * (0.9 + 0.3 * qpr()) * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
                   fx2.fillStyle = qpi % 3 === 0 ? "#9a8a6a" : "#7a6a55";
-                  fx2.fillText("?", 32 * fsc + Math.cos(qang2) * qrad2 * fsc, (2 + qrise2) * fsc + Math.sin(qang2) * qrad2 * 0.55 * fsc);
+                  fx2.fillText("?", 32 * fsc + Math.cos(qang2) * qrad2 * fsc, (10 + qrise2) * fsc + Math.sin(qang2) * qrad2 * 0.55 * fsc);
                 }
-              } else if (propN === "thought") {                                      // awe: "waow..." in a thought bubble — trailing dots climbing to the crown
-                var thBob = Math.sin(t * 0.7) * 0.6 * fsc;
-                fx2.fillStyle = "#ffffff"; fx2.strokeStyle = rgba("#5a4a52", 0.55); fx2.lineWidth = Math.max(0.8, fsc * 0.6);
-                [[1.0, 42, 15], [1.6, 45, 10], [2.3, 48, 6]].forEach(function (td) {
-                  fx2.globalAlpha = 0.92;
-                  fx2.beginPath(); fx2.arc(td[1] * fsc, (td[2] + thBob) * fsc, td[0] * fsc, 0, 6.2832); fx2.fill(); fx2.stroke();
-                });
-                var thbx = 50 * fsc, thby = (2 + thBob) * fsc;
-                fx2.globalAlpha = 0.92;
-                fx2.beginPath(); fx2.ellipse(thbx, thby, 17 * fsc, 9 * fsc, 0, 0, 6.2832); fx2.fill(); fx2.stroke();
-                fx2.fillStyle = "#4a3a44"; fx2.font = "600 " + (6 * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
-                fx2.textAlign = "center"; fx2.textBaseline = "middle";
-                fx2.fillText("waow...", thbx, thby);
+              } else if (propN === "thought") {                                      // awe: "waow..." — REDESIGNED (v1.5.0). The bubble-and-dots version was too small to
+                // read and its own anchor sat near y=0, clipping off the top of the canvas — the
+                // same off-canvas mistake as the old qmark. No bubble now: just the word itself,
+                // bold and big, fading in and holding and fading out, at a new spot each time.
+                var thPer = 4.5, thCyc = Math.floor(t / thPer), thU = (t % thPer) / thPer;
+                var thFade = thU < 0.15 ? ease(thU / 0.15) : thU < 0.75 ? 1 : thU < 0.95 ? 1 - ease((thU - 0.75) / 0.2) : 0;
+                if (thFade > 0.02) {
+                  var thR = mulberry32(L.seed + thCyc * 941 + 17);
+                  var thX = (22 + thR() * 20) * fsc, thY = (9 + thR() * 8) * fsc;   // stays clear of y=0 — safely on-canvas at any station
+                  fx2.globalAlpha = thFade * 0.95;
+                  fx2.fillStyle = "#4a3a44";
+                  fx2.font = "800 " + (11 * fsc).toFixed(1) + "px ui-sans-serif, sans-serif";
+                  fx2.textAlign = "center"; fx2.textBaseline = "middle";
+                  fx2.fillText("waow...", thX, thY);
+                }
               }
               fx2.globalAlpha = 1; fx2.textAlign = "start"; fx2.textBaseline = "alphabetic";
             }

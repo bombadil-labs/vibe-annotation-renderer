@@ -13,7 +13,7 @@ const PIN = "0000000000000000000000000000000000000000"; // stamped by npm run pi
 
 // Sheet constants mirror the registry in src/vibe.js (birth commits, immutable).
 // If a sheet is redrawn, update BOTH — grep for the old sha to be sure.
-const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@01e71ea04a551dbd564a392bb1fd889d62b9044e/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+const SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@454f2112080b788cd85d881d1c0b1040ed375e5f/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
 const DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2de704a990a16bbf78d98b958e3ca1c1046c0298/assets/drollery-sheet.png";
 const KIP_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/kip-sheet.png";
 const SCENE_TIDEPOOL = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@2c40d5428659e3d4029832c3344825d53bbf0a0c/assets/scene-tidepool.png";
