@@ -277,7 +277,10 @@ const MOODS = [
 if (MOODS.length !== 32) throw new Error("expected 32 moods, got " + MOODS.length);   // 33 until sleepy was cut in v0.88.0
 BASE.forEach((r, i) => { if (r.length !== 32) throw new Error("BASE row " + i + " length " + r.length); });
 
-const SCALE = 2, CELL = 64, COLS = 8, ROWS = 15, FRAME_ROWS = 5;   // 2px body grid (the octave pass); rows 0-4: base; 5-9: blink; 10-14: per-mood masks. Fins drawn live (v0.21.0)
+// DERIVED, not hardcoded (v0.90.0). This was 15 rows / 5 per band for as long as there were
+// 33 moods, and when sleepy was cut the other two generators reflowed while this one did not.
+// Three bands: base, blink, per-mood masks. Fins drawn live (v0.21.0).
+const SCALE = 2, CELL = 64, COLS = 8, FRAME_ROWS = Math.ceil(MOODS.length / COLS), ROWS = FRAME_ROWS * 3;
 const W = CELL * COLS, H = CELL * ROWS;
 const px = Buffer.alloc(W * H * 4);   // RGBA, transparent
 const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
