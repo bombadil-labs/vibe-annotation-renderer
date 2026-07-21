@@ -408,10 +408,16 @@ him when that is funny, or when it is true.`,
     if (line) out.push(line.replace(/\s+$/, ""));
     var vocab = BT + out.join("\n  ") + BT;
 
+    // Drollery's body rides in the snippet, right beside `set` where the skill text says to
+    // put it. Only a real, non-default choice is written out: vermilion (or an unknown name)
+    // leaves the face line byte-identical to a build with no body at all.
+    var sface = f.SNIPPET_FACE;
+    if (faceKey === "drollery" && o.body && o.body !== "vermilion" && P.BODIES && P.BODIES[o.body])
+      sface = sface.replace('set: "drollery"', 'set: "drollery", body: "' + o.body + '"');
     var popts = (o.play ? [] : ["play: false"]).concat(o.cues ? [] : ["cues: false"]);
     var snippet = P.SNIPPET
       .replace("{{SNIPPET_URL}}", P.snippetUrl)
-      .replace("{{SNIPPET_FACE}}", f.SNIPPET_FACE)
+      .replace("{{SNIPPET_FACE}}", sface)
       .replace("{{SNIPPET_READOUT}}", P.SNIPPET_READOUT(o.fields))
       .replace("{{SNIPPET_SCENE}}", P.SNIPPET_SCENE(o.scene))
       .replace("{{PAYLOAD_OPTS}}", popts.length ? ",\n      " + popts.join(", ") : "");
@@ -446,6 +452,11 @@ him when that is funny, or when it is true.`,
 
   CORE_MOODS: CORE_MOODS,
   MOOD_LIST_ALL: MOOD_OFFERED,
+  // DROLLERY'S BODY IS PICKABLE (v1.0.0): five committed sheets, one per body. Names in menu
+  // order; the hex is each ramp's base tone, for the pickers' swatches. Mirrors DROLLERY_BODIES
+  // in src/vibe.js and BODIES in scripts/gen-drollery.js — keep all three in step. vermilion is
+  // the default and is never emitted into a snippet: a written-out default would read as a choice.
+  BODIES: { vermilion: "#c13a2c", verdigris: "#3f7a5c", murex: "#6a4a8f", iron: "#3a3a42", olive: "#7d7a34" },
   CATALOG_HOMES: { kaomoji: "study", motes: "night", sepia: "tidepool", kip: "glade", drollery: "study" },
   SCENES: {
     tidepool: { url: SCENE_TIDEPOOL, live: "tidepool", blurb: "shallow water over sand — bubbles rise, a fish passes, taps ripple" },
