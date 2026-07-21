@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@22e4274bfcbb35a4085990d5d0c9336ac7bdb02c/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@3fe658d3ebb72546602c52f32e55af45c8374896/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/drollery-sheet.png";
@@ -779,6 +779,7 @@
           contract: byMood({ groan: 1 }),                      // groan: the long contraction cycle — deadpan, then the visible squeeze, held ~30s, eventually released
           strain: byMood({ angry: 1 }),                        // angry: RESTRAINED fury — arms strain longer and tense, fins frill out but not far, everything trembling slightly
           props: byMood({ spark: "bulb", laugh: "laughs", groan: "sweat", oops: "excl", frustrated: "vein", angry: "grawlix", puzzled: "qmark" }),   // per-mood emoji props, drawn live ON the avatar (v0.34.0: real emoji, not pixel recreations; still the avatar's own, never flag weather)
+          sag: byMood({ weary: 1 }),                           // weary sinks, catches itself, comes back — then does it again
           tint: byMood({ dramatic: 1 }),                       // dramatic: the porcelain mask washes in the palette's lead colour (v0.40.3) — the sheet stays white; the tint is live. Tinted moods must keep both feature frames identical (the tint canvas replaces the features layer)
           boop: BOOP_CELL, fed: FED_CELL                       // the interrupts: tapped flashes the booped cell, fed flashes laugh's guffaw — one pulse, then back to the mood
         }
@@ -2388,6 +2389,20 @@
               // lift, one bearing a notepad and one a pen, and the inner three keep swaying.
               // The lift is a quadratic sweep out past the flank and up beside the mantle;
               // the props ride the recorded tips, so they are HELD rather than floated nearby.
+              // THE ARMS ARE A STAGE (v0.95.0). She has eight limbs and used them to trail in
+              // the current for every mood but one. A pose is a table of targets now — where
+              // each arm's hand goes and how its sweep bows to get there — so staging a new one
+              // costs four numbers instead of a rewrite.
+              var POSES = {
+                asking:   { 4: { x: 52, y: 40, cx: 61, cy: 56 },       // the pad, out and low
+                            3: { x: 43, y: 27, cx: 53, cy: 51 } },     // the pen, up and inboard over the page
+                // crossed, and one hand up under the chin. The crossing pair reach PAST each
+                // other so the overlap is real rather than two parallel curves.
+                thinking: { 1: { x: 41, y: 46, cx: 28, cy: 57 },       // sweeps right, across the body
+                            3: { x: 23, y: 46, cx: 36, cy: 57 },       // sweeps left, across the first
+                            2: { x: 37, y: 38, cx: 46, cy: 53 } }      // and one up under the chin
+              };
+              var POSE = POSES[MOODS[fm.index]] || null;
               var askHold = MOODS[fm.index] === "asking";
               var armTips = {};
               [[22.7, 0, 15], [27.35, 1, 18], [32, 2, 20], [36.65, 3, 18], [41.3, 4, 15]].forEach(function (armS) {
@@ -2402,9 +2417,7 @@
                 // page. One prop per side read as "holding two objects"; the asymmetry is what
                 // makes it an ACTION. The two arms reach to different heights so they read as
                 // two limbs doing different jobs rather than a pair.
-                var HOLD = { 4: { x: 52, y: 40, cx: 61, cy: 56 },                    // outermost arm: the pad, out and low
-                             3: { x: 43, y: 27, cx: 53, cy: 51 } };                  // its neighbour: the pen, up and inboard, over the page
-                var holding = askHold && HOLD[ai2];
+                var holding = POSE && POSE[ai2];
                 if (holding) {
                   var bob = Math.sin(t * 1.15 + ai2 * 1.7) * 1.2 * fsc;              // the hold breathes, never locks
                   var x0 = acx * fsc, y0 = ay0 * fsc;
@@ -2671,6 +2684,19 @@
         var kx = 0, ky = 0, ks = 1, krot = 0;                                        // kept as anchors — the weather marks still ride these (now-still) offsets
         ky += beatKy;                                                                // the cackle-jounce: the avatar's OWN body language, not a flag pose
         if (conAmt) { ky += 4.5 * conAmt; ks *= 1 - 0.05 * conAmt; }                 // the contraction: sunk low and drawn small
+        // THE SAG (v0.95.0): weary is not a pose, it is a losing fight with gravity. A long
+        // slow slide down, a CATCH where she notices and pulls herself up, then the rest of the
+        // way back, and again. The catch is fast where the slide is slow, and that ratio is the
+        // whole read — the same asymmetry that makes groan's held beat land.
+        var sagAmt = (fm && fm.anim && fm.anim.sag && fm.anim.sag[fm.index]) || 0;
+        if (sagAmt) {
+          var SGP = 5.2, su = (((t % SGP) + SGP) % SGP) / SGP, drop;
+          if (su < 0.62) drop = ease(su / 0.62);                                     // the long slide
+          else if (su < 0.70) drop = 1 - 0.78 * ease((su - 0.62) / 0.08);            // the catch, quick
+          else drop = 0.22 * (1 - ease((su - 0.70) / 0.30));                         // and settle
+          ky += 5.5 * sagAmt * drop;
+          krot += 1.4 * sagAmt * drop;                                               // she lists as she goes down
+        }
         if (thrillE) { ky -= 2.2 * thrillE; ks *= 1 + 0.1 * thrillE; }               // the feeding thrill: a little hop of delight — every face gets this, sprite or text
         if (boopE) { ky -= 1.6 * boopE; ks *= 1 + 0.06 * boopE; }                     // a boop jolts too — a smaller startle than a feeding
         if (kaoEl && boopFx && boopFx.t0 == null) boopFx.t0 = t;
