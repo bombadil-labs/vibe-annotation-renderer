@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@459e9bf122a6f370d51ea76426421c03482d47ed/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@53fc8e1d2896880a8567ae9dbdddca8d5ce784e5/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/drollery-sheet.png";
@@ -769,7 +769,7 @@
           frames: 2, frameRows: MOOD_ROWS, stride: MOOD_STRIDE, split: true,   // LAYERED sheet: rows 0-3 body (solid, the colour's canvas+mask), 4-7 features, 8-11 blink features
           // per-mood fin posture (mirrors gen-sepia's FRILL_OF): r ripple, f flared, d drooped, t tucked, c calm
           fins: strByMood({ delighted: "f", booped: "f", spark: "f", excited: "f", surprised: "f", laugh: "f", dramatic: "f", love: "f",
-                            focused: "t", sheepish: "t", anxious: "t", oops: "t", frustrated: "t", angry: "t", awe: "t", working: "t",
+                            focused: "t", sheepish: "t", anxious: "t", oops: "t", frustrated: "t", angry: "t", awe: "t",
                             melancholy: "d", groan: "d", solemn: "d", weary: "d",
                             at_peace: "c", resolute: "c" }, "r"),
           arms: true,                                          // three independently swaying arms, drawn from the hem (the baked stubs retired)
@@ -2410,12 +2410,26 @@
                 // other so the overlap is real rather than two parallel curves.
                 thinking: { 1: { x: 41, y: 46, cx: 28, cy: 57 },       // sweeps right, across the body
                             3: { x: 23, y: 46, cx: 36, cy: 57 },       // sweeps left, across the first
-                            2: { x: 37, y: 38, cx: 46, cy: 53 } },     // and one up under the chin
-                // an hourglass held out and low, with a second hand up ready to turn it
-                working:  { 4: { x: 54, y: 50, cx: 62, cy: 60 },
-                            3: { x: 50, y: 38, cx: 59, cy: 52 } }
+                            2: { x: 37, y: 38, cx: 46, cy: 53 } }      // and one up under the chin
               };
               var POSE = POSES[MOODS[fm.index]] || null;
+              // WORKING REACHES FOR IT (v0.99.0). The glass stands on its own now, down and to
+              // her left, and the leftmost arm DARTS OUT to tip it when the sand runs out — the
+              // touch is what causes the turn. Holding it made her a creature posing with a
+              // prop; reaching for it makes the glass a thing in the world she has to keep
+              // dealing with. The target lerps out of where the arm naturally hangs, so the dart
+              // grows from the idle instead of cutting to a pose.
+              var wkReach = 0, wkHU = 0;
+              if (MOODS[fm.index] === "working") {
+                var WGP = 9.0;                                          // slower: the wait is the point
+                wkHU = (((t % WGP) + WGP) % WGP) / WGP;
+                wkReach = wkHU < 0.72 ? 0
+                  : wkHU < 0.80 ? ease((wkHU - 0.72) / 0.08)
+                  : wkHU < 0.88 ? 1 : 1 - ease((wkHU - 0.88) / 0.12);
+                if (wkReach > 0.02) POSE = { 0: {
+                  x: 22.7 + (14 - 22.7) * wkReach, y: 64 + (63 - 64) * wkReach,
+                  cx: 24 + (16 - 24) * wkReach, cy: 58 + (69 - 58) * wkReach } };
+              }
               var askHold = MOODS[fm.index] === "asking";
               var armTips = {};
               [[22.7, 0, 15], [27.35, 1, 18], [32, 2, 20], [36.65, 3, 18], [41.3, 4, 15]].forEach(function (armS) {
@@ -2494,14 +2508,14 @@
               // turned, the sand runs out again. The turn ACCUMULATES rather than resetting, so
               // the full bulb genuinely becomes the top one and the loop is honest about being
               // a loop rather than a texture that snaps back.
-              if (MOODS[fm.index] === "working" && armTips[4]) {
-                var hgT = armTips[4], HGP = 5.4, hu = (((t % HGP) + HGP) % HGP) / HGP;
-                var drain = hu < 0.80 ? hu / 0.80 : 1;                 // 0 just-turned, 1 run out
-                var flipU = hu < 0.80 ? 0 : (hu - 0.80) / 0.20;
-                var hrot = (Math.floor(t / HGP) + (flipU <= 0 ? 0 : flipU * flipU * (3 - 2 * flipU))) * Math.PI;
-                var hw = 5 * fsc, hh = 7 * fsc;
+              if (MOODS[fm.index] === "working") {
+                var hu = wkHU;
+                var drain = hu < 0.72 ? hu / 0.72 : 1;                 // 0 just-turned, 1 run out
+                var flipU = hu < 0.80 ? 0 : hu < 0.88 ? (hu - 0.80) / 0.08 : 1;   // the turn FOLLOWS the touch
+                var hrot = (Math.floor(t / 9.0) + ease(flipU)) * Math.PI;
+                var hw = 6.5 * fsc, hh = 9.5 * fsc;                    // bigger: it is the other character in the frame
                 fx2.save();
-                fx2.translate(hgT.x, hgT.y - hh * 0.2); fx2.rotate(hrot);
+                fx2.translate(9 * fsc, 63 * fsc); fx2.rotate(hrot);    // standing on its own, down and to her left
                 fx2.fillStyle = rgba("#c8b6c2", 0.30);                 // the glass
                 fx2.beginPath(); fx2.moveTo(-hw, -hh); fx2.lineTo(hw, -hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.fill();
                 fx2.beginPath(); fx2.moveTo(-hw, hh); fx2.lineTo(hw, hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.fill();
