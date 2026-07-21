@@ -686,7 +686,7 @@
   var KIP_PATTERN = { r: [0, 0, 0, 0, 0, 0, 1], c: [0, 0, 0, 1], b: [0, 1] };
   // Sepia: the face Claude (Fable) designed for itself — a small cuttlefish who wears
   // feeling as color and cannot see its own display. 32 moods; regenerate: npm run sepia.
-  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@3ccfb34f2242740ffc2da93177d391d20d2cded2/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
+  var SEPIA_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@ddcbc0e9e13b64a89596671c7889336afb1bc606/assets/sepia-sheet.png";   // base + blink frames + per-mood masks; fins drawn live
   // Drollery: a marginalia grotesque. Analytic art (not pixels) that BOILS — three frames
   // cycled a few times a second, each the same drawing re-inked with a sub-pixel wobble.
   var DROLLERY_SHEET = "https://cdn.jsdelivr.net/gh/bombadil-labs/vibe-banner@906dcb0a0cd515c25d878fd005a5c59b3c588acf/assets/drollery-sheet.png";
@@ -2403,7 +2403,10 @@
                 // other so the overlap is real rather than two parallel curves.
                 thinking: { 1: { x: 41, y: 46, cx: 28, cy: 57 },       // sweeps right, across the body
                             3: { x: 23, y: 46, cx: 36, cy: 57 },       // sweeps left, across the first
-                            2: { x: 37, y: 38, cx: 46, cy: 53 } }      // and one up under the chin
+                            2: { x: 37, y: 38, cx: 46, cy: 53 } },     // and one up under the chin
+                // an hourglass held out and low, with a second hand up ready to turn it
+                working:  { 4: { x: 54, y: 50, cx: 62, cy: 60 },
+                            3: { x: 50, y: 38, cx: 59, cy: 52 } }
               };
               var POSE = POSES[MOODS[fm.index]] || null;
               var askHold = MOODS[fm.index] === "asking";
@@ -2479,6 +2482,43 @@
               });
               // (no hem gap segments anymore: the arms tile the narrow hem edge-to-edge,
               // and their own side strokes are the grooves — one continuous boundary)
+              // THE HOURGLASS (v0.97.0). working is the loader mood — the one that never settles
+              // — so its prop is the thing that never finishes: the sand runs out, the glass is
+              // turned, the sand runs out again. The turn ACCUMULATES rather than resetting, so
+              // the full bulb genuinely becomes the top one and the loop is honest about being
+              // a loop rather than a texture that snaps back.
+              if (MOODS[fm.index] === "working" && armTips[4]) {
+                var hgT = armTips[4], HGP = 5.4, hu = (((t % HGP) + HGP) % HGP) / HGP;
+                var drain = hu < 0.80 ? hu / 0.80 : 1;                 // 0 just-turned, 1 run out
+                var flipU = hu < 0.80 ? 0 : (hu - 0.80) / 0.20;
+                var hrot = (Math.floor(t / HGP) + (flipU <= 0 ? 0 : flipU * flipU * (3 - 2 * flipU))) * Math.PI;
+                var hw = 5 * fsc, hh = 7 * fsc;
+                fx2.save();
+                fx2.translate(hgT.x, hgT.y - hh * 0.2); fx2.rotate(hrot);
+                fx2.fillStyle = rgba("#c8b6c2", 0.30);                 // the glass
+                fx2.beginPath(); fx2.moveTo(-hw, -hh); fx2.lineTo(hw, -hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.fill();
+                fx2.beginPath(); fx2.moveTo(-hw, hh); fx2.lineTo(hw, hh); fx2.lineTo(0, 0); fx2.closePath(); fx2.fill();
+                var up = 1 - drain;
+                fx2.fillStyle = rgba("#d9a877", 0.96);                 // sand: a shrinking cone above, a rising trapezoid below
+                if (up > 0.02) { fx2.beginPath(); fx2.moveTo(0, 0); fx2.lineTo(-hw * up, -hh * up); fx2.lineTo(hw * up, -hh * up); fx2.closePath(); fx2.fill(); }
+                if (drain > 0.02) {
+                  fx2.beginPath(); fx2.moveTo(-hw, hh); fx2.lineTo(hw, hh);
+                  fx2.lineTo(hw * (1 - drain), hh * (1 - drain)); fx2.lineTo(-hw * (1 - drain), hh * (1 - drain));
+                  fx2.closePath(); fx2.fill();
+                }
+                if (up > 0.02 && flipU <= 0) {                         // the falling thread, while there is still sand to fall
+                  fx2.strokeStyle = rgba("#d9a877", 0.9); fx2.lineWidth = Math.max(0.8, fsc * 0.9);
+                  fx2.beginPath(); fx2.moveTo(0, 0); fx2.lineTo(0, hh * 0.82); fx2.stroke();
+                }
+                fx2.strokeStyle = rgba("#5a4636", 0.95); fx2.lineWidth = Math.max(1.2, fsc * 1.6);
+                fx2.beginPath();                                       // caps and posts
+                fx2.moveTo(-hw * 1.15, -hh); fx2.lineTo(hw * 1.15, -hh);
+                fx2.moveTo(-hw * 1.15, hh); fx2.lineTo(hw * 1.15, hh);
+                fx2.moveTo(-hw * 1.05, -hh); fx2.lineTo(-hw * 1.05, hh);
+                fx2.moveTo(hw * 1.05, -hh); fx2.lineTo(hw * 1.05, hh);
+                fx2.stroke();
+                fx2.restore();
+              }
               if (askHold && armTips[3] && armTips[4]) {        // the props, riding the lifted tips
                 var padT = armTips[4], penT = armTips[3];
                 var padW = 15 * fsc, padH = 17 * fsc;   // bigger: it has room down here
